@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Local SEO Heatmap - Home Slice Pizza</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; color: #17202a; background: #f6f7f9; }
+    main { max-width: 980px; margin: 0 auto; }
+    header { padding: 32px 32px 20px; background: #ffffff; border-bottom: 1px solid #d7dde5; }
+    h1 { font-size: 28px; margin: 0 0 8px; }
+    .meta { color: #52606d; margin-bottom: 24px; }
+    .layout { display: grid; grid-template-columns: 1.45fr .55fr; gap: 20px; padding: 24px 32px 16px; }
+    .supporting { padding: 0 32px 32px; }
+    .map-shell { position: relative; height: min(62vw, 620px); min-height: 460px; overflow: hidden; border-radius: 8px; border: 1px solid #c9d3df; background: #dfe7ef; }
+    .map-frame { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; object-fit: cover; filter: saturate(.96) contrast(.98); }
+    .pin-layer { position: absolute; inset: 0; z-index: 2; pointer-events: none; }
+    .rank-pin { position: absolute; width: 48px; height: 48px; transform: translate(-50%, -50%); border-radius: 999px; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 3px solid #fff; box-shadow: 0 5px 16px rgba(15, 23, 42, .45); font-weight: 800; }
+    .rank-pin span { font-size: 20px; line-height: 1; }
+    .rank-pin small { font-size: 9px; margin-top: 2px; opacity: .84; }
+    .center-pin { outline: 4px solid rgba(15, 94, 238, .65); outline-offset: 3px; }
+    .map-legend { display: flex; flex-wrap: wrap; gap: 8px 14px; margin-top: 12px; color: #52606d; font-size: 13px; }
+    .legend-dot { display: inline-block; width: 11px; height: 11px; border-radius: 999px; margin-right: 5px; vertical-align: -1px; }
+    .grid { display: grid; grid-template-columns: repeat(5, minmax(64px, 1fr)); gap: 8px; }
+    .cell { aspect-ratio: 1; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 1px solid rgba(0,0,0,.08); }
+    .cell span { font-size: 26px; font-weight: 700; line-height: 1; }
+    .cell small { margin-top: 6px; color: rgba(0,0,0,.55); }
+    .rank-one { background: #0f9f6e; color: white; }
+    .rank-top3 { background: #8bd450; color: #102a12; }
+    .rank-visible { background: #ffd166; color: #3b2f00; }
+    .rank-buried { background: #f79d65; color: #3a1600; }
+    .rank-none { background: #e55b5b; color: white; }
+    .metrics { display: grid; grid-template-columns: repeat(4, minmax(120px, 1fr)); gap: 12px; padding: 0 32px 8px; }
+    .metric { background: white; border: 1px solid #d7dde5; border-radius: 8px; padding: 14px; }
+    .metric strong { display: block; font-size: 22px; }
+    .panel { background: #fff; border: 1px solid #d7dde5; border-radius: 8px; padding: 16px; }
+    .panel h2 { margin: 0 0 12px; font-size: 18px; }
+    .bar-row { position: relative; display: grid; grid-template-columns: 1fr 32px; gap: 8px; align-items: center; margin: 10px 0; min-height: 28px; }
+    .bar-row b { position: absolute; left: 0; top: 0; bottom: 0; background: #dbeafe; border-radius: 6px; z-index: 0; }
+    .bar-row span, .bar-row em { position: relative; z-index: 1; padding: 0 8px; font-style: normal; }
+    .notes { margin-top: 16px; color: #52606d; font-size: 14px; line-height: 1.4; }
+    a { color: #155eef; }
+    @media (max-width: 760px) { .layout, .metrics { grid-template-columns: 1fr; } .map-shell { min-height: 420px; } }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>Local SEO Heatmap - Home Slice Pizza</h1>
+      <div class="meta">Keyword: pizza | South Congress, Austin, TX | 5x5, 2 km radius | DataForSEO standard</div>
+    </header>
+    <section class="metrics">
+      <div class="metric"><strong>28.0%</strong>Map Pack Visibility</div>
+      <div class="metric"><strong>48.0%</strong>Top 10 visibility</div>
+      <div class="metric"><strong>3.83</strong>Avg rank</div>
+      <div class="metric"><strong>13</strong>Not found</div>
+    </section>
+    <section class="layout">
+      <div class="panel">
+        <h2>Google Maps Geo-Grid</h2>
+        <div class="map-shell">
+          <img class="map-frame" src="geo-grid-austin-map.png" alt="Google Static Maps background">
+          <div class="pin-layer"><div class="rank-pin rank-none" style="left:13.235%;top:13.235%;" title="r0c0 | 30.267677,-97.769930 | Not found"><span>-</span><small>r0c0</small></div><div class="rank-pin rank-none" style="left:31.618%;top:13.235%;" title="r0c1 | 30.267677,-97.759531 | Not found"><span>-</span><small>r0c1</small></div><div class="rank-pin rank-none" style="left:50.000%;top:13.235%;" title="r0c2 | 30.267677,-97.749132 | Not found"><span>-</span><small>r0c2</small></div><div class="rank-pin rank-none" style="left:68.382%;top:13.235%;" title="r0c3 | 30.267677,-97.738733 | Not found"><span>-</span><small>r0c3</small></div><div class="rank-pin rank-none" style="left:86.765%;top:13.235%;" title="r0c4 | 30.267677,-97.728334 | Not found"><span>-</span><small>r0c4</small></div><div class="rank-pin rank-visible" style="left:13.235%;top:31.618%;" title="r1c0 | 30.258694,-97.769930 | Home Slice Pizza"><span>5</span><small>r1c0</small></div><div class="rank-pin rank-top3" style="left:31.618%;top:31.618%;" title="r1c1 | 30.258694,-97.759531 | Home Slice Pizza"><span>3</span><small>r1c1</small></div><div class="rank-pin rank-top3" style="left:50.000%;top:31.618%;" title="r1c2 | 30.258694,-97.749132 | Home Slice Pizza"><span>2</span><small>r1c2</small></div><div class="rank-pin rank-visible" style="left:68.382%;top:31.618%;" title="r1c3 | 30.258694,-97.738733 | Home Slice Pizza"><span>9</span><small>r1c3</small></div><div class="rank-pin rank-none" style="left:86.765%;top:31.618%;" title="r1c4 | 30.258694,-97.728334 | Not found"><span>-</span><small>r1c4</small></div><div class="rank-pin rank-visible" style="left:13.235%;top:50.000%;" title="r2c0 | 30.249711,-97.769930 | Home Slice Pizza"><span>7</span><small>r2c0</small></div><div class="rank-pin rank-top3" style="left:31.618%;top:50.000%;" title="r2c1 | 30.249711,-97.759531 | Home Slice Pizza"><span>3</span><small>r2c1</small></div><div class="rank-pin rank-one center-pin" style="left:50.000%;top:50.000%;" title="r2c2 | 30.249711,-97.749132 | More Home Slice Pizza"><span>1</span><small>r2c2</small></div><div class="rank-pin rank-one" style="left:68.382%;top:50.000%;" title="r2c3 | 30.249711,-97.738733 | Home Slice Pizza"><span>1</span><small>r2c3</small></div><div class="rank-pin rank-none" style="left:86.765%;top:50.000%;" title="r2c4 | 30.249711,-97.728334 | Not found"><span>-</span><small>r2c4</small></div><div class="rank-pin rank-visible" style="left:13.235%;top:68.382%;" title="r3c0 | 30.240728,-97.769930 | Home Slice Pizza"><span>9</span><small>r3c0</small></div><div class="rank-pin rank-visible" style="left:31.618%;top:68.382%;" title="r3c1 | 30.240728,-97.759531 | Home Slice Pizza"><span>4</span><small>r3c1</small></div><div class="rank-pin rank-one" style="left:50.000%;top:68.382%;" title="r3c2 | 30.240728,-97.749132 | Home Slice Pizza"><span>1</span><small>r3c2</small></div><div class="rank-pin rank-one" style="left:68.382%;top:68.382%;" title="r3c3 | 30.240728,-97.738733 | Home Slice Pizza"><span>1</span><small>r3c3</small></div><div class="rank-pin rank-none" style="left:86.765%;top:68.382%;" title="r3c4 | 30.240728,-97.728334 | Not found"><span>-</span><small>r3c4</small></div><div class="rank-pin rank-none" style="left:13.235%;top:86.765%;" title="r4c0 | 30.231745,-97.769930 | Not found"><span>-</span><small>r4c0</small></div><div class="rank-pin rank-none" style="left:31.618%;top:86.765%;" title="r4c1 | 30.231745,-97.759531 | Not found"><span>-</span><small>r4c1</small></div><div class="rank-pin rank-none" style="left:50.000%;top:86.765%;" title="r4c2 | 30.231745,-97.749132 | Not found"><span>-</span><small>r4c2</small></div><div class="rank-pin rank-none" style="left:68.382%;top:86.765%;" title="r4c3 | 30.231745,-97.738733 | Not found"><span>-</span><small>r4c3</small></div><div class="rank-pin rank-none" style="left:86.765%;top:86.765%;" title="r4c4 | 30.231745,-97.728334 | Not found"><span>-</span><small>r4c4</small></div></div>
+        </div>
+        <div class="map-legend">
+          <span><i class="legend-dot rank-top3"></i>top 3</span>
+          <span><i class="legend-dot rank-visible"></i>rank 4-10</span>
+          <span><i class="legend-dot rank-none"></i>not found</span>
+          <span>Blue ring = business center</span>
+        </div>
+      </div>
+      <aside class="panel">
+        <h2>Competitor Pressure</h2>
+        <div class="bar-row"><span>Home Slice Pizza</span><b style="width:100.0%"></b><em>7</em></div><div class="bar-row"><span>Show Me Pizza</span><b style="width:100.0%"></b><em>7</em></div><div class="bar-row"><span>DeSano Pizzeria Napoletana - Downtown Austin</span><b style="width:85.7%"></b><em>6</em></div><div class="bar-row"><span>Palm Pizza</span><b style="width:71.4%"></b><em>5</em></div><div class="bar-row"><span>Domino&#x27;s Pizza</span><b style="width:57.1%"></b><em>4</em></div><div class="bar-row"><span>Enoteca Pizzeria Sportiva</span><b style="width:57.1%"></b><em>4</em></div>
+        <h2>Prospecting Verdict</h2>
+        <p><strong>Moderate outreach opportunity</strong></p>
+        <p>The business has a foothold, but the map shows enough weak coverage to justify a targeted local SEO conversation.</p>
+        <p>Weakest coverage appears around: northwest, r0c1, north, r0c3, northeast, r1c0, and more.</p>
+        <div class="notes">Map layer: saved Google Static Maps image. Rank pins: DataForSEO Google Maps SERP results from each GPS coordinate. Red pins are not guesses; they mean the target was not found in the returned Maps depth at that coordinate.</div>
+        <p><a href="heatmap-report.md">Open Markdown report</a></p>
+      </aside>
+    </section>
+    <section class="supporting">
+      <div class="panel"><h2>Rank Grid Data</h2><div class="grid"><div class="cell rank-none" title="r0c0 | 30.267677,-97.769930 | Not found"><span>-</span><small>r0c0</small></div><div class="cell rank-none" title="r0c1 | 30.267677,-97.759531 | Not found"><span>-</span><small>r0c1</small></div><div class="cell rank-none" title="r0c2 | 30.267677,-97.749132 | Not found"><span>-</span><small>r0c2</small></div><div class="cell rank-none" title="r0c3 | 30.267677,-97.738733 | Not found"><span>-</span><small>r0c3</small></div><div class="cell rank-none" title="r0c4 | 30.267677,-97.728334 | Not found"><span>-</span><small>r0c4</small></div><div class="cell rank-visible" title="r1c0 | 30.258694,-97.769930 | Home Slice Pizza"><span>5</span><small>r1c0</small></div><div class="cell rank-top3" title="r1c1 | 30.258694,-97.759531 | Home Slice Pizza"><span>3</span><small>r1c1</small></div><div class="cell rank-top3" title="r1c2 | 30.258694,-97.749132 | Home Slice Pizza"><span>2</span><small>r1c2</small></div><div class="cell rank-visible" title="r1c3 | 30.258694,-97.738733 | Home Slice Pizza"><span>9</span><small>r1c3</small></div><div class="cell rank-none" title="r1c4 | 30.258694,-97.728334 | Not found"><span>-</span><small>r1c4</small></div><div class="cell rank-visible" title="r2c0 | 30.249711,-97.769930 | Home Slice Pizza"><span>7</span><small>r2c0</small></div><div class="cell rank-top3" title="r2c1 | 30.249711,-97.759531 | Home Slice Pizza"><span>3</span><small>r2c1</small></div><div class="cell rank-one" title="r2c2 | 30.249711,-97.749132 | More Home Slice Pizza"><span>1</span><small>r2c2</small></div><div class="cell rank-one" title="r2c3 | 30.249711,-97.738733 | Home Slice Pizza"><span>1</span><small>r2c3</small></div><div class="cell rank-none" title="r2c4 | 30.249711,-97.728334 | Not found"><span>-</span><small>r2c4</small></div><div class="cell rank-visible" title="r3c0 | 30.240728,-97.769930 | Home Slice Pizza"><span>9</span><small>r3c0</small></div><div class="cell rank-visible" title="r3c1 | 30.240728,-97.759531 | Home Slice Pizza"><span>4</span><small>r3c1</small></div><div class="cell rank-one" title="r3c2 | 30.240728,-97.749132 | Home Slice Pizza"><span>1</span><small>r3c2</small></div><div class="cell rank-one" title="r3c3 | 30.240728,-97.738733 | Home Slice Pizza"><span>1</span><small>r3c3</small></div><div class="cell rank-none" title="r3c4 | 30.240728,-97.728334 | Not found"><span>-</span><small>r3c4</small></div><div class="cell rank-none" title="r4c0 | 30.231745,-97.769930 | Not found"><span>-</span><small>r4c0</small></div><div class="cell rank-none" title="r4c1 | 30.231745,-97.759531 | Not found"><span>-</span><small>r4c1</small></div><div class="cell rank-none" title="r4c2 | 30.231745,-97.749132 | Not found"><span>-</span><small>r4c2</small></div><div class="cell rank-none" title="r4c3 | 30.231745,-97.738733 | Not found"><span>-</span><small>r4c3</small></div><div class="cell rank-none" title="r4c4 | 30.231745,-97.728334 | Not found"><span>-</span><small>r4c4</small></div></div></div>
+    </section>
+  </main>
+</body>
+</html>

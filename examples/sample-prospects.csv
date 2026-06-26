@@ -1,0 +1,4 @@
+prospect_id,business_name,keyword,center_lat,center_lng,location_label,target_domain,target_cid,target_place_id
+sample-001,Home Slice Pizza,pizza,30.249711,-97.749132,"South Congress, Austin, TX",homeslicepizza.com,,
+sample-002,Example Austin Dentist,dentist,30.2672,-97.7431,"Downtown Austin, TX",,,
+sample-003,Example Austin Plumber,plumber,30.2711,-97.7425,"Downtown Austin, TX",,,

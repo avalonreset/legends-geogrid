@@ -1,0 +1,18 @@
+{
+  "name": "geogrid",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Standalone local SEO geo-grid heatmap prototype using DataForSEO rank data and Google Maps display assets.",
+  "license": "UNLICENSED",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "vite build",
+    "preview": "vite preview --host 127.0.0.1",
+    "check:python": "python -m py_compile tools/local_heatmap_poc.py tools/bulk_geogrid_runner.py"
+  },
+  "dependencies": {
+    "vite": "^8.0.8"
+  },
+  "devDependencies": {}
+}

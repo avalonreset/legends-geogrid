@@ -1,0 +1,2136 @@
+{
+  "target": "Home Slice Pizza",
+  "keyword": "pizza",
+  "location": "South Congress, Austin, TX",
+  "metrics": {
+    "points": 25,
+    "found_points": 12,
+    "top3_points": 7,
+    "visible_points": 12,
+    "solv": 28.0,
+    "visible_share": 48.0,
+    "average_rank": 3.83,
+    "not_found_points": 13
+  },
+  "results": [
+    {
+      "point": {
+        "row": 0,
+        "col": 0,
+        "lat": 30.26767722349982,
+        "lng": -97.76993013869999,
+        "tag": "r0c0"
+      },
+      "rank": null,
+      "matched_item": null,
+      "top_items": [
+        {
+          "rank": 1,
+          "title": "Joe's Slice of Sicily",
+          "category": "Pizza",
+          "domain": "www.joessliceofsicily.com",
+          "address": "Inside Barton Hills Market, 1220 Barton Hills Dr, Austin, TX 78704",
+          "rating": 4.8,
+          "votes_count": 262,
+          "cid": "712452448263783393",
+          "place_id": "ChIJM-q3TwC1RIYR4cMeGroj4wk",
+          "latitude": 30.2619242,
+          "longitude": -97.77499189999999
+        },
+        {
+          "rank": 2,
+          "title": "Moderna Bar & Pizzeria",
+          "category": "Italian",
+          "domain": "modernapizzeria.com",
+          "address": "1717 W 6th St Ste 140R, Austin, TX 78703",
+          "rating": 4.6,
+          "votes_count": 243,
+          "cid": "13483429487782440783",
+          "place_id": "ChIJQWpxc_e1RIYRT69MTa7DHrs",
+          "latitude": 30.276215399999998,
+          "longitude": -97.7658641
+        },
+        {
+          "rank": 3,
+          "title": "DeSano Pizzeria Napoletana - Downtown Austin",
+          "category": "Pizza",
+          "domain": "desanopizza.com",
+          "address": "301 Lavaca St Ste 200, Austin, TX 78701",
+          "rating": 4.7,
+          "votes_count": 1361,
+          "cid": "3865327066180748277",
+          "place_id": "ChIJH1vZsj21RIYR9QNowHxmpDU",
+          "latitude": 30.266316999999997,
+          "longitude": -97.74595939999999
+        },
+        {
+          "rank": 4,
+          "title": "Jack Pizza Company",
+          "category": "Pizza",
+          "domain": null,
+          "address": "402 E 6th St Unit B, Austin, TX 78701",
+          "rating": 5,
+          "votes_count": 17,
+          "cid": "14092157944806918333",
+          "place_id": "ChIJ-fW8uNq1RIYRvUjqwvxmkcM",
+          "latitude": 30.267298399999998,
+          "longitude": -97.7390154
+        },
+        {
+          "rank": 5,
+          "title": "Enoteca Pizzeria Sportiva",
+          "category": "Pizza",
+          "domain": "enotecasportiva.com",
+          "address": "1500 S Lamar Blvd Ste 120, Austin, TX 78704",
+          "rating": 4.8,
+          "votes_count": 56,
+          "cid": "11096031109137764500",
+          "place_id": "ChIJR1RoTAC1RIYRlBDXJIEF_Zk",
+          "latitude": 30.252494799999997,
+          "longitude": -97.76435389999999
+        }
+      ],
+      "error": null
+    },
+    {
+      "point": {
+        "row": 0,
+        "col": 1,
+        "lat": 30.26767722349982,
+        "lng": -97.75953106934999,
+        "tag": "r0c1"
+      },
+      "rank": null,
+      "matched_item": null,
+      "top_items": [
+        {
+          "rank": 1,
+          "title": "DeSano Pizzeria Napoletana - Downtown Austin",
+          "category": "Pizza",
+          "domain": "desanopizza.com",
+          "address": "301 Lavaca St Ste 200, Austin, TX 78701",
+          "rating": 4.7,
+          "votes_count": 1361,
+          "cid": "3865327066180748277",
+          "place_id": "ChIJH1vZsj21RIYR9QNowHxmpDU",
+          "latitude": 30.266316999999997,
+          "longitude": -97.74595939999999
+        },
+        {
+          "rank": 2,
+          "title": "Moderna Bar & Pizzeria",
+          "category": "Italian",
+          "domain": "modernapizzeria.com",
+          "address": "1717 W 6th St Ste 140R, Austin, TX 78703",
+          "rating": 4.6,
+          "votes_count": 243,
+          "cid": "13483429487782440783",
+          "place_id": "ChIJQWpxc_e1RIYRT69MTa7DHrs",
+          "latitude": 30.276215399999998,
+          "longitude": -97.7658641
+        },
+        {
+          "rank": 3,
+          "title": "Jack Pizza Company",
+          "category": "Pizza",
+          "domain": null,
+          "address": "402 E 6th St Unit B, Austin, TX 78701",
+          "rating": 5,
+          "votes_count": 17,
+          "cid": "14092157944806918333",
+          "place_id": "ChIJ-fW8uNq1RIYRvUjqwvxmkcM",
+          "latitude": 30.267298399999998,
+          "longitude": -97.7390154
+        },
+        {
+          "rank": 4,
+          "title": "Favorite Pizza",
+          "category": "Restaurant",
+          "domain": "favoritepizzaaustin.com",
+          "address": "801 W 6th St, Austin, TX 78703",
+          "rating": 4.3,
+          "votes_count": 349,
+          "cid": "13015407759973265499",
+          "place_id": "ChIJCTzxrvu1RIYRW7ARLGYEoLQ",
+          "latitude": 30.270156999999998,
+          "longitude": -97.75084939999999
+        },
+        {
+          "rank": 5,
+          "title": "Joe's Slice of Sicily",
+          "category": "Pizza",
+          "domain": "www.joessliceofsicily.com",
+          "address": "Inside Barton Hills Market, 1220 Barton Hills Dr, Austin, TX 78704",
+          "rating": 4.8,
+          "votes_count": 262,
+          "cid": "712452448263783393",
+          "place_id": "ChIJM-q3TwC1RIYR4cMeGroj4wk",
+          "latitude": 30.2619242,
+          "longitude": -97.77499189999999
+        }
+      ],
+      "error": null
+    },
+    {
+      "point": {
+        "row": 0,
+        "col": 2,
+        "lat": 30.26767722349982,
+        "lng": -97.749132,
+        "tag": "r0c2"
+      },
+      "rank": null,
+      "matched_item": null,
+      "top_items": [
+        {
+          "rank": 1,
+          "title": "DeSano Pizzeria Napoletana - Downtown Austin",
+          "category": "Pizza",
+          "domain": "desanopizza.com",
+          "address": "301 Lavaca St Ste 200, Austin, TX 78701",
+          "rating": 4.7,
+          "votes_count": 1361,
+          "cid": "3865327066180748277",
+          "place_id": "ChIJH1vZsj21RIYR9QNowHxmpDU",
+          "latitude": 30.266316999999997,
+          "longitude": -97.74595939999999
+        },
+        {
+          "rank": 2,
+          "title": "Numero28 Austin",
+          "category": "Italian",
+          "domain": "numero28austin.com",
+          "address": "452 W 2nd St, Austin, TX 78701",
+          "rating": 4.4,
+          "votes_count": 1445,
+          "cid": "14922208485664203077",
+          "place_id": "ChIJG9nVPw-1RIYRRaFVdI5VFs8",
+          "latitude": 30.265672,
+          "longitude": -97.748454
+        },
+        {
+          "rank": 3,
+          "title": "Favorite Pizza",
+          "category": "Restaurant",
+          "domain": "favoritepizzaaustin.com",
+          "address": "801 W 6th St, Austin, TX 78703",
+          "rating": 4.3,
+          "votes_count": 349,
+          "cid": "13015407759973265499",
+          "place_id": "ChIJCTzxrvu1RIYRW7ARLGYEoLQ",
+          "latitude": 30.270156999999998,
+          "longitude": -97.75084939999999
+        },
+        {
+          "rank": 4,
+          "title": "Via 313 Pizza",
+          "category": "Pizza",
+          "domain": "locations.via313.com",
+          "address": "600 W 6th St, Austin, TX 78701",
+          "rating": 4.2,
+          "votes_count": 128,
+          "cid": "14654520509486010478",
+          "place_id": "ChIJtQf7JYq1RIYRbhCXqcJQX8s",
+          "latitude": 30.2699663,
+          "longitude": -97.7485243
+        },
+        {
+          "rank": 5,
+          "title": "Stony's Pizza - West 6th",
+          "category": "Pizza Takeout",
+          "domain": null,
+          "address": "701 W 6th St, Austin, TX 78701",
+          "rating": 4.2,
+          "votes_count": 53,
+          "cid": "603435763486704957",
+          "place_id": "ChIJZ9dX4l-1RIYRPUVkN6HVXwg",
+          "latitude": 30.2698181,
+          "longitude": -97.74984309999999
+        }
+      ],
+      "error": null
+    },
+    {
+      "point": {
+        "row": 0,
+        "col": 3,
+        "lat": 30.26767722349982,
+        "lng": -97.73873293065002,
+        "tag": "r0c3"
+      },
+      "rank": null,
+      "matched_item": null,
+      "top_items": [
+        {
+          "rank": 1,
+          "title": "Jack Pizza Company",
+          "category": "Pizza",
+          "domain": null,
+          "address": "402 E 6th St Unit B, Austin, TX 78701",
+          "rating": 5,
+          "votes_count": 17,
+          "cid": "14092157944806918333",
+          "place_id": "ChIJ-fW8uNq1RIYRvUjqwvxmkcM",
+          "latitude": 30.267298399999998,
+          "longitude": -97.7390154
+        },
+        {
+          "rank": 2,
+          "title": "Hoek\u2019s Death Metal Pizza",
+          "category": "Pizza Takeout",
+          "domain": null,
+          "address": "315 E 6th St, Austin, TX 78701",
+          "rating": 4.6,
+          "votes_count": 13,
+          "cid": "11622679462533457747",
+          "place_id": "ChIJ-dUS6FS1RIYRU-eIPmQNTKE",
+          "latitude": 30.267096799999997,
+          "longitude": -97.7399688
+        },
+        {
+          "rank": 3,
+          "title": "Roppolo\u2019s Pizzeria",
+          "category": "Pizza",
+          "domain": "roppolos.com",
+          "address": "316 E 6th St, Austin, TX 78701",
+          "rating": 4.2,
+          "votes_count": 1128,
+          "cid": "14363647147486768618",
+          "place_id": "ChIJ3VsBCKe1RIYR6m0AkfrsVcc",
+          "latitude": 30.267410599999998,
+          "longitude": -97.73969849999999
+        },
+        {
+          "rank": 4,
+          "title": "Hoboken Pie",
+          "category": "Pizza",
+          "domain": "www.hobokenpie.com",
+          "address": "718 Red River St, Austin, TX 78701",
+          "rating": 4.1,
+          "votes_count": 1140,
+          "cid": "14074730929413836344",
+          "place_id": "ChIJYbkahaa1RIYROE7qjDV9U8M",
+          "latitude": 30.268203999999997,
+          "longitude": -97.73669679999999
+        },
+        {
+          "rank": 5,
+          "title": "The Backspace",
+          "category": "Pizza",
+          "domain": "www.backspacepizza.com",
+          "address": "507 San Jacinto Blvd, Austin, TX 78701",
+          "rating": 4.5,
+          "votes_count": 819,
+          "cid": "12251292710800551076",
+          "place_id": "ChIJVaujmae1RIYRpGyZcs9VBao",
+          "latitude": 30.2670094,
+          "longitude": -97.7404066
+        }
+      ],
+      "error": null
+    },
+    {
+      "point": {
+        "row": 0,
+        "col": 4,
+        "lat": 30.26767722349982,
+        "lng": -97.72833386130002,
+        "tag": "r0c4"
+      },
+      "rank": null,
+      "matched_item": null,
+      "top_items": [
+        {
+          "rank": 1,
+          "title": "Loudmouth",
+          "category": "Pizza",
+          "domain": "www.loudmouthpizza.com",
+          "address": "1209 Rosewood Ave, Austin, TX 78702",
+          "rating": 4.5,
+          "votes_count": 311,
+          "cid": "5194649443441841173",
+          "place_id": "ChIJf9qrlIa1RIYRFRQIeSUaF0g",
+          "latitude": 30.2683748,
+          "longitude": -97.7262648
+        },
+        {
+          "rank": 2,
+          "title": "Via 313 Pizza",
+          "category": "Pizza",
+          "domain": "locations.via313.com",
+          "address": "1802 E 6th St, Austin, TX 78702",
+          "rating": 4.6,
+          "votes_count": 2685,
+          "cid": "9561784208726907557",
+          "place_id": "ChIJAQCw-7a1RIYRpVobzBNIsoQ",
+          "latitude": 30.2621915,
+          "longitude": -97.72314879999999
+        },
+        {
+          "rank": 3,
+          "title": "Jack Pizza Company",
+          "category": "Pizza",
+          "domain": null,
+          "address": "402 E 6th St Unit B, Austin, TX 78701",
+          "rating": 5,
+          "votes_count": 17,
+          "cid": "14092157944806918333",
+          "place_id": "ChIJ-fW8uNq1RIYRvUjqwvxmkcM",
+          "latitude": 30.267298399999998,
+          "longitude": -97.7390154
+        },
+        {
+          "rank": 4,
+          "title": "Palm Pizza",
+          "category": "Pizza",
+          "domain": "www.palm.pizza",
+          "address": "1701 E Cesar Chavez St B, Austin, TX 78702",
+          "rating": 4.7,
+          "votes_count": 178,
+          "cid": "15856559748872189163",
+          "place_id": "ChIJNRM-6Zu1RIYR67RIdxTRDdw",
+          "latitude": 30.2575856,
+          "longitude": -97.7265584
+        },
+        {
+          "rank": 5,
+          "title": "Hot Box Pizza and Rolls",
+          "category": "Pizza",
+          "domain": "www.hotboxpizzarolls.com",
+          "address": "1512 E 6th St, Austin, TX 78702",
+          "rating": 4.4,
+          "votes_count": 64,
+          "cid": "7793077936604342762",
+          "place_id": "ChIJRz3nyBq1RIYR6mk8BhiTJmw",
+          "latitude": 30.263258099999998,
+          "longitude": -97.7266418
+        }
+      ],
+      "error": null
+    },
+    {
+      "point": {
+        "row": 1,
+        "col": 0,
+        "lat": 30.25869411174991,
+        "lng": -97.76993013869999,
+        "tag": "r1c0"
+      },
+      "rank": 5,
+      "matched_item": {
+        "rank": 5,
+        "title": "Home Slice Pizza",
+        "category": "Pizza",
+        "domain": "homeslicepizza.com",
+        "address": "1415 S Congress Ave, Austin, TX 78704",
+        "rating": 4.7,
+        "votes_count": 10953,
+        "cid": "12299280573550492680",
+        "place_id": "ChIJu96UVvy0RIYRCPxWa4TSr6o",
+        "latitude": 30.2492286,
+        "longitude": -97.7495328
+      },
+      "top_items": [
+        {
+          "rank": 1,
+          "title": "Joe's Slice of Sicily",
+          "category": "Pizza",
+          "domain": "www.joessliceofsicily.com",
+          "address": "Inside Barton Hills Market, 1220 Barton Hills Dr, Austin, TX 78704",
+          "rating": 4.8,
+          "votes_count": 262,
+          "cid": "712452448263783393",
+          "place_id": "ChIJM-q3TwC1RIYR4cMeGroj4wk",
+          "latitude": 30.2619242,
+          "longitude": -97.77499189999999
+        },
+        {
+          "rank": 2,
+          "title": "Enoteca Pizzeria Sportiva",
+          "category": "Pizza",
+          "domain": "enotecasportiva.com",
+          "address": "1500 S Lamar Blvd Ste 120, Austin, TX 78704",
+          "rating": 4.8,
+          "votes_count": 56,
+          "cid": "11096031109137764500",
+          "place_id": "ChIJR1RoTAC1RIYRlBDXJIEF_Zk",
+          "latitude": 30.252494799999997,
+          "longitude": -97.76435389999999
+        },
+        {
+          "rank": 3,
+          "title": "Giovannis Pizza Stand",
+          "category": "Pizza",
+          "domain": "giovannispizzastandtx.com",
+          "address": "2900 S Lamar Blvd, Austin, TX 78704",
+          "rating": 4.6,
+          "votes_count": 245,
+          "cid": "17984337255406438973",
+          "place_id": "ChIJQ3V4dNO0RIYRPQpT3XIzlfk",
+          "latitude": 30.2436509,
+          "longitude": -97.7828341
+        },
+        {
+          "rank": 4,
+          "title": "DeSano Pizzeria Napoletana - Downtown Austin",
+          "category": "Pizza",
+          "domain": "desanopizza.com",
+          "address": "301 Lavaca St Ste 200, Austin, TX 78701",
+          "rating": 4.7,
+          "votes_count": 1361,
+          "cid": "3865327066180748277",
+          "place_id": "ChIJH1vZsj21RIYR9QNowHxmpDU",
+          "latitude": 30.266316999999997,
+          "longitude": -97.74595939999999
+        },
+        {
+          "rank": 5,
+          "title": "Home Slice Pizza",
+          "category": "Pizza",
+          "domain": "homeslicepizza.com",
+          "address": "1415 S Congress Ave, Austin, TX 78704",
+          "rating": 4.7,
+          "votes_count": 10953,
+          "cid": "12299280573550492680",
+          "place_id": "ChIJu96UVvy0RIYRCPxWa4TSr6o",
+          "latitude": 30.2492286,
+          "longitude": -97.7495328
+        }
+      ],
+      "error": null
+    },
+    {
+      "point": {
+        "row": 1,
+        "col": 1,
+        "lat": 30.25869411174991,
+        "lng": -97.75953106934999,
+        "tag": "r1c1"
+      },
+      "rank": 3,
+      "matched_item": {
+        "rank": 3,
+        "title": "Home Slice Pizza",
+        "category": "Pizza",
+        "domain": "homeslicepizza.com",
+        "address": "1415 S Congress Ave, Austin, TX 78704",
+        "rating": 4.7,
+        "votes_count": 10953,
+        "cid": "12299280573550492680",
+        "place_id": "ChIJu96UVvy0RIYRCPxWa4TSr6o",
+        "latitude": 30.2492286,
+        "longitude": -97.7495328
+      },
+      "top_items": [
+        {
+          "rank": 1,
+          "title": "Enoteca Pizzeria Sportiva",
+          "category": "Pizza",
+          "domain": "enotecasportiva.com",
+          "address": "1500 S Lamar Blvd Ste 120, Austin, TX 78704",
+          "rating": 4.8,
+          "votes_count": 56,
+          "cid": "11096031109137764500",
+          "place_id": "ChIJR1RoTAC1RIYRlBDXJIEF_Zk",
+          "latitude": 30.252494799999997,
+          "longitude": -97.76435389999999
+        },
+        {
+          "rank": 2,
+          "title": "DeSano Pizzeria Napoletana - Downtown Austin",
+          "category": "Pizza",
+          "domain": "desanopizza.com",
+          "address": "301 Lavaca St Ste 200, Austin, TX 78701",
+          "rating": 4.7,
+          "votes_count": 1361,
+          "cid": "3865327066180748277",
+          "place_id": "ChIJH1vZsj21RIYR9QNowHxmpDU",
+          "latitude": 30.266316999999997,
+          "longitude": -97.74595939999999
+        },
+        {
+          "rank": 3,
+          "title": "Home Slice Pizza",
+          "category": "Pizza",
+          "domain": "homeslicepizza.com",
+          "address": "1415 S Congress Ave, Austin, TX 78704",
+          "rating": 4.7,
+          "votes_count": 10953,
+          "cid": "12299280573550492680",
+          "place_id": "ChIJu96UVvy0RIYRCPxWa4TSr6o",
+          "latitude": 30.2492286,
+          "longitude": -97.7495328
+        },
+        {
+          "rank": 4,
+          "title": "Joe's Slice of Sicily",
+          "category": "Pizza",
+          "domain": "www.joessliceofsicily.com",
+          "address": "Inside Barton Hills Market, 1220 Barton Hills Dr, Austin, TX 78704",
+          "rating": 4.8,
+          "votes_count": 262,
+          "cid": "712452448263783393",
+          "place_id": "ChIJM-q3TwC1RIYR4cMeGroj4wk",
+          "latitude": 30.2619242,
+          "longitude": -97.77499189999999
+        },
+        {
+          "rank": 5,
+          "title": "Juliet Italian Kitchen- Barton Springs",
+          "category": "Italian",
+          "domain": "www.juliet-austin.com",
+          "address": "1500 Barton Springs Rd, Austin, TX 78704",
+          "rating": 4.3,
+          "votes_count": 2536,
+          "cid": "9067016536502319907",
+          "place_id": "ChIJh_uTtxm1RIYRIzvQNoCD1H0",
+          "latitude": 30.2616576,
+          "longitude": -97.7600367
+        }
+      ],
+      "error": null
+    },
+    {
+      "point": {
+        "row": 1,
+        "col": 2,
+        "lat": 30.25869411174991,
+        "lng": -97.749132,
+        "tag": "r1c2"
+      },
+      "rank": 2,
+      "matched_item": {
+        "rank": 2,
+        "title": "Home Slice Pizza",
+        "category": "Pizza",
+        "domain": "homeslicepizza.com",
+        "address": "1415 S Congress Ave, Austin, TX 78704",
+        "rating": 4.7,
+        "votes_count": 10953,
+        "cid": "12299280573550492680",
+        "place_id": "ChIJu96UVvy0RIYRCPxWa4TSr6o",
+        "latitude": 30.2492286,
+        "longitude": -97.7495328
+      },
+      "top_items": [
+        {
+          "rank": 1,
+          "title": "DeSano Pizzeria Napoletana - Downtown Austin",
+          "category": "Pizza",
+          "domain": "desanopizza.com",
+          "address": "301 Lavaca St Ste 200, Austin, TX 78701",
+          "rating": 4.7,
+          "votes_count": 1361,
+          "cid": "3865327066180748277",
+          "place_id": "ChIJH1vZsj21RIYR9QNowHxmpDU",
+          "latitude": 30.266316999999997,
+          "longitude": -97.74595939999999
+        },
+        {
+          "rank": 2,
+          "title": "Home Slice Pizza",
+          "category": "Pizza",
+          "domain": "homeslicepizza.com",
+          "address": "1415 S Congress Ave, Austin, TX 78704",
+          "rating": 4.7,
+          "votes_count": 10953,
+          "cid": "12299280573550492680",
+          "place_id": "ChIJu96UVvy0RIYRCPxWa4TSr6o",
+          "latitude": 30.2492286,
+          "longitude": -97.7495328
+        },
+        {
+          "rank": 3,
+          "title": "Jack Pizza Company",
+          "category": "Pizza",
+          "domain": null,
+          "address": "402 E 6th St Unit B, Austin, TX 78701",
+          "rating": 5,
+          "votes_count": 17,
+          "cid": "14092157944806918333",
+          "place_id": "ChIJ-fW8uNq1RIYRvUjqwvxmkcM",
+          "latitude": 30.267298399999998,
+          "longitude": -97.7390154
+        },
+        {
+          "rank": 4,
+          "title": "Numero28 Austin",
+          "category": "Italian",
+          "domain": "numero28austin.com",
+          "address": "452 W 2nd St, Austin, TX 78701",
+          "rating": 4.4,
+          "votes_count": 1445,
+          "cid": "14922208485664203077",
+          "place_id": "ChIJG9nVPw-1RIYRRaFVdI5VFs8",
+          "latitude": 30.265672,
+          "longitude": -97.748454
+        },
+        {
+          "rank": 5,
+          "title": "Hoek\u2019s Death Metal Pizza",
+          "category": "Pizza Takeout",
+          "domain": null,
+          "address": "315 E 6th St, Austin, TX 78701",
+          "rating": 4.6,
+          "votes_count": 13,
+          "cid": "11622679462533457747",
+          "place_id": "ChIJ-dUS6FS1RIYRU-eIPmQNTKE",
+          "latitude": 30.267096799999997,
+          "longitude": -97.7399688
+        }
+      ],
+      "error": null
+    },
+    {
+      "point": {
+        "row": 1,
+        "col": 3,
+        "lat": 30.25869411174991,
+        "lng": -97.73873293065002,
+        "tag": "r1c3"
+      },
+      "rank": 9,
+      "matched_item": {
+        "rank": 9,
+        "title": "Home Slice Pizza",
+        "category": "Pizza",
+        "domain": "homeslicepizza.com",
+        "address": "1415 S Congress Ave, Austin, TX 78704",
+        "rating": 4.7,
+        "votes_count": 10953,
+        "cid": "12299280573550492680",
+        "place_id": "ChIJu96UVvy0RIYRCPxWa4TSr6o",
+        "latitude": 30.2492286,
+        "longitude": -97.7495328
+      },
+      "top_items": [
+        {
+          "rank": 1,
+          "title": "Salvation Pizza Kitchen & Bar - Rainey St",
+          "category": "Pizza",
+          "domain": "www.salvationpizzakitchen.com",
+          "address": "51 Rainey St #130, Austin, TX 78701",
+          "rating": 4,
+          "votes_count": 740,
+          "cid": "10601398522406152724",
+          "place_id": "ChIJ12tGSqq1RIYRFKpemsm7H5M",
+          "latitude": 30.256910299999998,
+          "longitude": -97.7393475
+        },
+        {
+          "rank": 2,
+          "title": "Side Piece Pies",
+          "category": "Pizza",
+          "domain": "sidepiecepies.com",
+          "address": "85 Rainey St, Austin, TX 78701",
+          "rating": 4.4,
+          "votes_count": 8,
+          "cid": "9920196640221205816",
+          "place_id": "ChIJg5hAHGK1RIYROJVo6kieq4k",
+          "latitude": 30.259513799999997,
+          "longitude": -97.7381405
+        },
+        {
+          "rank": 3,
+          "title": "Electric Shuffle Austin",
+          "category": "Restaurant",
+          "domain": "electricshuffle.com",
+          "address": "91 Red River St Ste 102, Austin, TX 78701",
+          "rating": 4.7,
+          "votes_count": 419,
+          "cid": "16591853456459407033",
+          "place_id": "ChIJzbbxmGO1RIYRuZ6Zrc8aQuY",
+          "latitude": 30.260507099999998,
+          "longitude": -97.73902849999999
+        },
+        {
+          "rank": 4,
+          "title": "Victory Lap Rainey",
+          "category": "Sports bar",
+          "domain": "victorylapbar.com",
+          "address": "85 Rainey St, Austin, TX 78701",
+          "rating": 4.5,
+          "votes_count": 51,
+          "cid": "6169958711690862153",
+          "place_id": "ChIJhdPZdRS1RIYRSR4pKcIYoFU",
+          "latitude": 30.259513799999997,
+          "longitude": -97.7381405
+        },
+        {
+          "rank": 5,
+          "title": "Jack Pizza Company",
+          "category": "Pizza",
+          "domain": null,
+          "address": "402 E 6th St Unit B, Austin, TX 78701",
+          "rating": 5,
+          "votes_count": 17,
+          "cid": "14092157944806918333",
+          "place_id": "ChIJ-fW8uNq1RIYRvUjqwvxmkcM",
+          "latitude": 30.267298399999998,
+          "longitude": -97.7390154
+        }
+      ],
+      "error": null
+    },
+    {
+      "point": {
+        "row": 1,
+        "col": 4,
+        "lat": 30.25869411174991,
+        "lng": -97.72833386130002,
+        "tag": "r1c4"
+      },
+      "rank": null,
+      "matched_item": null,
+      "top_items": [
+        {
+          "rank": 1,
+          "title": "Palm Pizza",
+          "category": "Pizza",
+          "domain": "www.palm.pizza",
+          "address": "1701 E Cesar Chavez St B, Austin, TX 78702",
+          "rating": 4.7,
+          "votes_count": 178,
+          "cid": "15856559748872189163",
+          "place_id": "ChIJNRM-6Zu1RIYR67RIdxTRDdw",
+          "latitude": 30.2575856,
+          "longitude": -97.7265584
+        },
+        {
+          "rank": 2,
+          "title": "Via 313 Pizza",
+          "category": "Pizza",
+          "domain": "locations.via313.com",
+          "address": "1802 E 6th St, Austin, TX 78702",
+          "rating": 4.6,
+          "votes_count": 2685,
+          "cid": "9561784208726907557",
+          "place_id": "ChIJAQCw-7a1RIYRpVobzBNIsoQ",
+          "latitude": 30.2621915,
+          "longitude": -97.72314879999999
+        },
+        {
+          "rank": 3,
+          "title": "Hot Box Pizza and Rolls",
+          "category": "Pizza",
+          "domain": "www.hotboxpizzarolls.com",
+          "address": "1512 E 6th St, Austin, TX 78702",
+          "rating": 4.4,
+          "votes_count": 64,
+          "cid": "7793077936604342762",
+          "place_id": "ChIJRz3nyBq1RIYR6mk8BhiTJmw",
+          "latitude": 30.263258099999998,
+          "longitude": -97.7266418
+        },
+        {
+          "rank": 4,
+          "title": "Jack Pizza Company",
+          "category": "Pizza",
+          "domain": null,
+          "address": "402 E 6th St Unit B, Austin, TX 78701",
+          "rating": 5,
+          "votes_count": 17,
+          "cid": "14092157944806918333",
+          "place_id": "ChIJ-fW8uNq1RIYRvUjqwvxmkcM",
+          "latitude": 30.267298399999998,
+          "longitude": -97.7390154
+        },
+        {
+          "rank": 5,
+          "title": "Il Brutto",
+          "category": "Italian",
+          "domain": "www.ilbruttoaustin.com",
+          "address": "1601 E 6th St, Austin, TX 78702",
+          "rating": 4.5,
+          "votes_count": 1299,
+          "cid": "3492503935520524603",
+          "place_id": "ChIJeZBH07a1RIYRO8laRdPddzA",
+          "latitude": 30.2628502,
+          "longitude": -97.7263546
+        }
+      ],
+      "error": null
+    },
+    {
+      "point": {
+        "row": 2,
+        "col": 0,
+        "lat": 30.249711,
+        "lng": -97.76993013869999,
+        "tag": "r2c0"
+      },
+      "rank": 7,
+      "matched_item": {
+        "rank": 7,
+        "title": "Home Slice Pizza",
+        "category": "Pizza",
+        "domain": "homeslicepizza.com",
+        "address": "1415 S Congress Ave, Austin, TX 78704",
+        "rating": 4.7,
+        "votes_count": 10953,
+        "cid": "12299280573550492680",
+        "place_id": "ChIJu96UVvy0RIYRCPxWa4TSr6o",
+        "latitude": 30.2492286,
+        "longitude": -97.7495328
+      },
+      "top_items": [
+        {
+          "rank": 1,
+          "title": "Enoteca Pizzeria Sportiva",
+          "category": "Pizza",
+          "domain": "enotecasportiva.com",
+          "address": "1500 S Lamar Blvd Ste 120, Austin, TX 78704",
+          "rating": 4.8,
+          "votes_count": 56,
+          "cid": "11096031109137764500",
+          "place_id": "ChIJR1RoTAC1RIYRlBDXJIEF_Zk",
+          "latitude": 30.252494799999997,
+          "longitude": -97.76435389999999
+        },
+        {
+          "rank": 2,
+          "title": "Show Me Pizza",
+          "category": "Pizza",
+          "domain": "www.showmepizza.com",
+          "address": "2809 S 1st St, Austin, TX 78704",
+          "rating": 4.7,
+          "votes_count": 581,
+          "cid": "921201907839428107",
+          "place_id": "ChIJvUTvWoe1RIYRC2YuI0HEyAw",
+          "latitude": 30.2367791,
+          "longitude": -97.7628288
+        },
+        {
+          "rank": 3,
+          "title": "Joe's Slice of Sicily",
+          "category": "Pizza",
+          "domain": "www.joessliceofsicily.com",
+          "address": "Inside Barton Hills Market, 1220 Barton Hills Dr, Austin, TX 78704",
+          "rating": 4.8,
+          "votes_count": 262,
+          "cid": "712452448263783393",
+          "place_id": "ChIJM-q3TwC1RIYR4cMeGroj4wk",
+          "latitude": 30.2619242,
+          "longitude": -97.77499189999999
+        },
+        {
+          "rank": 4,
+          "title": "Giovannis Pizza Stand",
+          "category": "Pizza",
+          "domain": "giovannispizzastandtx.com",
+          "address": "2900 S Lamar Blvd, Austin, TX 78704",
+          "rating": 4.6,
+          "votes_count": 245,
+          "cid": "17984337255406438973",
+          "place_id": "ChIJQ3V4dNO0RIYRPQpT3XIzlfk",
+          "latitude": 30.2436509,
+          "longitude": -97.7828341
+        },
+        {
+          "rank": 5,
+          "title": "Grata\u2019s Pizzeria",
+          "category": "Pizza",
+          "domain": "gratapizza.com",
+          "address": "2700 S Lamar Blvd, Austin, TX 78745",
+          "rating": 4.5,
+          "votes_count": 704,
+          "cid": "1277536329696296330",
+          "place_id": "ChIJC8jJmrJLW4YRij0074W4uhE",
+          "latitude": 30.2453781,
+          "longitude": -97.78035849999999
+        }
+      ],
+      "error": null
+    },
+    {
+      "point": {
+        "row": 2,
+        "col": 1,
+        "lat": 30.249711,
+        "lng": -97.75953106934999,
+        "tag": "r2c1"
+      },
+      "rank": 3,
+      "matched_item": {
+        "rank": 3,
+        "title": "Home Slice Pizza",
+        "category": "Pizza",
+        "domain": "homeslicepizza.com",
+        "address": "1415 S Congress Ave, Austin, TX 78704",
+        "rating": 4.7,
+        "votes_count": 10953,
+        "cid": "12299280573550492680",
+        "place_id": "ChIJu96UVvy0RIYRCPxWa4TSr6o",
+        "latitude": 30.2492286,
+        "longitude": -97.7495328
+      },
+      "top_items": [
+        {
+          "rank": 1,
+          "title": "Dovetail Pizza & Bar",
+          "category": "Pizza",
+          "domain": "www.dovetailpizza.com",
+          "address": "1816 S 1st St A, Austin, TX 78704",
+          "rating": 4.5,
+          "votes_count": 434,
+          "cid": "11900585998273990502",
+          "place_id": "ChIJa-cK1hK1RIYRZs8b1ulfJ6U",
+          "latitude": 30.246806699999997,
+          "longitude": -97.7564056
+        },
+        {
+          "rank": 2,
+          "title": "Enoteca Pizzeria Sportiva",
+          "category": "Pizza",
+          "domain": "enotecasportiva.com",
+          "address": "1500 S Lamar Blvd Ste 120, Austin, TX 78704",
+          "rating": 4.8,
+          "votes_count": 56,
+          "cid": "11096031109137764500",
+          "place_id": "ChIJR1RoTAC1RIYRlBDXJIEF_Zk",
+          "latitude": 30.252494799999997,
+          "longitude": -97.76435389999999
+        },
+        {
+          "rank": 3,
+          "title": "Home Slice Pizza",
+          "category": "Pizza",
+          "domain": "homeslicepizza.com",
+          "address": "1415 S Congress Ave, Austin, TX 78704",
+          "rating": 4.7,
+          "votes_count": 10953,
+          "cid": "12299280573550492680",
+          "place_id": "ChIJu96UVvy0RIYRCPxWa4TSr6o",
+          "latitude": 30.2492286,
+          "longitude": -97.7495328
+        },
+        {
+          "rank": 4,
+          "title": "Show Me Pizza",
+          "category": "Pizza",
+          "domain": "www.showmepizza.com",
+          "address": "2809 S 1st St, Austin, TX 78704",
+          "rating": 4.7,
+          "votes_count": 581,
+          "cid": "921201907839428107",
+          "place_id": "ChIJvUTvWoe1RIYRC2YuI0HEyAw",
+          "latitude": 30.2367791,
+          "longitude": -97.7628288
+        },
+        {
+          "rank": 5,
+          "title": "Joe's Slice of Sicily",
+          "category": "Pizza",
+          "domain": "www.joessliceofsicily.com",
+          "address": "Inside Barton Hills Market, 1220 Barton Hills Dr, Austin, TX 78704",
+          "rating": 4.8,
+          "votes_count": 262,
+          "cid": "712452448263783393",
+          "place_id": "ChIJM-q3TwC1RIYR4cMeGroj4wk",
+          "latitude": 30.2619242,
+          "longitude": -97.77499189999999
+        }
+      ],
+      "error": null
+    },
+    {
+      "point": {
+        "row": 2,
+        "col": 2,
+        "lat": 30.249711,
+        "lng": -97.749132,
+        "tag": "r2c2"
+      },
+      "rank": 1,
+      "matched_item": {
+        "rank": 1,
+        "title": "More Home Slice Pizza",
+        "category": "Pizza",
+        "domain": "homeslicepizza.com",
+        "address": "1421 S Congress Ave, Austin, TX 78704",
+        "rating": 4.7,
+        "votes_count": 395,
+        "cid": "9423833828678680543",
+        "place_id": "ChIJ01xiAA-1RIYR37-zBPAuyII",
+        "latitude": 30.2490217,
+        "longitude": -97.7495939
+      },
+      "top_items": [
+        {
+          "rank": 1,
+          "title": "More Home Slice Pizza",
+          "category": "Pizza",
+          "domain": "homeslicepizza.com",
+          "address": "1421 S Congress Ave, Austin, TX 78704",
+          "rating": 4.7,
+          "votes_count": 395,
+          "cid": "9423833828678680543",
+          "place_id": "ChIJ01xiAA-1RIYR37-zBPAuyII",
+          "latitude": 30.2490217,
+          "longitude": -97.7495939
+        },
+        {
+          "rank": 2,
+          "title": "Guero's Oak Garden",
+          "category": "Night club",
+          "domain": "gueros.com",
+          "address": "1416 S Congress Ave, Austin, TX 78704",
+          "rating": 4.5,
+          "votes_count": 31,
+          "cid": "14849277519045686091",
+          "place_id": "ChIJhWm6nRq1RIYRS3PpjTo7E84",
+          "latitude": 30.2494257,
+          "longitude": -97.75011579999999
+        },
+        {
+          "rank": 3,
+          "title": "Home Slice Pizza",
+          "category": "Pizza",
+          "domain": "homeslicepizza.com",
+          "address": "1415 S Congress Ave, Austin, TX 78704",
+          "rating": 4.7,
+          "votes_count": 10953,
+          "cid": "12299280573550492680",
+          "place_id": "ChIJu96UVvy0RIYRCPxWa4TSr6o",
+          "latitude": 30.2492286,
+          "longitude": -97.7495328
+        },
+        {
+          "rank": 4,
+          "title": "Dovetail Pizza & Bar",
+          "category": "Pizza",
+          "domain": "www.dovetailpizza.com",
+          "address": "1816 S 1st St A, Austin, TX 78704",
+          "rating": 4.5,
+          "votes_count": 434,
+          "cid": "11900585998273990502",
+          "place_id": "ChIJa-cK1hK1RIYRZs8b1ulfJ6U",
+          "latitude": 30.246806699999997,
+          "longitude": -97.7564056
+        },
+        {
+          "rank": 5,
+          "title": "Show Me Pizza",
+          "category": "Pizza",
+          "domain": "www.showmepizza.com",
+          "address": "2809 S 1st St, Austin, TX 78704",
+          "rating": 4.7,
+          "votes_count": 581,
+          "cid": "921201907839428107",
+          "place_id": "ChIJvUTvWoe1RIYRC2YuI0HEyAw",
+          "latitude": 30.2367791,
+          "longitude": -97.7628288
+        }
+      ],
+      "error": null
+    },
+    {
+      "point": {
+        "row": 2,
+        "col": 3,
+        "lat": 30.249711,
+        "lng": -97.73873293065002,
+        "tag": "r2c3"
+      },
+      "rank": 1,
+      "matched_item": {
+        "rank": 1,
+        "title": "Home Slice Pizza",
+        "category": "Pizza",
+        "domain": "homeslicepizza.com",
+        "address": "1415 S Congress Ave, Austin, TX 78704",
+        "rating": 4.7,
+        "votes_count": 10953,
+        "cid": "12299280573550492680",
+        "place_id": "ChIJu96UVvy0RIYRCPxWa4TSr6o",
+        "latitude": 30.2492286,
+        "longitude": -97.7495328
+      },
+      "top_items": [
+        {
+          "rank": 1,
+          "title": "Home Slice Pizza",
+          "category": "Pizza",
+          "domain": "homeslicepizza.com",
+          "address": "1415 S Congress Ave, Austin, TX 78704",
+          "rating": 4.7,
+          "votes_count": 10953,
+          "cid": "12299280573550492680",
+          "place_id": "ChIJu96UVvy0RIYRCPxWa4TSr6o",
+          "latitude": 30.2492286,
+          "longitude": -97.7495328
+        },
+        {
+          "rank": 2,
+          "title": "Palm Pizza",
+          "category": "Pizza",
+          "domain": "www.palm.pizza",
+          "address": "1701 E Cesar Chavez St B, Austin, TX 78702",
+          "rating": 4.7,
+          "votes_count": 178,
+          "cid": "15856559748872189163",
+          "place_id": "ChIJNRM-6Zu1RIYR67RIdxTRDdw",
+          "latitude": 30.2575856,
+          "longitude": -97.7265584
+        },
+        {
+          "rank": 3,
+          "title": "DeSano Pizzeria Napoletana - Downtown Austin",
+          "category": "Pizza",
+          "domain": "desanopizza.com",
+          "address": "301 Lavaca St Ste 200, Austin, TX 78701",
+          "rating": 4.7,
+          "votes_count": 1361,
+          "cid": "3865327066180748277",
+          "place_id": "ChIJH1vZsj21RIYR9QNowHxmpDU",
+          "latitude": 30.266316999999997,
+          "longitude": -97.74595939999999
+        },
+        {
+          "rank": 4,
+          "title": "Salvation Pizza Kitchen & Bar - Rainey St",
+          "category": "Pizza",
+          "domain": "www.salvationpizzakitchen.com",
+          "address": "51 Rainey St #130, Austin, TX 78701",
+          "rating": 4,
+          "votes_count": 740,
+          "cid": "10601398522406152724",
+          "place_id": "ChIJ12tGSqq1RIYRFKpemsm7H5M",
+          "latitude": 30.256910299999998,
+          "longitude": -97.7393475
+        },
+        {
+          "rank": 5,
+          "title": "Via 313 Pizza",
+          "category": "Pizza",
+          "domain": "locations.via313.com",
+          "address": "1802 E 6th St, Austin, TX 78702",
+          "rating": 4.6,
+          "votes_count": 2685,
+          "cid": "9561784208726907557",
+          "place_id": "ChIJAQCw-7a1RIYRpVobzBNIsoQ",
+          "latitude": 30.2621915,
+          "longitude": -97.72314879999999
+        }
+      ],
+      "error": null
+    },
+    {
+      "point": {
+        "row": 2,
+        "col": 4,
+        "lat": 30.249711,
+        "lng": -97.72833386130002,
+        "tag": "r2c4"
+      },
+      "rank": null,
+      "matched_item": null,
+      "top_items": [
+        {
+          "rank": 1,
+          "title": "Palm Pizza",
+          "category": "Pizza",
+          "domain": "www.palm.pizza",
+          "address": "1701 E Cesar Chavez St B, Austin, TX 78702",
+          "rating": 4.7,
+          "votes_count": 178,
+          "cid": "15856559748872189163",
+          "place_id": "ChIJNRM-6Zu1RIYR67RIdxTRDdw",
+          "latitude": 30.2575856,
+          "longitude": -97.7265584
+        },
+        {
+          "rank": 2,
+          "title": "Bufalina Pizza",
+          "category": "Pizza",
+          "domain": "www.bufalinapizza.com",
+          "address": "2215 E Cesar Chavez St, Austin, TX 78702",
+          "rating": 4.5,
+          "votes_count": 1237,
+          "cid": "15594052442158171729",
+          "place_id": "ChIJ4ys7OrK1RIYRUYamRxM0adg",
+          "latitude": 30.2551447,
+          "longitude": -97.71966909999999
+        },
+        {
+          "rank": 3,
+          "title": "Via 313 Pizza",
+          "category": "Pizza",
+          "domain": "locations.via313.com",
+          "address": "1802 E 6th St, Austin, TX 78702",
+          "rating": 4.6,
+          "votes_count": 2685,
+          "cid": "9561784208726907557",
+          "place_id": "ChIJAQCw-7a1RIYRpVobzBNIsoQ",
+          "latitude": 30.2621915,
+          "longitude": -97.72314879999999
+        },
+        {
+          "rank": 4,
+          "title": "DeSano Pizzeria Napoletana - Downtown Austin",
+          "category": "Pizza",
+          "domain": "desanopizza.com",
+          "address": "301 Lavaca St Ste 200, Austin, TX 78701",
+          "rating": 4.7,
+          "votes_count": 1361,
+          "cid": "3865327066180748277",
+          "place_id": "ChIJH1vZsj21RIYR9QNowHxmpDU",
+          "latitude": 30.266316999999997,
+          "longitude": -97.74595939999999
+        },
+        {
+          "rank": 5,
+          "title": "Reunion Pizzeria",
+          "category": "Restaurant",
+          "domain": "reunionatx.com",
+          "address": "730 Shady Ln, Austin, TX 78702",
+          "rating": 4.8,
+          "votes_count": 40,
+          "cid": "14162068002423137035",
+          "place_id": "ChIJ7XhCZ9O1RIYRC2NbedDFicQ",
+          "latitude": 30.2544984,
+          "longitude": -97.6970176
+        }
+      ],
+      "error": null
+    },
+    {
+      "point": {
+        "row": 3,
+        "col": 0,
+        "lat": 30.240727888250092,
+        "lng": -97.76993013869999,
+        "tag": "r3c0"
+      },
+      "rank": 9,
+      "matched_item": {
+        "rank": 9,
+        "title": "Home Slice Pizza",
+        "category": "Pizza",
+        "domain": "homeslicepizza.com",
+        "address": "1415 S Congress Ave, Austin, TX 78704",
+        "rating": 4.7,
+        "votes_count": 10953,
+        "cid": "12299280573550492680",
+        "place_id": "ChIJu96UVvy0RIYRCPxWa4TSr6o",
+        "latitude": 30.2492286,
+        "longitude": -97.7495328
+      },
+      "top_items": [
+        {
+          "rank": 1,
+          "title": "Domino's Pizza",
+          "category": null,
+          "domain": null,
+          "address": null,
+          "rating": 3.3,
+          "votes_count": 278,
+          "cid": null,
+          "place_id": null,
+          "latitude": null,
+          "longitude": null
+        },
+        {
+          "rank": 2,
+          "title": "Jet's Pizza",
+          "category": null,
+          "domain": null,
+          "address": null,
+          "rating": 4.6,
+          "votes_count": 253,
+          "cid": null,
+          "place_id": null,
+          "latitude": null,
+          "longitude": null
+        },
+        {
+          "rank": 3,
+          "title": "Show Me Pizza",
+          "category": "Pizza",
+          "domain": "www.showmepizza.com",
+          "address": "2809 S 1st St, Austin, TX 78704",
+          "rating": 4.7,
+          "votes_count": 581,
+          "cid": "921201907839428107",
+          "place_id": "ChIJvUTvWoe1RIYRC2YuI0HEyAw",
+          "latitude": 30.2367791,
+          "longitude": -97.7628288
+        },
+        {
+          "rank": 4,
+          "title": "Toss Pizzeria & Pub",
+          "category": "Pizza",
+          "domain": "www.tosspizzeria.com",
+          "address": "2901 S 1st St Unit 102, Austin, TX 78704",
+          "rating": 4.5,
+          "votes_count": 1291,
+          "cid": "15858174322280537458",
+          "place_id": "ChIJMX5-2-m0RIYRcp3AoYaNE9w",
+          "latitude": 30.236362,
+          "longitude": -97.762872
+        },
+        {
+          "rank": 5,
+          "title": "Giovannis Pizza Stand",
+          "category": "Pizza",
+          "domain": "giovannispizzastandtx.com",
+          "address": "2900 S Lamar Blvd, Austin, TX 78704",
+          "rating": 4.6,
+          "votes_count": 245,
+          "cid": "17984337255406438973",
+          "place_id": "ChIJQ3V4dNO0RIYRPQpT3XIzlfk",
+          "latitude": 30.2436509,
+          "longitude": -97.7828341
+        }
+      ],
+      "error": null
+    },
+    {
+      "point": {
+        "row": 3,
+        "col": 1,
+        "lat": 30.240727888250092,
+        "lng": -97.75953106934999,
+        "tag": "r3c1"
+      },
+      "rank": 4,
+      "matched_item": {
+        "rank": 4,
+        "title": "Home Slice Pizza",
+        "category": "Pizza",
+        "domain": "homeslicepizza.com",
+        "address": "1415 S Congress Ave, Austin, TX 78704",
+        "rating": 4.7,
+        "votes_count": 10953,
+        "cid": "12299280573550492680",
+        "place_id": "ChIJu96UVvy0RIYRCPxWa4TSr6o",
+        "latitude": 30.2492286,
+        "longitude": -97.7495328
+      },
+      "top_items": [
+        {
+          "rank": 1,
+          "title": "Show Me Pizza",
+          "category": "Pizza",
+          "domain": "www.showmepizza.com",
+          "address": "2809 S 1st St, Austin, TX 78704",
+          "rating": 4.7,
+          "votes_count": 581,
+          "cid": "921201907839428107",
+          "place_id": "ChIJvUTvWoe1RIYRC2YuI0HEyAw",
+          "latitude": 30.2367791,
+          "longitude": -97.7628288
+        },
+        {
+          "rank": 2,
+          "title": "Toss Pizzeria & Pub",
+          "category": "Pizza",
+          "domain": "www.tosspizzeria.com",
+          "address": "2901 S 1st St Unit 102, Austin, TX 78704",
+          "rating": 4.5,
+          "votes_count": 1291,
+          "cid": "15858174322280537458",
+          "place_id": "ChIJMX5-2-m0RIYRcp3AoYaNE9w",
+          "latitude": 30.236362,
+          "longitude": -97.762872
+        },
+        {
+          "rank": 3,
+          "title": "Halal Hub(South)",
+          "category": "Takeout Restaurant",
+          "domain": "www.halalhubtexas.com",
+          "address": "539 W Oltorf St, Austin, TX 78704",
+          "rating": 4.4,
+          "votes_count": 786,
+          "cid": "6028434841791439838",
+          "place_id": "ChIJD7JSx6W1RIYR3iORcIxNqVM",
+          "latitude": 30.2416193,
+          "longitude": -97.7598203
+        },
+        {
+          "rank": 4,
+          "title": "Home Slice Pizza",
+          "category": "Pizza",
+          "domain": "homeslicepizza.com",
+          "address": "1415 S Congress Ave, Austin, TX 78704",
+          "rating": 4.7,
+          "votes_count": 10953,
+          "cid": "12299280573550492680",
+          "place_id": "ChIJu96UVvy0RIYRCPxWa4TSr6o",
+          "latitude": 30.2492286,
+          "longitude": -97.7495328
+        },
+        {
+          "rank": 5,
+          "title": "Dovetail Pizza & Bar",
+          "category": "Pizza",
+          "domain": "www.dovetailpizza.com",
+          "address": "1816 S 1st St A, Austin, TX 78704",
+          "rating": 4.5,
+          "votes_count": 434,
+          "cid": "11900585998273990502",
+          "place_id": "ChIJa-cK1hK1RIYRZs8b1ulfJ6U",
+          "latitude": 30.246806699999997,
+          "longitude": -97.7564056
+        }
+      ],
+      "error": null
+    },
+    {
+      "point": {
+        "row": 3,
+        "col": 2,
+        "lat": 30.240727888250092,
+        "lng": -97.749132,
+        "tag": "r3c2"
+      },
+      "rank": 1,
+      "matched_item": {
+        "rank": 1,
+        "title": "Home Slice Pizza",
+        "category": "Pizza",
+        "domain": "homeslicepizza.com",
+        "address": "1415 S Congress Ave, Austin, TX 78704",
+        "rating": 4.7,
+        "votes_count": 10953,
+        "cid": "12299280573550492680",
+        "place_id": "ChIJu96UVvy0RIYRCPxWa4TSr6o",
+        "latitude": 30.2492286,
+        "longitude": -97.7495328
+      },
+      "top_items": [
+        {
+          "rank": 1,
+          "title": "Home Slice Pizza",
+          "category": "Pizza",
+          "domain": "homeslicepizza.com",
+          "address": "1415 S Congress Ave, Austin, TX 78704",
+          "rating": 4.7,
+          "votes_count": 10953,
+          "cid": "12299280573550492680",
+          "place_id": "ChIJu96UVvy0RIYRCPxWa4TSr6o",
+          "latitude": 30.2492286,
+          "longitude": -97.7495328
+        },
+        {
+          "rank": 2,
+          "title": "Sammataro Slice Shop",
+          "category": "Pizza Takeout",
+          "domain": "www.sammataro.nyc",
+          "address": "2118 S Congress Ave, Austin, TX 78704",
+          "rating": 4.3,
+          "votes_count": 8,
+          "cid": "8213866440460588149",
+          "place_id": "ChIJKfwGP8O1RIYRddQnOAKE_XE",
+          "latitude": 30.2424081,
+          "longitude": -97.7526944
+        },
+        {
+          "rank": 3,
+          "title": "Show Me Pizza",
+          "category": "Pizza",
+          "domain": "www.showmepizza.com",
+          "address": "2809 S 1st St, Austin, TX 78704",
+          "rating": 4.7,
+          "votes_count": 581,
+          "cid": "921201907839428107",
+          "place_id": "ChIJvUTvWoe1RIYRC2YuI0HEyAw",
+          "latitude": 30.2367791,
+          "longitude": -97.7628288
+        },
+        {
+          "rank": 4,
+          "title": "Dovetail Pizza & Bar",
+          "category": "Pizza",
+          "domain": "www.dovetailpizza.com",
+          "address": "1816 S 1st St A, Austin, TX 78704",
+          "rating": 4.5,
+          "votes_count": 434,
+          "cid": "11900585998273990502",
+          "place_id": "ChIJa-cK1hK1RIYRZs8b1ulfJ6U",
+          "latitude": 30.246806699999997,
+          "longitude": -97.7564056
+        },
+        {
+          "rank": 5,
+          "title": "Toss Pizzeria & Pub",
+          "category": "Pizza",
+          "domain": "www.tosspizzeria.com",
+          "address": "2901 S 1st St Unit 102, Austin, TX 78704",
+          "rating": 4.5,
+          "votes_count": 1291,
+          "cid": "15858174322280537458",
+          "place_id": "ChIJMX5-2-m0RIYRcp3AoYaNE9w",
+          "latitude": 30.236362,
+          "longitude": -97.762872
+        }
+      ],
+      "error": null
+    },
+    {
+      "point": {
+        "row": 3,
+        "col": 3,
+        "lat": 30.240727888250092,
+        "lng": -97.73873293065002,
+        "tag": "r3c3"
+      },
+      "rank": 1,
+      "matched_item": {
+        "rank": 1,
+        "title": "Home Slice Pizza",
+        "category": "Pizza",
+        "domain": "homeslicepizza.com",
+        "address": "1415 S Congress Ave, Austin, TX 78704",
+        "rating": 4.7,
+        "votes_count": 10953,
+        "cid": "12299280573550492680",
+        "place_id": "ChIJu96UVvy0RIYRCPxWa4TSr6o",
+        "latitude": 30.2492286,
+        "longitude": -97.7495328
+      },
+      "top_items": [
+        {
+          "rank": 1,
+          "title": "Home Slice Pizza",
+          "category": "Pizza",
+          "domain": "homeslicepizza.com",
+          "address": "1415 S Congress Ave, Austin, TX 78704",
+          "rating": 4.7,
+          "votes_count": 10953,
+          "cid": "12299280573550492680",
+          "place_id": "ChIJu96UVvy0RIYRCPxWa4TSr6o",
+          "latitude": 30.2492286,
+          "longitude": -97.7495328
+        },
+        {
+          "rank": 2,
+          "title": "Palm Pizza",
+          "category": "Pizza",
+          "domain": "www.palm.pizza",
+          "address": "1701 E Cesar Chavez St B, Austin, TX 78702",
+          "rating": 4.7,
+          "votes_count": 178,
+          "cid": "15856559748872189163",
+          "place_id": "ChIJNRM-6Zu1RIYR67RIdxTRDdw",
+          "latitude": 30.2575856,
+          "longitude": -97.7265584
+        },
+        {
+          "rank": 3,
+          "title": "Whip in",
+          "category": "Indian",
+          "domain": "whipin.com",
+          "address": "1950 S I-35 Frontage Rd, Austin, TX 78704",
+          "rating": 4.2,
+          "votes_count": 585,
+          "cid": "2694379197403708351",
+          "place_id": "ChIJ9X4h5Vi0RIYRvztzx5pbZCU",
+          "latitude": 30.238057599999998,
+          "longitude": -97.7394478
+        },
+        {
+          "rank": 4,
+          "title": "Dovetail Pizza & Bar",
+          "category": "Pizza",
+          "domain": "www.dovetailpizza.com",
+          "address": "1816 S 1st St A, Austin, TX 78704",
+          "rating": 4.5,
+          "votes_count": 434,
+          "cid": "11900585998273990502",
+          "place_id": "ChIJa-cK1hK1RIYRZs8b1ulfJ6U",
+          "latitude": 30.246806699999997,
+          "longitude": -97.7564056
+        },
+        {
+          "rank": 5,
+          "title": "Bufalina Pizza",
+          "category": "Pizza",
+          "domain": "www.bufalinapizza.com",
+          "address": "2215 E Cesar Chavez St, Austin, TX 78702",
+          "rating": 4.5,
+          "votes_count": 1237,
+          "cid": "15594052442158171729",
+          "place_id": "ChIJ4ys7OrK1RIYRUYamRxM0adg",
+          "latitude": 30.2551447,
+          "longitude": -97.71966909999999
+        }
+      ],
+      "error": null
+    },
+    {
+      "point": {
+        "row": 3,
+        "col": 4,
+        "lat": 30.240727888250092,
+        "lng": -97.72833386130002,
+        "tag": "r3c4"
+      },
+      "rank": null,
+      "matched_item": null,
+      "top_items": [
+        {
+          "rank": 1,
+          "title": "Pizza Hut",
+          "category": "Pizza",
+          "domain": "locations.pizzahut.com",
+          "address": "2021B E Riverside Dr, Austin, TX 78741",
+          "rating": 3.7,
+          "votes_count": 867,
+          "cid": "10733264561617202440",
+          "place_id": "ChIJNaq-r0W0RIYRCG17Y0A39JQ",
+          "latitude": 30.240124599999998,
+          "longitude": -97.72763979999999
+        },
+        {
+          "rank": 2,
+          "title": "Palm Pizza",
+          "category": "Pizza",
+          "domain": "www.palm.pizza",
+          "address": "1701 E Cesar Chavez St B, Austin, TX 78702",
+          "rating": 4.7,
+          "votes_count": 178,
+          "cid": "15856559748872189163",
+          "place_id": "ChIJNRM-6Zu1RIYR67RIdxTRDdw",
+          "latitude": 30.2575856,
+          "longitude": -97.7265584
+        },
+        {
+          "rank": 3,
+          "title": "Reunion Pizzeria",
+          "category": "Restaurant",
+          "domain": "reunionatx.com",
+          "address": "730 Shady Ln, Austin, TX 78702",
+          "rating": 4.8,
+          "votes_count": 40,
+          "cid": "14162068002423137035",
+          "place_id": "ChIJ7XhCZ9O1RIYRC2NbedDFicQ",
+          "latitude": 30.2544984,
+          "longitude": -97.6970176
+        },
+        {
+          "rank": 4,
+          "title": "Bufalina Pizza",
+          "category": "Pizza",
+          "domain": "www.bufalinapizza.com",
+          "address": "2215 E Cesar Chavez St, Austin, TX 78702",
+          "rating": 4.5,
+          "votes_count": 1237,
+          "cid": "15594052442158171729",
+          "place_id": "ChIJ4ys7OrK1RIYRUYamRxM0adg",
+          "latitude": 30.2551447,
+          "longitude": -97.71966909999999
+        },
+        {
+          "rank": 5,
+          "title": "Salvation Pizza Kitchen & Bar - Rainey St",
+          "category": "Pizza",
+          "domain": "www.salvationpizzakitchen.com",
+          "address": "51 Rainey St #130, Austin, TX 78701",
+          "rating": 4,
+          "votes_count": 740,
+          "cid": "10601398522406152724",
+          "place_id": "ChIJ12tGSqq1RIYRFKpemsm7H5M",
+          "latitude": 30.256910299999998,
+          "longitude": -97.7393475
+        }
+      ],
+      "error": null
+    },
+    {
+      "point": {
+        "row": 4,
+        "col": 0,
+        "lat": 30.231744776500182,
+        "lng": -97.76993013869999,
+        "tag": "r4c0"
+      },
+      "rank": null,
+      "matched_item": null,
+      "top_items": [
+        {
+          "rank": 1,
+          "title": "Jet's Pizza",
+          "category": null,
+          "domain": null,
+          "address": null,
+          "rating": 4.6,
+          "votes_count": 253,
+          "cid": null,
+          "place_id": null,
+          "latitude": null,
+          "longitude": null
+        },
+        {
+          "rank": 2,
+          "title": "Domino's Pizza",
+          "category": null,
+          "domain": null,
+          "address": null,
+          "rating": 3.5,
+          "votes_count": 149,
+          "cid": null,
+          "place_id": null,
+          "latitude": null,
+          "longitude": null
+        },
+        {
+          "rank": 3,
+          "title": "Show Me Pizza",
+          "category": "Pizza",
+          "domain": "www.showmepizza.com",
+          "address": "2809 S 1st St, Austin, TX 78704",
+          "rating": 4.7,
+          "votes_count": 581,
+          "cid": "921201907839428107",
+          "place_id": "ChIJvUTvWoe1RIYRC2YuI0HEyAw",
+          "latitude": 30.2367791,
+          "longitude": -97.7628288
+        },
+        {
+          "rank": 4,
+          "title": "Toss Pizzeria & Pub",
+          "category": "Pizza",
+          "domain": "www.tosspizzeria.com",
+          "address": "2901 S 1st St Unit 102, Austin, TX 78704",
+          "rating": 4.5,
+          "votes_count": 1291,
+          "cid": "15858174322280537458",
+          "place_id": "ChIJMX5-2-m0RIYRcp3AoYaNE9w",
+          "latitude": 30.236362,
+          "longitude": -97.762872
+        },
+        {
+          "rank": 5,
+          "title": "The Pizza Den",
+          "category": "Pizza",
+          "domain": "www.thepizzaden.com",
+          "address": "440 E St Elmo Rd Ste E-2, Austin, TX 78745",
+          "rating": 4.7,
+          "votes_count": 84,
+          "cid": "12668213930683278970",
+          "place_id": "ChIJQzIuXxi1RIYReiYIbXOJzq8",
+          "latitude": 30.216661,
+          "longitude": -97.7617463
+        }
+      ],
+      "error": null
+    },
+    {
+      "point": {
+        "row": 4,
+        "col": 1,
+        "lat": 30.231744776500182,
+        "lng": -97.75953106934999,
+        "tag": "r4c1"
+      },
+      "rank": null,
+      "matched_item": null,
+      "top_items": [
+        {
+          "rank": 1,
+          "title": "Domino's Pizza",
+          "category": null,
+          "domain": null,
+          "address": null,
+          "rating": 3.5,
+          "votes_count": 149,
+          "cid": null,
+          "place_id": null,
+          "latitude": null,
+          "longitude": null
+        },
+        {
+          "rank": 2,
+          "title": "The Wheel South",
+          "category": "Bar",
+          "domain": "thewheelsouth.com",
+          "address": "3116 S Congress Ave, Austin, TX 78704",
+          "rating": 4.6,
+          "votes_count": 60,
+          "cid": "3241891606552638337",
+          "place_id": "ChIJ2ai_BQC1RIYRgfPjaD2D_Sw",
+          "latitude": 30.231325899999998,
+          "longitude": -97.7596026
+        },
+        {
+          "rank": 3,
+          "title": "Show Me Pizza",
+          "category": "Pizza",
+          "domain": "www.showmepizza.com",
+          "address": "2809 S 1st St, Austin, TX 78704",
+          "rating": 4.7,
+          "votes_count": 581,
+          "cid": "921201907839428107",
+          "place_id": "ChIJvUTvWoe1RIYRC2YuI0HEyAw",
+          "latitude": 30.2367791,
+          "longitude": -97.7628288
+        },
+        {
+          "rank": 4,
+          "title": "Toss Pizzeria & Pub",
+          "category": "Pizza",
+          "domain": "www.tosspizzeria.com",
+          "address": "2901 S 1st St Unit 102, Austin, TX 78704",
+          "rating": 4.5,
+          "votes_count": 1291,
+          "cid": "15858174322280537458",
+          "place_id": "ChIJMX5-2-m0RIYRcp3AoYaNE9w",
+          "latitude": 30.236362,
+          "longitude": -97.762872
+        },
+        {
+          "rank": 5,
+          "title": "Pizza Leon - Austin Tx",
+          "category": "Pizza",
+          "domain": "www.mypizzaleon.com",
+          "address": "509 E Ben White Blvd, Austin, TX 78704",
+          "rating": 4.6,
+          "votes_count": 410,
+          "cid": "10479234477560984296",
+          "place_id": "ChIJ7bxjpr20RIYR6HIMaTy4bZE",
+          "latitude": 30.2189357,
+          "longitude": -97.757272
+        }
+      ],
+      "error": null
+    },
+    {
+      "point": {
+        "row": 4,
+        "col": 2,
+        "lat": 30.231744776500182,
+        "lng": -97.749132,
+        "tag": "r4c2"
+      },
+      "rank": null,
+      "matched_item": null,
+      "top_items": [
+        {
+          "rank": 1,
+          "title": "Show Me Pizza",
+          "category": "Pizza",
+          "domain": "www.showmepizza.com",
+          "address": "2809 S 1st St, Austin, TX 78704",
+          "rating": 4.7,
+          "votes_count": 581,
+          "cid": "921201907839428107",
+          "place_id": "ChIJvUTvWoe1RIYRC2YuI0HEyAw",
+          "latitude": 30.2367791,
+          "longitude": -97.7628288
+        },
+        {
+          "rank": 2,
+          "title": "Pizza Leon - Austin Tx",
+          "category": "Pizza",
+          "domain": "www.mypizzaleon.com",
+          "address": "509 E Ben White Blvd, Austin, TX 78704",
+          "rating": 4.6,
+          "votes_count": 410,
+          "cid": "10479234477560984296",
+          "place_id": "ChIJ7bxjpr20RIYR6HIMaTy4bZE",
+          "latitude": 30.2189357,
+          "longitude": -97.757272
+        },
+        {
+          "rank": 3,
+          "title": "The Pizza Den",
+          "category": "Pizza",
+          "domain": "www.thepizzaden.com",
+          "address": "440 E St Elmo Rd Ste E-2, Austin, TX 78745",
+          "rating": 4.7,
+          "votes_count": 84,
+          "cid": "12668213930683278970",
+          "place_id": "ChIJQzIuXxi1RIYReiYIbXOJzq8",
+          "latitude": 30.216661,
+          "longitude": -97.7617463
+        },
+        {
+          "rank": 4,
+          "title": "Toss Pizzeria & Pub",
+          "category": "Pizza",
+          "domain": "www.tosspizzeria.com",
+          "address": "2901 S 1st St Unit 102, Austin, TX 78704",
+          "rating": 4.5,
+          "votes_count": 1291,
+          "cid": "15858174322280537458",
+          "place_id": "ChIJMX5-2-m0RIYRcp3AoYaNE9w",
+          "latitude": 30.236362,
+          "longitude": -97.762872
+        },
+        {
+          "rank": 5,
+          "title": "Pinthouse Brewing",
+          "category": "Brewpub",
+          "domain": "pinthouse.com",
+          "address": "2201 E Ben White Blvd, Austin, TX 78741",
+          "rating": 4.7,
+          "votes_count": 1920,
+          "cid": "16519148015864568716",
+          "place_id": "ChIJm9HyQBu1RIYRjNu0JZnNP-U",
+          "latitude": 30.2153808,
+          "longitude": -97.7423669
+        }
+      ],
+      "error": null
+    },
+    {
+      "point": {
+        "row": 4,
+        "col": 3,
+        "lat": 30.231744776500182,
+        "lng": -97.73873293065002,
+        "tag": "r4c3"
+      },
+      "rank": null,
+      "matched_item": null,
+      "top_items": [
+        {
+          "rank": 1,
+          "title": "Delicias Cubanas",
+          "category": "Restaurant",
+          "domain": "www.facebook.com",
+          "address": "2005 E Oltorf St, Austin, TX 78741",
+          "rating": 4.6,
+          "votes_count": 32,
+          "cid": "6034610885127014154",
+          "place_id": "ChIJ-8Q0BhG1RIYRCoezlaA-v1M",
+          "latitude": 30.230601399999998,
+          "longitude": -97.73348159999999
+        },
+        {
+          "rank": 2,
+          "title": "Domino's Pizza",
+          "category": "Pizza",
+          "domain": "www.dominos.com",
+          "address": "1931 E Oltorf St Ste E/F Ste F, Austin, TX 78741",
+          "rating": 3.1,
+          "votes_count": 1039,
+          "cid": "7663065808461872672",
+          "place_id": "ChIJ4wAYi120RIYRIL7Pi8CtWGo",
+          "latitude": 30.2306411,
+          "longitude": -97.7346894
+        },
+        {
+          "rank": 3,
+          "title": "Pizza Leon - Austin Tx",
+          "category": "Pizza",
+          "domain": "www.mypizzaleon.com",
+          "address": "509 E Ben White Blvd, Austin, TX 78704",
+          "rating": 4.6,
+          "votes_count": 410,
+          "cid": "10479234477560984296",
+          "place_id": "ChIJ7bxjpr20RIYR6HIMaTy4bZE",
+          "latitude": 30.2189357,
+          "longitude": -97.757272
+        },
+        {
+          "rank": 4,
+          "title": "Pinthouse Brewing",
+          "category": "Brewpub",
+          "domain": "pinthouse.com",
+          "address": "2201 E Ben White Blvd, Austin, TX 78741",
+          "rating": 4.7,
+          "votes_count": 1920,
+          "cid": "16519148015864568716",
+          "place_id": "ChIJm9HyQBu1RIYRjNu0JZnNP-U",
+          "latitude": 30.2153808,
+          "longitude": -97.7423669
+        },
+        {
+          "rank": 5,
+          "title": "Papa Johns Pizza",
+          "category": "Pizza",
+          "domain": "locations.papajohns.com",
+          "address": "2030 E Oltorf St Ste 114, Austin, TX 78741",
+          "rating": 2.9,
+          "votes_count": 405,
+          "cid": "7210621342894964948",
+          "place_id": "ChIJM36w9Ge0RIYR1MAaaehFEWQ",
+          "latitude": 30.2305508,
+          "longitude": -97.7316209
+        }
+      ],
+      "error": null
+    },
+    {
+      "point": {
+        "row": 4,
+        "col": 4,
+        "lat": 30.231744776500182,
+        "lng": -97.72833386130002,
+        "tag": "r4c4"
+      },
+      "rank": null,
+      "matched_item": null,
+      "top_items": [
+        {
+          "rank": 1,
+          "title": "888 Pan Asian Restaurant",
+          "category": "Pan Asian",
+          "domain": "888vietnameserestaurant.com",
+          "address": "2400 E Oltorf St #1A, Austin, TX 78741",
+          "rating": 4.5,
+          "votes_count": 5226,
+          "cid": "545946818358883095",
+          "place_id": "ChIJR-vXFGi0RIYRFzOJHr2Xkwc",
+          "latitude": 30.2296403,
+          "longitude": -97.7300021
+        },
+        {
+          "rank": 2,
+          "title": "Delicias Cubanas",
+          "category": "Restaurant",
+          "domain": "www.facebook.com",
+          "address": "2005 E Oltorf St, Austin, TX 78741",
+          "rating": 4.6,
+          "votes_count": 32,
+          "cid": "6034610885127014154",
+          "place_id": "ChIJ-8Q0BhG1RIYRCoezlaA-v1M",
+          "latitude": 30.230601399999998,
+          "longitude": -97.73348159999999
+        },
+        {
+          "rank": 3,
+          "title": "Papa Johns Pizza",
+          "category": "Pizza",
+          "domain": "locations.papajohns.com",
+          "address": "2030 E Oltorf St Ste 114, Austin, TX 78741",
+          "rating": 2.9,
+          "votes_count": 405,
+          "cid": "7210621342894964948",
+          "place_id": "ChIJM36w9Ge0RIYR1MAaaehFEWQ",
+          "latitude": 30.2305508,
+          "longitude": -97.7316209
+        },
+        {
+          "rank": 4,
+          "title": "Domino's Pizza",
+          "category": "Pizza",
+          "domain": "www.dominos.com",
+          "address": "1931 E Oltorf St Ste E/F Ste F, Austin, TX 78741",
+          "rating": 3.1,
+          "votes_count": 1039,
+          "cid": "7663065808461872672",
+          "place_id": "ChIJ4wAYi120RIYRIL7Pi8CtWGo",
+          "latitude": 30.2306411,
+          "longitude": -97.7346894
+        },
+        {
+          "rank": 5,
+          "title": "Pinthouse Brewing",
+          "category": "Brewpub",
+          "domain": "pinthouse.com",
+          "address": "2201 E Ben White Blvd, Austin, TX 78741",
+          "rating": 4.7,
+          "votes_count": 1920,
+          "cid": "16519148015864568716",
+          "place_id": "ChIJm9HyQBu1RIYRjNu0JZnNP-U",
+          "latitude": 30.2153808,
+          "longitude": -97.7423669
+        }
+      ],
+      "error": null
+    }
+  ]
+}

@@ -238,13 +238,19 @@ select {
 
 .layout {
   display: grid;
-  grid-template-columns: minmax(560px, 1fr) 360px;
+  grid-template-columns: minmax(620px, 1fr) 360px;
   gap: 18px;
   align-items: start;
 }
 
+.primary-stack,
+.side-stack {
+  align-content: start;
+  display: grid;
+  gap: 18px;
+}
+
 .map-card {
-  grid-row: span 3;
   padding: 16px;
 }
 
@@ -316,6 +322,11 @@ select {
   background: #111827;
   color: #0f172a;
   font: inherit;
+}
+
+.rank-canvas-layer {
+  pointer-events: none;
+  transform: translateZ(0);
 }
 
 .leaflet-control-attribution {
@@ -692,7 +703,9 @@ td span {
   .report-cta,
   .layout,
   .metrics,
-  .keyword-summary {
+  .keyword-summary,
+  .primary-stack,
+  .side-stack {
     grid-template-columns: 1fr;
   }
 

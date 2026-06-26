@@ -46,7 +46,7 @@ The likely product home is Local SEO Brain, not a standalone hosted SaaS. Treat 
 - Alana-style keyword scan list with CSV export.
 - Python runner for live/priority/standard DataForSEO scans.
 - Cache-aware bulk-run scaffold.
-- Executive report HTML and browser-safe PDF.
+- Executive report HTML and the original executive PDF.
 
 ## What Needs Product Work
 

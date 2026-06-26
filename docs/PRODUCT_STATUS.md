@@ -13,7 +13,7 @@ A person can:
 - Estimate raw DataForSEO scan costs.
 - Run no-credit bulk dry runs from CSV.
 - Run paid DataForSEO scans from the Python CLI after setting credentials.
-- Share the executive HTML report or browser-safe PDF with a decision maker.
+- Share the executive HTML report or original executive PDF with a decision maker.
 
 ## Current Proof Dataset
 

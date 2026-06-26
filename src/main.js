@@ -14,6 +14,127 @@ const queueRates = {
 
 let leafletMap = null
 
+const RankCanvasLayer = L.Layer.extend({
+  initialize(points, selected, options = {}) {
+    this.points = points
+    this.selected = selected
+    this.view = options.view || 'pins'
+    this.onSelect = options.onSelect
+  },
+
+  onAdd(map) {
+    this._map = map
+    this._canvas = L.DomUtil.create('canvas', 'rank-canvas-layer')
+    this._context = this._canvas.getContext('2d')
+    map.getPanes().overlayPane.appendChild(this._canvas)
+    map.on('moveend zoomend resize viewreset', this._reset, this)
+    map.on('click', this._handleClick, this)
+    this._reset()
+  },
+
+  onRemove(map) {
+    map.off('moveend zoomend resize viewreset', this._reset, this)
+    map.off('click', this._handleClick, this)
+    L.DomUtil.remove(this._canvas)
+  },
+
+  _reset() {
+    const topLeft = this._map.containerPointToLayerPoint([0, 0])
+    const size = this._map.getSize()
+    const ratio = window.devicePixelRatio || 1
+    this._canvas.width = Math.round(size.x * ratio)
+    this._canvas.height = Math.round(size.y * ratio)
+    this._canvas.style.width = `${size.x}px`
+    this._canvas.style.height = `${size.y}px`
+    L.DomUtil.setPosition(this._canvas, topLeft)
+    this._context.setTransform(ratio, 0, 0, ratio, 0, 0)
+    this._draw(topLeft, size)
+  },
+
+  _draw(topLeft, size) {
+    const ctx = this._context
+    ctx.clearRect(0, 0, size.x, size.y)
+
+    if (this.view === 'heat') {
+      for (const point of this.points) {
+        const layerPoint = this._map.latLngToLayerPoint([point.lat, point.lng])
+        const x = layerPoint.x - topLeft.x
+        const y = layerPoint.y - topLeft.y
+        const radius = point.rank === null ? 34 : Math.max(20, 46 - point.rank * 1.5)
+        const gradient = ctx.createRadialGradient(x, y, 1, x, y, radius)
+        gradient.addColorStop(0, `${rankColor(point.rank)}cc`)
+        gradient.addColorStop(1, `${rankColor(point.rank)}00`)
+        ctx.fillStyle = gradient
+        ctx.beginPath()
+        ctx.arc(x, y, radius, 0, Math.PI * 2)
+        ctx.fill()
+      }
+      return
+    }
+
+    for (const [index, point] of this.points.entries()) {
+      const layerPoint = this._map.latLngToLayerPoint([point.lat, point.lng])
+      const x = layerPoint.x - topLeft.x
+      const y = layerPoint.y - topLeft.y
+      const selected = point === this.selected
+      const radius = selected ? 19 : 16
+      ctx.beginPath()
+      ctx.fillStyle = rankColor(point.rank)
+      ctx.arc(x, y, radius, 0, Math.PI * 2)
+      ctx.fill()
+      ctx.lineWidth = selected ? 4 : 2
+      ctx.strokeStyle = selected ? 'rgba(45, 212, 191, 0.88)' : 'rgba(255, 255, 255, 0.82)'
+      ctx.stroke()
+
+      if (selected) {
+        ctx.beginPath()
+        ctx.arc(x, y, radius + 7, 0, Math.PI * 2)
+        ctx.lineWidth = 2
+        ctx.strokeStyle = 'rgba(45, 212, 191, 0.38)'
+        ctx.stroke()
+      }
+
+      ctx.fillStyle = point.rank !== null && point.rank <= 10 ? '#08111f' : '#ffffff'
+      ctx.font = `900 ${labelRank(point.rank).length > 2 ? 11 : 13}px Inter, system-ui, sans-serif`
+      ctx.textAlign = 'center'
+      ctx.textBaseline = 'middle'
+      ctx.fillText(labelRank(point.rank), x, y + 0.5)
+      point._canvasIndex = index
+    }
+  },
+
+  _handleClick(event) {
+    const clicked = this._map.latLngToLayerPoint(event.latlng)
+    let bestIndex = -1
+    let bestDistance = Infinity
+
+    for (const [index, point] of this.points.entries()) {
+      const layerPoint = this._map.latLngToLayerPoint([point.lat, point.lng])
+      const distance = clicked.distanceTo(layerPoint)
+      if (distance < bestDistance) {
+        bestDistance = distance
+        bestIndex = index
+      }
+    }
+
+    if (bestIndex === -1 || bestDistance > 22) return
+
+    if (this.view === 'evidence') {
+      const point = this.points[bestIndex]
+      L.popup()
+        .setLatLng([point.lat, point.lng])
+        .setContent(`
+          <strong>${point.id}: ${labelRank(point.rank)}</strong><br>
+          Top result: ${point.topResult}<br>
+          Top three: ${(point.topThree || []).join(', ')}
+        `)
+        .openOn(this._map)
+    }
+
+    this.onSelect?.(bestIndex)
+  },
+})
+
 const keywordScans = [
   { business: 'Summit Building Group - Remodeling services', address: '1401 21st Street #7958, Sacramento, CA', keyword: 'home improvement', avgScore: null, lastScan: 'Jun 19 2026 12:16 PM', timezone: 'America/Los_Angeles', shape: 'Circle', points: 39, duration: '15 minutes', cadence: 'Once at 9:00 AM' },
   { business: 'Summit Building Group - Remodeling services', address: '1401 21st Street #7958, Sacramento, CA', keyword: 'roofing services', avgScore: null, lastScan: 'Jun 19 2026 12:18 PM', timezone: 'America/Los_Angeles', shape: 'Circle', points: 39, duration: '15 minutes', cadence: 'Once at 9:00 AM' },
@@ -290,16 +411,6 @@ function rememberMapView() {
   leafletMap = null
 }
 
-function renderRankMarker(point, index, selected) {
-  const selectedClass = point === selected ? ' selected' : ''
-  return L.divIcon({
-    className: '',
-    html: `<button class="map-rank-marker ${rankClass(point.rank)}${selectedClass}" data-index="${index}">${labelRank(point.rank)}</button>`,
-    iconSize: [34, 34],
-    iconAnchor: [17, 17],
-  })
-}
-
 function renderLeafletMap(grid, selected) {
   const mapEl = document.querySelector('#rankMap')
   if (!mapEl) return
@@ -312,6 +423,7 @@ function renderLeafletMap(grid, selected) {
     doubleClickZoom: true,
     dragging: true,
     attributionControl: true,
+    preferCanvas: true,
   }).setView(center, zoom)
 
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -319,44 +431,16 @@ function renderLeafletMap(grid, selected) {
     attribution: '&copy; OpenStreetMap contributors',
   }).addTo(leafletMap)
 
-  const layer = L.layerGroup().addTo(leafletMap)
-  for (const [index, point] of grid.points.entries()) {
-    if (state.view === 'heat') {
-      L.circleMarker([point.lat, point.lng], {
-        radius: point.rank === null ? 22 : Math.max(10, 26 - point.rank),
-        fillColor: rankColor(point.rank),
-        fillOpacity: point.rank === null ? 0.42 : 0.58,
-        color: rankColor(point.rank),
-        opacity: 0.2,
-        weight: 1,
-      })
-        .bindTooltip(`${point.id}: ${labelRank(point.rank)}`)
-        .addTo(layer)
-      continue
-    }
-
-    const marker = L.marker([point.lat, point.lng], {
-      icon: renderRankMarker(point, index, selected),
-      keyboard: true,
-      title: `${point.id}: ${labelRank(point.rank)}`,
-    })
-      .on('click', () => {
-        const c = leafletMap.getCenter()
-        state.mapCenter = [c.lat, c.lng]
-        state.mapZoom = leafletMap.getZoom()
-        state.selectedIndex = index
-        render()
-      })
-      .addTo(layer)
-
-    if (state.view === 'evidence') {
-      marker.bindPopup(`
-        <strong>${point.id}: ${labelRank(point.rank)}</strong><br>
-        Top result: ${point.topResult}<br>
-        Top three: ${(point.topThree || []).join(', ')}
-      `)
-    }
-  }
+  new RankCanvasLayer(grid.points, selected, {
+    view: state.view,
+    onSelect: (index) => {
+      const c = leafletMap.getCenter()
+      state.mapCenter = [c.lat, c.lng]
+      state.mapZoom = leafletMap.getZoom()
+      state.selectedIndex = index
+      render()
+    },
+  }).addTo(leafletMap)
 
   if (!state.mapCenter && grid.points.length) {
     const bounds = L.latLngBounds(grid.points.map((point) => [point.lat, point.lng]))
@@ -463,7 +547,7 @@ function render() {
         <nav>
           <a class="active">Studio</a>
           <a href="/docs/local-seo-geogrid-executive-report.html">Executive Report</a>
-          <a href="/docs/local-seo-geogrid-executive-report-browser-safe.pdf">Browser-Safe PDF</a>
+          <a href="/docs/local-seo-geogrid-executive-report.pdf">Executive PDF</a>
           <a href="/docs/DANIEL_HANDOFF.md">Daniel Handoff</a>
           <a href="/docs/PRODUCT_STATUS.md">Product Status</a>
           <a href="/docs/ROADMAP.md">Roadmap</a>
@@ -478,7 +562,7 @@ function render() {
             <p>Interactive map rank pins, Alana-style keyword scan lists, raw proof receipts, and prospect economics in one focused workflow.</p>
             <div class="hero-actions">
               <a href="/docs/local-seo-geogrid-executive-report.html" target="_blank" rel="noreferrer">Open Executive Report</a>
-              <a href="/docs/local-seo-geogrid-executive-report-browser-safe.pdf" target="_blank" rel="noreferrer">Open PDF</a>
+              <a href="/docs/local-seo-geogrid-executive-report.pdf" target="_blank" rel="noreferrer">Open PDF</a>
             </div>
           </div>
           <div class="controls">
@@ -496,7 +580,7 @@ function render() {
           </div>
           <div>
             <a href="/docs/local-seo-geogrid-executive-report.html" target="_blank" rel="noreferrer">Open designed HTML</a>
-            <a href="/docs/local-seo-geogrid-executive-report-browser-safe.pdf" target="_blank" rel="noreferrer">Open PDF</a>
+            <a href="/docs/local-seo-geogrid-executive-report.pdf" target="_blank" rel="noreferrer">Open PDF</a>
           </div>
         </section>
         <section class="metrics">
@@ -506,62 +590,66 @@ function render() {
           <article><strong>${m.missing}</strong><span>Beyond depth</span></article>
         </section>
         <section class="layout">
-          <div class="map-card">
-            <div class="tabs"><button data-view="pins">Rank pins</button><button data-view="heat">Smooth heat</button><button data-view="evidence">Evidence</button><span>${points.length} coordinates</span></div>
-            <div class="project-strip">
-              <span>${project.kind}</span>
-              <strong>${project.name}</strong>
-              <em>${project.scope}</em>
-            </div>
-            <div class="map-meta">
-              <strong>${grid.label}</strong>
-              <span>${grid.source}. ${project.note}</span>
-            </div>
-            <div class="map-shell">
-              <div class="map-actions">
-                <button id="zoomIn" type="button">+</button>
-                <button id="zoomOut" type="button">-</button>
-                <button id="resetMap" type="button">Reset</button>
+          <div class="primary-stack">
+            <div class="map-card">
+              <div class="tabs"><button data-view="pins">Rank pins</button><button data-view="heat">Smooth heat</button><button data-view="evidence">Evidence</button><span>${points.length} coordinates</span></div>
+              <div class="project-strip">
+                <span>${project.kind}</span>
+                <strong>${project.name}</strong>
+                <em>${project.scope}</em>
               </div>
-              <div id="rankMap" class="leaflet-map" aria-label="Interactive local SEO rank map"></div>
-              <div class="map-help">Drag to pan. Scroll or use controls to zoom.</div>
+              <div class="map-meta">
+                <strong>${grid.label}</strong>
+                <span>${grid.source}. ${project.note}</span>
+              </div>
+              <div class="map-shell">
+                <div class="map-actions">
+                  <button id="zoomIn" type="button">+</button>
+                  <button id="zoomOut" type="button">-</button>
+                  <button id="resetMap" type="button">Reset</button>
+                </div>
+                <div id="rankMap" class="leaflet-map" aria-label="Interactive local SEO rank map"></div>
+                <div class="map-help">Drag to pan. Scroll or use controls to zoom.</div>
+              </div>
             </div>
-          </div>
-          <aside class="panel">
-            <h2>Selected Coordinate</h2>
-            <dl>
-              <div><dt>Rank</dt><dd>${labelRank(selected.rank)}</dd></div>
-              <div><dt>Cell</dt><dd>${selected.id}</dd></div>
-              <div><dt>Top result</dt><dd>${selected.topResult}</dd></div>
-            </dl>
-            <h3>Top three at this point</h3>
-            ${(selected.topThree || []).map((name, index) => `<div class="mini-row"><span>${name}</span><b>${index + 1}</b></div>`).join('')}
-          </aside>
-          <aside class="panel">
-            <h2>Prospect Economics</h2>
-            <dl>
-              <div><dt>Pins per scan</dt><dd>${points.length}</dd></div>
-              <div><dt>Current project</dt><dd>${project.scope}</dd></div>
-              <div><dt>Paid equivalent</dt><dd>$${cost.toFixed(4)}</dd></div>
-              <div><dt>1,000 paid equivalent</dt><dd>$${(cost * 1000).toFixed(2)}</dd></div>
-            </dl>
-            <p class="note">${project.plannerNote} This ${size} x ${size} ${state.queue} view is about $${cost.toFixed(3)} per business-keyword scan.</p>
-          </aside>
-          <aside class="panel">
-            <h2>Competitor Pressure</h2>
-            ${pressureRows}
-          </aside>
-          <aside class="panel planner">
-            <h2>Bulk Planner</h2>
-            <label>Prospects<input id="plannerProspects" type="number" min="1" step="1" value="${state.plannerProspects}"></label>
-            <dl>
-              <div><dt>Grid</dt><dd>${size} x ${size}</dd></div>
-              <div><dt>Total coordinate tasks</dt><dd>${(points.length * state.plannerProspects).toLocaleString()}</dd></div>
-              <div><dt>Estimated rank-data cost</dt><dd>$${(cost * state.plannerProspects).toFixed(2)}</dd></div>
-            </dl>
-            <pre>python tools/bulk_geogrid_runner.py --prospects prospects.csv --method ${state.queue} --grid-size ${size} --radius-km 2 --depth 20 --confirm-cost-usd ${(cost * state.plannerProspects).toFixed(2)}
+            <aside class="panel planner">
+              <h2>Bulk Planner</h2>
+              <label>Prospects<input id="plannerProspects" type="number" min="1" step="1" value="${state.plannerProspects}"></label>
+              <dl>
+                <div><dt>Grid</dt><dd>${size} x ${size}</dd></div>
+                <div><dt>Total coordinate tasks</dt><dd>${(points.length * state.plannerProspects).toLocaleString()}</dd></div>
+                <div><dt>Estimated rank-data cost</dt><dd>$${(cost * state.plannerProspects).toFixed(2)}</dd></div>
+              </dl>
+              <pre>python tools/bulk_geogrid_runner.py --prospects prospects.csv --method ${state.queue} --grid-size ${size} --radius-km 2 --depth 20 --confirm-cost-usd ${(cost * state.plannerProspects).toFixed(2)}
 # Dry-run by default. Add --execute only after the prospect list and spend ceiling are approved.</pre>
-          </aside>
+            </aside>
+          </div>
+          <div class="side-stack">
+            <aside class="panel">
+              <h2>Selected Coordinate</h2>
+              <dl>
+                <div><dt>Rank</dt><dd>${labelRank(selected.rank)}</dd></div>
+                <div><dt>Cell</dt><dd>${selected.id}</dd></div>
+                <div><dt>Top result</dt><dd>${selected.topResult}</dd></div>
+              </dl>
+              <h3>Top three at this point</h3>
+              ${(selected.topThree || []).map((name, index) => `<div class="mini-row"><span>${name}</span><b>${index + 1}</b></div>`).join('')}
+            </aside>
+            <aside class="panel">
+              <h2>Prospect Economics</h2>
+              <dl>
+                <div><dt>Pins per scan</dt><dd>${points.length}</dd></div>
+                <div><dt>Current project</dt><dd>${project.scope}</dd></div>
+                <div><dt>Paid equivalent</dt><dd>$${cost.toFixed(4)}</dd></div>
+                <div><dt>1,000 paid equivalent</dt><dd>$${(cost * 1000).toFixed(2)}</dd></div>
+              </dl>
+              <p class="note">${project.plannerNote} This ${size} x ${size} ${state.queue} view is about $${cost.toFixed(3)} per business-keyword scan.</p>
+            </aside>
+            <aside class="panel">
+              <h2>Competitor Pressure</h2>
+              ${pressureRows}
+            </aside>
+          </div>
         </section>
         ${renderKeywordReport()}
       </main>

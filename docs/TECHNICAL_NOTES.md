@@ -1,8 +1,10 @@
-# GeoGrid Technical Notes
+# GeoGriddy Technical Notes
 
 ## Data Backbone
 
-GeoGrid uses DataForSEO Google Maps SERP as the rank source. Each coordinate in the grid is a separate task. The target business is matched against returned map results by CID, place ID, domain, exact name, partial name, and fuzzy name score.
+GeoGriddy uses DataForSEO Google Maps SERP as the rank source. Each coordinate in the grid is a separate task. The target business is matched against returned map results by CID, place ID, domain, exact name, partial name, and fuzzy name score.
+
+The browser map is a display layer. The current prototype renders an interactive Leaflet map with OpenStreetMap tiles so the demo can pan and zoom without spending Google Maps Platform quota. A Google Maps tile/geocoding layer can be swapped in later without changing the rank-data contract.
 
 ## Why Square Grids
 
@@ -20,14 +22,17 @@ Standard Queue is the bulk affordability mode.
 
 ## Current Proof
 
-The included Home Slice Pizza proof scan is a 5 x 5 Standard Queue run:
+The main included Home Slice Pizza proof scan is a 17 x 17 Standard Queue run:
 
 - Keyword: pizza.
 - Location: South Congress, Austin, TX.
-- Reported API cost: $0.0150.
-- Found points: 12 of 25.
-- Top 3 points: 7 of 25.
-- Average found rank: 3.83.
+- Reported API cost: $0.1734.
+- Found points: 225 of 289.
+- Top 3 points: 100 of 289.
+- Top 10 points: 201 of 289.
+- Average found rank: 4.97.
+
+The older 5 x 5 proof scan is retained as historical cache data, but the dashboard now opens on the real 17 x 17 proof.
 
 ## PDF Performance Note
 

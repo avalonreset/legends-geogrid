@@ -2,13 +2,13 @@
 
 ## Product Takeaway
 
-GeoGrid rank heatmaps and local citations are adjacent local SEO workflows, not the same data product.
+GeoGriddy rank heatmaps and local citations are adjacent local SEO workflows, not the same data product.
 
-- GeoGrid heatmaps answer: "Where does this business rank for this keyword from each nearby coordinate?"
+- GeoGriddy heatmaps answer: "Where does this business rank for this keyword from each nearby coordinate?"
 - Citation audits answer: "Is the business name, address, phone, website, category, and profile data consistent across directories and data aggregators?"
 - Citation fulfillment answers: "Can we submit, correct, monitor, or renew those listings across publishers?"
 
-The current prototype should not mix citation fulfillment into the core GeoGrid dashboard. If we revisit citations later, the safest sequence is:
+The current prototype should not mix citation fulfillment into the core GeoGriddy dashboard. If we revisit citations later, the safest sequence is:
 
 1. Heatmap rank proof through DataForSEO Google Maps SERP.
 2. Citation/NAP opportunity audit.
@@ -56,7 +56,7 @@ The $20-$40 citation conversation is realistic as a fulfillment anchor, but it s
 
 - DataForSEO heatmap cost is per SERP coordinate.
 - Citation fulfillment cost is labor, directory access, aggregator distribution, monitoring, cleanup, and reporting.
-- GeoGrid can reduce waste by showing when citation work is actually necessary before paying a vendor.
+- GeoGriddy can reduce waste by showing when citation work is actually necessary before paying a vendor.
 
 ## Sources
 

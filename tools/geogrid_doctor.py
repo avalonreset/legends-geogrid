@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Local readiness check for the GeoGrid prototype."""
+"""Local readiness check for the GeoGriddy prototype."""
 
 from __future__ import annotations
 
@@ -43,6 +43,7 @@ def main() -> int:
     required = [
         "package.json",
         "src/main.js",
+        "src/data/home-slice-17x17.json",
         "src/data/home-slice-5x5.json",
         "tools/local_heatmap_poc.py",
         "tools/bulk_geogrid_runner.py",
@@ -60,7 +61,7 @@ def main() -> int:
             fail("file", rel)
 
     try:
-        payload = json.loads((ROOT / "src/data/home-slice-5x5.json").read_text(encoding="utf-8"))
+        payload = json.loads((ROOT / "src/data/home-slice-17x17.json").read_text(encoding="utf-8"))
         metrics = payload.get("metrics", {})
         ok("proof dataset", f"{metrics.get('points')} points, {metrics.get('solv')}% top 3")
     except Exception as exc:
@@ -80,9 +81,9 @@ def main() -> int:
         warn("DataForSEO env", "not configured, dashboard and dry-runs still work")
 
     if os.environ.get("GOOGLE_MAPS_API_KEY"):
-        ok("Google Maps env", "configured")
+        ok("Google Maps env", "configured for future geocoding or Google tile display")
     else:
-        warn("Google Maps env", "not configured, bundled static demo map still works")
+        warn("Google Maps env", "not configured, interactive Leaflet/OSM display still works")
 
     if missing:
         return 1

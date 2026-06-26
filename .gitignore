@@ -9,4 +9,5 @@ __pycache__/
 /runs/
 /tools/bulk-runs/
 /tools/runs/
+examples/runs/*/dataforseo-response.raw.json
 .DS_Store

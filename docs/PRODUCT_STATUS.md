@@ -2,31 +2,45 @@
 
 ## What This Is Today
 
-GeoGrid is a usable local prototype and proof package.
+GeoGriddy is a usable local prototype and proof package for an eventual Local SEO Brain feature.
 
 A person can:
 
 - Run the dashboard locally with `pnpm dev`.
-- View a real saved 5 x 5 DataForSEO proof scan.
-- Switch between proof data and dense Local Falcon-style simulation.
+- View a real saved 17 x 17 DataForSEO proof scan.
+- Pan and zoom the interactive map.
 - Review an Alana-style keyword scan list with business, keyword, average score, scan settings, View buttons, and CSV export.
 - Estimate raw DataForSEO scan costs.
 - Run no-credit bulk dry runs from CSV.
 - Run paid DataForSEO scans from the Python CLI after setting credentials.
-- Share the executive PDF with a decision maker.
+- Share the executive HTML report or browser-safe PDF with a decision maker.
+
+## Current Proof Dataset
+
+The main dashboard proof is Home Slice Pizza in Austin for the keyword `pizza`:
+
+- Grid: 17 x 17, 289 coordinate tasks.
+- Queue: DataForSEO Standard Queue.
+- Reported raw rank-data cost: $0.1734.
+- Found points: 225 of 289.
+- Top 3 points: 100 of 289.
+- Top 10 points: 201 of 289.
+- Average rank where found: 4.97.
+
+The older 5 x 5 proof remains in `examples/runs/home-slice-5x5/` as a historical cache artifact.
 
 ## What It Is Not Yet
 
-GeoGrid is not yet a finished self-service SaaS.
+GeoGriddy is not a SaaS project.
 
-Missing product pieces:
+Missing feature pieces:
 
-- Web form that takes a business name, keyword, radius, grid size, and runs DataForSEO directly.
-- Backend API for credential storage, job queueing, and result persistence.
-- Login, team access, billing, and share links.
+- Agent command or skill wrapper that takes a business, keyword, radius, and grid size.
+- Result store for cached scans, preferably SQLite or the Local SEO Brain vault data layer.
+- Browser report launch from a saved scan ID.
 - Scheduled campaigns and historical trend charts.
-- CSV import UI with progress, retries, and result scoring.
-- PDF export generated from inside the app.
+- CSV import or brain-backed business list intake with progress, retries, and result scoring.
+- PDF/export generated from saved scan artifacts.
 
 ## Practical Use Without An Agent
 
@@ -60,22 +74,22 @@ Add a small local backend:
 - `/api/scans/:id`.
 - App form that calls those endpoints.
 
-That turns the current prototype into a real local software product a non-agent user can operate entirely from the browser.
+That turns the current prototype into a real Local SEO Brain feature: agent prepares the work, the CLI/API executes it, and the browser report provides the visual proof.
 
 ## Parked Citation Research
 
-Citations are not part of the core GeoGrid product right now.
+Citations are not part of the core GeoGriddy feature right now.
 
 They are a separate local SEO service covering NAP consistency, directory presence, aggregator distribution, duplicate cleanup, and sometimes paid fulfillment. That is useful, but it should not distract from the first product: geo-grid ranking scans plus keyword-list reports.
 
-If this becomes a future add-on, GeoGrid could reasonably build:
+If this becomes a future add-on, GeoGriddy could reasonably build:
 
 - NAP extraction and mismatch detection.
 - Tier-one citation presence checks.
 - Citation watchlists by business type.
 - Lead-report recommendations that explain whether paying $20-$40 for citation fulfillment is sensible.
 
-GeoGrid does not yet provide:
+GeoGriddy does not yet provide:
 
 - Direct aggregator submission.
 - Directory account creation.

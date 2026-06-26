@@ -32,6 +32,7 @@ DATAFORSEO_MAPS_TASK_GET_ADVANCED_URL = "https://api.dataforseo.com/v3/serp/goog
 LIVE_COST_PER_TASK_USD = 0.002
 PRIORITY_COST_PER_TASK_USD = 0.0012
 STANDARD_COST_PER_TASK_USD = 0.0006
+QUEUE_TASK_BATCH_SIZE = 100
 
 
 @dataclass(frozen=True)
@@ -193,28 +194,43 @@ def http_json(url: str, timeout: int, payload: list[dict[str, Any]] | None = Non
 
 
 def call_dataforseo_standard(tasks: list[dict[str, Any]], timeout: int, poll_seconds: int, poll_interval: int) -> dict[str, Any]:
-    post_payload = http_json(DATAFORSEO_MAPS_TASK_POST_URL, timeout=timeout, payload=tasks)
     task_ids: list[str] = []
     post_cost = 0.0
     post_errors = 0
-    for task in post_payload.get("tasks") or []:
-        post_cost += float(task.get("cost") or 0)
-        if int(task.get("status_code") or 0) >= 40000:
-            post_errors += 1
-            continue
-        task_id = task.get("id")
-        if task_id:
-            task_ids.append(str(task_id))
+    post_tasks: list[dict[str, Any]] = []
+    post_responses: list[dict[str, Any]] = []
+
+    for start in range(0, len(tasks), QUEUE_TASK_BATCH_SIZE):
+        batch = tasks[start : start + QUEUE_TASK_BATCH_SIZE]
+        print(f"  post batch {start + 1}-{start + len(batch)}", file=sys.stderr)
+        post_payload = http_json(DATAFORSEO_MAPS_TASK_POST_URL, timeout=timeout, payload=batch)
+        post_responses.append(post_payload)
+        for task in post_payload.get("tasks") or []:
+            post_tasks.append(task)
+            post_cost += float(task.get("cost") or 0)
+            if int(task.get("status_code") or 0) >= 40000:
+                post_errors += 1
+                continue
+            task_id = task.get("id")
+            if task_id:
+                task_ids.append(str(task_id))
 
     combined: dict[str, Any] = {
         "version": "standard-queue",
-        "status_code": post_payload.get("status_code"),
-        "status_message": post_payload.get("status_message"),
+        "status_code": 20000 if post_errors == 0 else 20100,
+        "status_message": "Ok." if post_errors == 0 else "Task post completed with errors.",
         "time": None,
         "cost": post_cost,
         "tasks_count": len(tasks),
         "tasks_error": post_errors,
-        "post_response": post_payload,
+        "post_response": {
+            "status_code": 20000 if post_errors == 0 else 20100,
+            "status_message": "Aggregated queue task_post responses.",
+            "tasks_count": len(tasks),
+            "tasks_error": post_errors,
+            "tasks": post_tasks,
+        },
+        "post_responses": post_responses,
         "tasks": [],
     }
 
@@ -450,8 +466,8 @@ def render_ascii_grid(results: list[PointResult], grid_size: int) -> str:
         prefix = "  N " if row == 0 else ("  S " if row == grid_size - 1 else "  | ")
         cells = []
         for col in range(grid_size):
-            result = by_cell[(row, col)]
-            cells.append(rank_symbol(result.rank, is_center=(row == center and col == center)))
+            result = by_cell.get((row, col))
+            cells.append(rank_symbol(result.rank, is_center=(row == center and col == center)) if result else "?")
         lines.append(prefix + " ".join(cells))
     return "\n".join(lines)
 

@@ -1,9 +1,9 @@
 {
-  "name": "geogrid",
+  "name": "geogriddy",
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Standalone local SEO geo-grid heatmap prototype using DataForSEO rank data and Google Maps display assets.",
+  "description": "Agent-operated local SEO geo-grid heatmap feature using DataForSEO rank data and interactive map display.",
   "license": "UNLICENSED",
   "scripts": {
     "dev": "vite --host 127.0.0.1",
@@ -14,7 +14,7 @@
     "dryrun:sample": "python tools/bulk_geogrid_runner.py --prospects examples/sample-prospects.csv --run-id sample-dryrun --method standard --grid-size 5 --radius-km 2 --depth 20 --zoom 15"
   },
   "dependencies": {
+    "leaflet": "^1.9.4",
     "vite": "^8.0.8"
-  },
-  "devDependencies": {}
+  }
 }

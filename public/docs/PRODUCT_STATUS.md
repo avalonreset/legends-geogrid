@@ -9,6 +9,7 @@ A person can:
 - Run the dashboard locally with `pnpm dev`.
 - View a real saved 5 x 5 DataForSEO proof scan.
 - Switch between proof data and dense Local Falcon-style simulation.
+- Review an Alana-style keyword scan list with business, keyword, average score, scan settings, View buttons, and CSV export.
 - Estimate raw DataForSEO scan costs.
 - Run no-credit bulk dry runs from CSV.
 - Run paid DataForSEO scans from the Python CLI after setting credentials.
@@ -60,3 +61,24 @@ Add a small local backend:
 - App form that calls those endpoints.
 
 That turns the current prototype into a real local software product a non-agent user can operate entirely from the browser.
+
+## Parked Citation Research
+
+Citations are not part of the core GeoGrid product right now.
+
+They are a separate local SEO service covering NAP consistency, directory presence, aggregator distribution, duplicate cleanup, and sometimes paid fulfillment. That is useful, but it should not distract from the first product: geo-grid ranking scans plus keyword-list reports.
+
+If this becomes a future add-on, GeoGrid could reasonably build:
+
+- NAP extraction and mismatch detection.
+- Tier-one citation presence checks.
+- Citation watchlists by business type.
+- Lead-report recommendations that explain whether paying $20-$40 for citation fulfillment is sensible.
+
+GeoGrid does not yet provide:
+
+- Direct aggregator submission.
+- Directory account creation.
+- Ongoing citation renewal or publisher monitoring.
+
+The practical path is to add audit and proof first, then decide whether fulfillment should be vendor-assisted, manually operated, or built through direct aggregator access.

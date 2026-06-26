@@ -48,6 +48,7 @@ def main() -> int:
         "tools/bulk_geogrid_runner.py",
         "examples/sample-prospects.csv",
         "docs/local-seo-geogrid-executive-report.pdf",
+        "docs/best-practices-loop/_core.md",
     ]
     missing = []
     for rel in required:

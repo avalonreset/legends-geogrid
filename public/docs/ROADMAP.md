@@ -8,6 +8,8 @@
 - Add scan creation form.
 - Add CSV import and cost estimate screen.
 - Add scan result browser.
+- Promote the current keyword scan list from demo data to saved campaign data.
+- Generate keyword-list CSV/PDF exports from saved scan IDs.
 
 ## Phase 2: Prospecting Workflow
 
@@ -24,6 +26,13 @@
 - Competitor movement over time.
 - Multi-keyword campaigns.
 - White-label report templates.
+
+## Parking Lot: Citation/NAP Add-On
+
+- Keep citations out of the core GeoGrid pitch for now.
+- Preserve `docs/CITATION_MODULE_NOTES.md` as research.
+- Revisit only if we intentionally expand from rank proof into a broader local SEO operations suite.
+- Treat citation fulfillment as a separate service: vendor-assisted, manual ops, or direct aggregator access.
 
 ## Phase 4: Hosted Product
 

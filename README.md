@@ -28,6 +28,7 @@ The recommended first paid proof is a real 1,000-prospect list at 5 x 5 Standard
 - `docs/local-seo-geogrid-executive-report.pdf` - sendable executive report.
 - `docs/PRODUCT_STATUS.md` - what works today and what still needs product work.
 - `docs/DANIEL_HANDOFF.md` - short review path for Daniel.
+- `docs/CITATION_MODULE_NOTES.md` - parked citation/NAP research for a possible future add-on.
 
 ## Quickstart
 
@@ -51,10 +52,13 @@ pnpm doctor
 This is usable as local software plus CLI:
 
 - The browser app visualizes proof data and estimates costs.
+- The browser app includes an Alana-style keyword scan list with CSV export.
 - The Python runners can execute real DataForSEO scans after credentials are set.
 - The bulk runner can dry-run, estimate, fingerprint, and cache scans.
 
 It is not yet a full self-service app where a user types a business into the browser and clicks Run. That requires a backend API, job queue, and SQLite/result store. See `docs/PRODUCT_STATUS.md`.
+
+Citations are intentionally not mixed into the core product. The research is parked in `docs/CITATION_MODULE_NOTES.md` because citation fulfillment is a separate local SEO service, not the rank-map product Alana asked for.
 
 ## Running A Paid Scan
 

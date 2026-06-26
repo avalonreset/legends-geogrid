@@ -2,7 +2,7 @@
 
 ## One Sentence
 
-GeoGrid is a private local SEO heatmap prototype that shows we can build the practical core of Local Falcon or Search Atlas using DataForSEO rank data, Google Maps display assets, and our own dashboard/report layer.
+GeoGrid is a private local SEO heatmap prototype that shows we can build the practical core of Local Falcon or Search Atlas using DataForSEO rank data, Google Maps display assets, keyword-list reports, and our own dashboard/report layer.
 
 ## What To Review First
 
@@ -25,6 +25,12 @@ docs/local-seo-geogrid-executive-report.pdf
 docs/PRODUCT_STATUS.md
 ```
 
+4. Optional: review the parked citation research:
+
+```text
+docs/CITATION_MODULE_NOTES.md
+```
+
 ## Why It Matters
 
 The original business question was whether an agency could produce many local SEO heatmaps for prospecting without paying SaaS pricing. The answer is yes in principle. DataForSEO Standard Queue makes 1,000 prospects at 5 x 5 cost about $15 in raw rank-check data.
@@ -34,6 +40,7 @@ The original business question was whether an agency could produce many local SE
 - Standalone dark-mode dashboard.
 - Real Home Slice Pizza 5 x 5 proof data.
 - Dense 17 x 17 simulation for Local Falcon-style visuals.
+- Alana-style keyword scan list with CSV export.
 - Python runner for live/priority/standard DataForSEO scans.
 - Cache-aware bulk-run scaffold.
 - Executive report PDF.
@@ -41,6 +48,8 @@ The original business question was whether an agency could produce many local SE
 ## What Needs Product Work
 
 The biggest missing piece is a backend. Today the browser app visualizes data and the Python CLI retrieves data. To make this normal software, add a local API and SQLite store so the browser can launch scans and load results.
+
+Citations are parked as research only. They are a separate service line and should not be mixed into the first GeoGrid product unless we intentionally add a local SEO suite layer later.
 
 ## Recommended Decision
 

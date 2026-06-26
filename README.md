@@ -1,6 +1,6 @@
-# GeoGriddy
+# geo-griddy
 
-GeoGriddy is a private local SEO geo-grid feature prototype. It recreates the practical core of a Local Falcon or Search Atlas style heatmap with DataForSEO as the rank source, an interactive browser map as the visual layer, and our own dashboard, cache, scoring, and report workflow.
+geo-griddy is a private local SEO geo-grid feature prototype. It recreates the practical core of a Local Falcon or Search Atlas style heatmap with DataForSEO as the rank source, an interactive browser map as the visual layer, and our own dashboard, cache, scoring, and report workflow.
 
 The intended home is the AI Marketing Hub / Local SEO Brain ecosystem, not a standalone SaaS. A user should be able to invoke the workflow from Codex or Claude, reuse business data already stored in the brain, and open a browser artifact for the visual proof.
 

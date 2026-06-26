@@ -397,7 +397,7 @@ function exportKeywordCsv() {
   const url = URL.createObjectURL(blob)
   const link = document.createElement('a')
   link.href = url
-  link.download = 'geogriddy-keyword-scan-list.csv'
+  link.download = 'geo-griddy-keyword-scan-list.csv'
   link.click()
   URL.revokeObjectURL(url)
 }
@@ -543,7 +543,7 @@ function render() {
   document.querySelector('#app').innerHTML = `
     <div class="shell">
       <aside class="sidebar">
-        <div class="brand">GeoGriddy</div>
+        <div class="brand">geo-griddy</div>
         <nav>
           <a class="active">Studio</a>
           <a href="/docs/local-seo-geogrid-executive-report.html">Executive Report</a>
@@ -558,7 +558,7 @@ function render() {
         <header class="hero">
           <div>
             <div class="badges"><span>${project.badge}</span><span>Interactive map display</span><span>Keyword list reports</span><span>$${cost.toFixed(3)} ${scanCostLabel}</span></div>
-            <h1>Local SEO GeoGriddy Studio</h1>
+            <h1>Local SEO geo-griddy Studio</h1>
             <p>Interactive map rank pins, Alana-style keyword scan lists, raw proof receipts, and prospect economics in one focused workflow.</p>
             <div class="hero-actions">
               <a href="/docs/local-seo-geogrid-executive-report.html" target="_blank" rel="noreferrer">Open Executive Report</a>

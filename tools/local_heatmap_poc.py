@@ -775,7 +775,7 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--target-place-id", default="")
     parser.add_argument("--match-threshold", type=float, default=0.82)
     parser.add_argument("--top-competitors", type=int, default=5)
-    parser.add_argument("--output-dir", default="work/local-heatmap-poc/runs")
+    parser.add_argument("--output-dir", default="runs")
     parser.add_argument("--map-image", default="", help="Optional saved Google Static Maps image to use as the report background")
     parser.add_argument("--timeout", type=int, default=90)
     parser.add_argument("--poll-seconds", type=int, default=360)

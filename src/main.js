@@ -13,6 +13,7 @@ const state = {
   queue: 'standard',
   view: 'pins',
   selectedIndex: 12,
+  plannerProspects: 1000,
 }
 
 function rankClass(rank) {
@@ -130,6 +131,9 @@ function render() {
         <nav>
           <a class="active">Studio</a>
           <a href="/docs/local-seo-geogrid-executive-report.pdf">Executive PDF</a>
+          <a href="/docs/DANIEL_HANDOFF.md">Daniel Handoff</a>
+          <a href="/docs/PRODUCT_STATUS.md">Product Status</a>
+          <a href="/docs/ROADMAP.md">Roadmap</a>
           <a href="/docs/TECHNICAL_NOTES.md">Technical Notes</a>
         </nav>
       </aside>
@@ -183,6 +187,16 @@ function render() {
             <h2>Competitor Pressure</h2>
             ${pressureRows}
           </aside>
+          <aside class="panel planner">
+            <h2>Bulk Planner</h2>
+            <label>Prospects<input id="plannerProspects" type="number" min="1" step="1" value="${state.plannerProspects}"></label>
+            <dl>
+              <div><dt>Grid</dt><dd>${size} x ${size}</dd></div>
+              <div><dt>Total coordinate tasks</dt><dd>${(points.length * state.plannerProspects).toLocaleString()}</dd></div>
+              <div><dt>Estimated rank-data cost</dt><dd>$${(cost * state.plannerProspects).toFixed(2)}</dd></div>
+            </dl>
+            <pre>python tools/bulk_geogrid_runner.py --prospects prospects.csv --method ${state.queue} --grid-size ${size} --radius-km 2 --depth 20 --execute --confirm-cost-usd ${(cost * state.plannerProspects).toFixed(2)}</pre>
+          </aside>
         </section>
       </main>
     </div>
@@ -210,6 +224,10 @@ function render() {
   })
   document.querySelector('#queue').addEventListener('change', (event) => {
     state.queue = event.target.value
+    render()
+  })
+  document.querySelector('#plannerProspects').addEventListener('input', (event) => {
+    state.plannerProspects = Math.max(1, Number(event.target.value || 1))
     render()
   })
   document.querySelectorAll('.pin').forEach((button) => {

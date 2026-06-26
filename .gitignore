@@ -7,4 +7,6 @@ __pycache__/
 *.pyc
 /bulk-runs/
 /runs/
+/tools/bulk-runs/
+/tools/runs/
 .DS_Store

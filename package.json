@@ -9,7 +9,9 @@
     "dev": "vite --host 127.0.0.1",
     "build": "vite build",
     "preview": "vite preview --host 127.0.0.1",
-    "check:python": "python -m py_compile tools/local_heatmap_poc.py tools/bulk_geogrid_runner.py"
+    "check:python": "python -m py_compile tools/local_heatmap_poc.py tools/bulk_geogrid_runner.py tools/geogrid_doctor.py",
+    "doctor": "python tools/geogrid_doctor.py",
+    "dryrun:sample": "python tools/bulk_geogrid_runner.py --prospects examples/sample-prospects.csv --run-id sample-dryrun --method standard --grid-size 5 --radius-km 2 --depth 20 --zoom 15"
   },
   "dependencies": {
     "vite": "^8.0.8"

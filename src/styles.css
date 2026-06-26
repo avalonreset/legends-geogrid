@@ -19,6 +19,14 @@ select {
   font: inherit;
 }
 
+input {
+  background: #111827;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 8px;
+  color: #f8fafc;
+  padding: 10px 12px;
+}
+
 .shell {
   display: grid;
   grid-template-columns: 238px 1fr;
@@ -108,6 +116,18 @@ h3 {
   color: #9fb0cb;
   margin: 0;
   max-width: 720px;
+}
+
+pre {
+  background: #030712;
+  border: 1px solid rgba(94, 234, 212, 0.2);
+  border-radius: 8px;
+  color: #a7f3d0;
+  font-size: 12px;
+  line-height: 1.5;
+  overflow-x: auto;
+  padding: 12px;
+  white-space: pre-wrap;
 }
 
 .controls {

@@ -399,7 +399,7 @@ def execute_pending(
 
 
 def parse_args(argv: list[str]) -> argparse.Namespace:
-    default_root = Path(__file__).resolve().parent
+    default_root = Path(__file__).resolve().parent.parent
     parser = argparse.ArgumentParser(description="Estimate, cache, and optionally run bulk local SEO geo-grid scans")
     parser.add_argument("--prospects", required=True, help="CSV with business_name, keyword, center_lat, and center_lng columns")
     parser.add_argument("--run-id", default=dt.datetime.now().strftime("%Y%m%d-%H%M%S-bulk-geogrid"))

@@ -22,9 +22,12 @@ The recommended first paid proof is a real 1,000-prospect list at 5 x 5 Standard
 - `src/` - standalone Vite dashboard demo.
 - `tools/local_heatmap_poc.py` - one-business DataForSEO geo-grid runner.
 - `tools/bulk_geogrid_runner.py` - cache-aware bulk runner scaffold.
+- `tools/geogrid_doctor.py` - local readiness check.
 - `examples/runs/home-slice-5x5/` - saved 5 x 5 DataForSEO proof run.
 - `examples/bulk-runs/sample-dryrun/` - no-credit bulk dry-run manifest.
 - `docs/local-seo-geogrid-executive-report.pdf` - sendable executive report.
+- `docs/PRODUCT_STATUS.md` - what works today and what still needs product work.
+- `docs/DANIEL_HANDOFF.md` - short review path for Daniel.
 
 ## Quickstart
 
@@ -40,7 +43,18 @@ Build check:
 ```powershell
 pnpm build
 pnpm check:python
+pnpm doctor
 ```
+
+## What Works Today
+
+This is usable as local software plus CLI:
+
+- The browser app visualizes proof data and estimates costs.
+- The Python runners can execute real DataForSEO scans after credentials are set.
+- The bulk runner can dry-run, estimate, fingerprint, and cache scans.
+
+It is not yet a full self-service app where a user types a business into the browser and clicks Run. That requires a backend API, job queue, and SQLite/result store. See `docs/PRODUCT_STATUS.md`.
 
 ## Running A Paid Scan
 

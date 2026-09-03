@@ -9,4 +9,5 @@
 - Included DataForSEO depth multipliers in cost estimates.
 - Removed the private Empire vault path from bulk-run defaults.
 - Added automated tests, CI, security guidance, and public documentation.
-
+- Rejects incomplete API grids instead of caching or scoring them as valid scans.
+- Uses hostname-boundary matching and deduplicates identical rows within a bulk run.

@@ -7,6 +7,8 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from types import SimpleNamespace
+from unittest.mock import patch
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -16,6 +18,7 @@ sys.path.insert(0, str(TOOLS))
 from bulk_geogrid_runner import (  # noqa: E402
     ProspectScan,
     fingerprint_scan,
+    execute_pending,
     local_runner_command,
     main as bulk_main,
     validate_cost_ceiling,
@@ -189,6 +192,47 @@ class SafetyTests(unittest.TestCase):
             self.assertEqual(1, manifest["totals"]["duplicate_scans"])
             self.assertEqual(289, manifest["totals"]["pending_tasks"])
             self.assertEqual(0.1734, manifest["totals"]["pending_cost_usd"])
+
+    def test_success_exit_without_parsed_artifact_is_not_cached(self) -> None:
+        scan = ProspectScan(
+            row_number=1,
+            prospect_id="example",
+            business_name="Example Pizza",
+            keyword="pizza",
+            center_lat=30.249711,
+            center_lng=-97.749132,
+            location_label="Austin, TX",
+            target_domain="example.com",
+            target_cid="",
+            target_place_id="",
+            radius_km=2,
+            grid_size=3,
+            depth=20,
+            zoom=15,
+            device="desktop",
+            language_code="en",
+            se_domain="google.com",
+            search_places=False,
+        )
+        fingerprint = fingerprint_scan(scan, "standard")
+        row = {"fingerprint": fingerprint, "cache_status": "pending"}
+        cache = {"version": 1, "entries": {}}
+        args = argparse.Namespace(timeout=1, poll_seconds=1, poll_interval=1)
+        with tempfile.TemporaryDirectory() as temp_dir:
+            with patch(
+                "bulk_geogrid_runner.subprocess.run",
+                return_value=SimpleNamespace(returncode=0, stdout="not-json", stderr=""),
+            ):
+                completed = execute_pending(
+                    [row],
+                    {fingerprint: scan},
+                    cache,
+                    Path(temp_dir),
+                    "standard",
+                    args,
+                )
+        self.assertEqual("error", completed[0]["cache_status"])
+        self.assertNotIn(fingerprint, cache["entries"])
 
     def test_bulk_run_id_cannot_escape_output_root(self) -> None:
         with self.assertRaises(ValueError):

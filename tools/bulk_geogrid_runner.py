@@ -387,22 +387,40 @@ def execute_pending(
 
         outputs = runner_result.get("outputs") or {}
         parsed_path = outputs.get("parsed_json")
-        parsed_payload: dict[str, Any] = {}
-        if parsed_path and Path(parsed_path).exists():
+        if not parsed_path or not Path(parsed_path).exists():
+            row["cache_status"] = "error"
+            row["error"] = "Runner reported success without a readable parsed_json artifact"
+            completed.append(row)
+            continue
+
+        try:
             parsed_payload = json.loads(Path(parsed_path).read_text(encoding="utf-8"))
-            with jsonl_path.open("a", encoding="utf-8") as handle:
-                handle.write(
-                    json.dumps(
-                        {
-                            "fingerprint": fingerprint,
-                            "prospect": asdict(scan),
-                            "outputs": outputs,
-                            "parsed": parsed_payload,
-                        },
-                        separators=(",", ":"),
-                    )
-                    + "\n"
+        except (OSError, json.JSONDecodeError) as exc:
+            row["cache_status"] = "error"
+            row["error"] = f"Runner parsed_json could not be read: {exc}"
+            completed.append(row)
+            continue
+
+        metrics = parsed_payload.get("metrics")
+        if not isinstance(metrics, dict):
+            row["cache_status"] = "error"
+            row["error"] = "Runner parsed_json is missing a metrics object"
+            completed.append(row)
+            continue
+
+        with jsonl_path.open("a", encoding="utf-8") as handle:
+            handle.write(
+                json.dumps(
+                    {
+                        "fingerprint": fingerprint,
+                        "prospect": asdict(scan),
+                        "outputs": outputs,
+                        "parsed": parsed_payload,
+                    },
+                    separators=(",", ":"),
                 )
+                + "\n"
+            )
 
         entry = {
             "fingerprint": fingerprint,
@@ -413,7 +431,7 @@ def execute_pending(
             "keyword": scan.keyword,
             "identity": scan_identity(scan, method),
             "outputs": outputs,
-            "metrics": parsed_payload.get("metrics"),
+            "metrics": metrics,
         }
         cache.setdefault("entries", {})[fingerprint] = entry
         row["cache_status"] = "executed"

@@ -97,6 +97,26 @@ class ReleaseHygieneTests(unittest.TestCase):
                 offenders.append(str(path.relative_to(ROOT)))
         self.assertEqual([], offenders)
 
+    def test_attribution_links_use_verified_upstream_githubs(self) -> None:
+        public_attribution = "\n".join(
+            [
+                (ROOT / "README.md").read_text(encoding="utf-8"),
+                (ROOT / "THIRD_PARTY_NOTICES.md").read_text(encoding="utf-8"),
+                (ROOT / "docs" / "PROVENANCE.md").read_text(encoding="utf-8"),
+            ]
+        )
+        expected = {
+            "https://github.com/Leaflet/Leaflet",
+            "https://github.com/vitejs/vite",
+            "https://github.com/postcss/postcss",
+            "https://github.com/openstreetmap",
+            "https://github.com/dataforseo",
+            "https://github.com/local-falcon",
+            "https://github.com/search-atlas-group",
+            "https://github.com/BrightLocal",
+        }
+        self.assertEqual([], sorted(url for url in expected if url not in public_attribution))
+
 
 if __name__ == "__main__":
     unittest.main()

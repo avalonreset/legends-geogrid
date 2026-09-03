@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.3 - 2026-09-03
+
+- Added verified official GitHub hotlinks for attributed dependencies, services, map data, and market-research references.
+- Kept LeadSnap linked to its official product page because no official public GitHub identity was verified.
+
 ## 0.1.2 - 2026-09-03
 
 - Standardized the product brand everywhere as lowercase `legends-geogrid`.

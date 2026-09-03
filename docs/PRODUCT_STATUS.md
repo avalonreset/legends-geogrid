@@ -2,7 +2,7 @@
 
 ## Release state
 
-legends-geogrid 0.1.2 is a usable local-first scanner and reference implementation.
+legends-geogrid 0.1.3 is a usable local-first scanner and reference implementation.
 
 Today it can:
 

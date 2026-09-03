@@ -14,19 +14,19 @@ Vite and PostCSS are build-time dependencies. Their licences and the licences of
 
 ## Data and service provenance
 
-- Fresh rank scans use the user-authorized [DataForSEO Google Maps SERP API](https://dataforseo.com/apis/serp-api/google-maps-api). The coordinate-grid approach and initial cost model were informed by DataForSEO's [grid rank tracker guide](https://dataforseo.com/help-center/build-grid-rank-tracker-maps) and [Maps SERP pricing](https://dataforseo.com/pricing/serp/google-maps-serp-api).
-- The browser studio uses [OpenStreetMap](https://www.openstreetmap.org/copyright) map data and the standard interactive tile service by default. OpenStreetMap data is ODbL-licensed; tile-server access is governed separately by the [tile usage policy](https://operations.osmfoundation.org/policies/tiles/).
+- Fresh rank scans use the user-authorized [DataForSEO Google Maps SERP API](https://dataforseo.com/apis/serp-api/google-maps-api); DataForSEO's official open-source projects are published on [GitHub](https://github.com/dataforseo). The coordinate-grid approach and initial cost model were informed by DataForSEO's [grid rank tracker guide](https://dataforseo.com/help-center/build-grid-rank-tracker-maps) and [Maps SERP pricing](https://dataforseo.com/pricing/serp/google-maps-serp-api).
+- The browser studio uses [OpenStreetMap](https://www.openstreetmap.org/copyright) map data and the standard interactive tile service by default. OpenStreetMap's public source projects are on [GitHub](https://github.com/openstreetmap). OpenStreetMap data is ODbL-licensed; tile-server access is governed separately by the [tile usage policy](https://operations.osmfoundation.org/policies/tiles/).
 - The bundled Home Slice Pizza examples are minimized historical demonstration results from June 26, 2026. They retain only the target name, keyword, general location, scan coordinates, rank values, and public business titles needed to demonstrate the interface. They exclude credentials, account identifiers, task IDs, raw responses, contact details, reviews, and private client information.
 
 ## Product research and acknowledgments
 
 The June 2026 product exploration reviewed public pages from these products to understand existing geo-grid and citation workflows:
 
-- [Local Falcon](https://www.localfalcon.com/) — geo-grid credit and workflow conventions.
-- [Search Atlas Local SEO](https://searchatlas.com/local-seo-software/) — local heatmap, reporting, and agency workflow conventions.
+- [Local Falcon](https://www.localfalcon.com/) ([GitHub](https://github.com/local-falcon)) — geo-grid credit and workflow conventions.
+- [Search Atlas Local SEO](https://searchatlas.com/local-seo-software/) ([GitHub](https://github.com/search-atlas-group)) — local heatmap, reporting, and agency workflow conventions.
 - [LeadSnap Local Citations](https://leadsnap.com/features/local-citations/) — citation monitoring and fulfillment context.
-- [BrightLocal Citation Builder](https://www.brightlocal.com/citation-builder/) — citation ownership, reporting, and fulfillment context.
-- [Search Atlas Local Citations](https://searchatlas.com/local-citations/) — aggregator and citation-service context.
+- [BrightLocal Citation Builder](https://www.brightlocal.com/citation-builder/) ([GitHub](https://github.com/BrightLocal)) — citation ownership, reporting, and fulfillment context.
+- [Search Atlas Local Citations](https://searchatlas.com/local-citations/) ([GitHub](https://github.com/search-atlas-group)) — aggregator and citation-service context.
 
 These sources informed product-category analysis only. legends-geogrid does not use their APIs, code, branding, screenshots, or proprietary data. Their names and trademarks belong to their respective owners, and no endorsement or affiliation is implied.
 

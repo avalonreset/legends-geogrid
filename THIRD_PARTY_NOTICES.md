@@ -51,6 +51,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 The default interactive map uses OpenStreetMap data and the OpenStreetMap Foundation's standard raster tile service.
 
 - Attribution: © OpenStreetMap contributors
+- GitHub: https://github.com/openstreetmap
 - Data licence: [Open Data Commons Open Database License](https://www.openstreetmap.org/copyright)
 - Tile-server policy: https://operations.osmfoundation.org/policies/tiles/
 
@@ -61,6 +62,7 @@ The application displays linked attribution on the map and requests only tiles n
 Fresh scans require a user-supplied DataForSEO account and call the DataForSEO Google Maps SERP API.
 
 - API: https://dataforseo.com/apis/serp-api/google-maps-api
+- GitHub: https://github.com/dataforseo
 - Terms: https://dataforseo.com/terms-of-service
 
 DataForSEO is not bundled with or affiliated with legends-geogrid. Users are responsible for their credentials, billing, quotas, and compliance with DataForSEO and applicable search-provider terms. The repository does not contain DataForSEO credentials.

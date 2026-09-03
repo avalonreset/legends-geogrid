@@ -2,7 +2,7 @@
 
 ## Release state
 
-Legends GeoGrid 0.1.1 is a usable local-first scanner and reference implementation.
+legends-geogrid 0.1.2 is a usable local-first scanner and reference implementation.
 
 Today it can:
 

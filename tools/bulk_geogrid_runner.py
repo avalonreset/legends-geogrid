@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Cache-aware bulk runner for Legends GeoGrid prospect scans.
+Cache-aware bulk runner for legends-geogrid prospect scans.
 
 Default behavior is a dry run. It normalizes the prospect list, estimates the
 DataForSEO task count and cost, fingerprints each paid scan, and writes a

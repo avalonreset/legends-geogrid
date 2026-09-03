@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-DataForSEO-powered local SEO geo-grid runner for Legends GeoGrid.
+DataForSEO-powered local SEO geo-grid runner for legends-geogrid.
 
 This script creates a grid around a target coordinate, calls the DataForSEO
 Google Maps SERP live endpoint, matches a target business in each result set,

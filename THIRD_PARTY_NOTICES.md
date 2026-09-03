@@ -1,6 +1,6 @@
 # Third-Party Notices
 
-Legends GeoGrid's own source code is released under the MIT License in `LICENSE`. The following components, services, data, and trademarks remain subject to their own terms.
+legends-geogrid's own source code is released under the MIT License in `LICENSE`. The following components, services, data, and trademarks remain subject to their own terms.
 
 ## Runtime software
 
@@ -63,10 +63,10 @@ Fresh scans require a user-supplied DataForSEO account and call the DataForSEO G
 - API: https://dataforseo.com/apis/serp-api/google-maps-api
 - Terms: https://dataforseo.com/terms-of-service
 
-DataForSEO is not bundled with or affiliated with Legends GeoGrid. Users are responsible for their credentials, billing, quotas, and compliance with DataForSEO and applicable search-provider terms. The repository does not contain DataForSEO credentials.
+DataForSEO is not bundled with or affiliated with legends-geogrid. Users are responsible for their credentials, billing, quotas, and compliance with DataForSEO and applicable search-provider terms. The repository does not contain DataForSEO credentials.
 
 ## Google services and trademarks
 
-Generated reports can optionally display a Google Maps embed or a user-supplied Google Static Maps image. Google Maps content and brand features remain subject to Google's terms and attribution requirements. Legends GeoGrid does not bundle a Google API key or remove provider attribution.
+Generated reports can optionally display a Google Maps embed or a user-supplied Google Static Maps image. Google Maps content and brand features remain subject to Google's terms and attribution requirements. legends-geogrid does not bundle a Google API key or remove provider attribution.
 
 Google, Google Maps, DataForSEO, OpenStreetMap, Leaflet, Local Falcon, Search Atlas, LeadSnap, and BrightLocal are names or marks of their respective owners. Their mention identifies interoperability, data sources, or historical product research; it does not imply endorsement or affiliation.

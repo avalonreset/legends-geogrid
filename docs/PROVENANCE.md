@@ -4,7 +4,7 @@ This record separates code dependencies, data/services, and product research so 
 
 ## Code provenance
 
-Legends GeoGrid is an original implementation maintained by Avalon Reset. Repository-history review found no copied source code, bundled assets, screenshots, or proprietary datasets from the commercial products listed below.
+legends-geogrid is an original implementation maintained by Avalon Reset. Repository-history review found no copied source code, bundled assets, screenshots, or proprietary datasets from the commercial products listed below.
 
 The shipped runtime code directly imports one third-party library:
 
@@ -28,7 +28,7 @@ The June 2026 product exploration reviewed public pages from these products to u
 - [BrightLocal Citation Builder](https://www.brightlocal.com/citation-builder/) — citation ownership, reporting, and fulfillment context.
 - [Search Atlas Local Citations](https://searchatlas.com/local-citations/) — aggregator and citation-service context.
 
-These sources informed product-category analysis only. Legends GeoGrid does not use their APIs, code, branding, screenshots, or proprietary data. Their names and trademarks belong to their respective owners, and no endorsement or affiliation is implied.
+These sources informed product-category analysis only. legends-geogrid does not use their APIs, code, branding, screenshots, or proprietary data. Their names and trademarks belong to their respective owners, and no endorsement or affiliation is implied.
 
 The keyword-list/reporting workflow also came from user-provided product feedback and screenshots. Those private source screenshots are not included in the public repository.
 

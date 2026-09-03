@@ -85,6 +85,18 @@ class ReleaseHygieneTests(unittest.TestCase):
         self.assertIn("Search Atlas", provenance)
         self.assertIn("third-party-licenses.md", vite_config)
 
+    def test_product_brand_is_lowercase_slug(self) -> None:
+        offenders: list[str] = []
+        for path in ROOT.rglob("*"):
+            if not path.is_file() or any(part in SKIP_PARTS for part in path.parts):
+                continue
+            if path.suffix.lower() not in TEXT_SUFFIXES:
+                continue
+            text = path.read_text(encoding="utf-8", errors="ignore")
+            if "Legends" + " GeoGrid" in text:
+                offenders.append(str(path.relative_to(ROOT)))
+        self.assertEqual([], offenders)
+
 
 if __name__ == "__main__":
     unittest.main()

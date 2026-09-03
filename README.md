@@ -1,8 +1,8 @@
-# Legends GeoGrid
+# legends-geogrid
 
-Legends GeoGrid is an open-source, local-first geo-grid rank scanner for Google Maps results. It turns one business, one keyword, and a center coordinate into a visual ranking grid without requiring a hosted rank-tracking subscription.
+legends-geogrid is an open-source, local-first geo-grid rank scanner for Google Maps results. It turns one business, one keyword, and a center coordinate into a visual ranking grid without requiring a hosted rank-tracking subscription.
 
-![Legends GeoGrid studio](docs/legends-geogrid-studio.png)
+![legends-geogrid studio](docs/legends-geogrid-studio.png)
 
 The browser studio ships with a saved real-world 17 x 17 proof scan, so you can explore the interface without credentials or API spend. The Python runners use DataForSEO for fresh scans, cache results by scan fingerprint, and require explicit execution plus a cost ceiling before spending credits.
 
@@ -10,7 +10,7 @@ The browser studio ships with a saved real-world 17 x 17 proof scan, so you can 
 
 A 17 x 17 grid contains 289 coordinate checks. At DataForSEO's documented September 2026 Standard Queue base rate of `$0.0006` per Maps SERP, one 17 x 17 business-keyword scan is about `$0.1734` in raw rank-data cost. One thousand equivalent scans are about `$173.40` before any optional parameter multipliers.
 
-That is the point of this project: the underlying data collection can be inexpensive when you own the workflow. Legends GeoGrid gives builders, agencies, and local SEO operators a transparent starting point instead of forcing every experiment through a SaaS credit system.
+That is the point of this project: the underlying data collection can be inexpensive when you own the workflow. legends-geogrid gives builders, agencies, and local SEO operators a transparent starting point instead of forcing every experiment through a SaaS credit system.
 
 Pricing changes. Depth above 100 results and other paid parameters can multiply the actual charge. The runners include the documented depth multiplier in estimates, but always review current DataForSEO pricing before a large run.
 
@@ -165,6 +165,6 @@ The original product research compared public workflow and pricing information f
 
 ## License
 
-Legends GeoGrid is MIT licensed. See [LICENSE](LICENSE). Third-party components, services, trademarks, and data remain subject to their own licences and terms; see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+legends-geogrid is MIT licensed. See [LICENSE](LICENSE). Third-party components, services, trademarks, and data remain subject to their own licences and terms; see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
-Legends GeoGrid is independent software. It is not affiliated with or endorsed by DataForSEO, Google, OpenStreetMap, Leaflet, Local Falcon, Search Atlas, LeadSnap, or BrightLocal.
+legends-geogrid is independent software. It is not affiliated with or endorsed by DataForSEO, Google, OpenStreetMap, Leaflet, Local Falcon, Search Atlas, LeadSnap, or BrightLocal.

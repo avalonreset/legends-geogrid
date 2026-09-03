@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Local readiness check for Legends GeoGrid."""
+"""Local readiness check for legends-geogrid."""
 
 from __future__ import annotations
 

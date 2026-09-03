@@ -556,7 +556,7 @@ function render() {
   document.querySelector('#app').innerHTML = `
     <div class="shell">
       <aside class="sidebar">
-        <div class="brand">Legends GeoGrid</div>
+        <div class="brand">legends-geogrid</div>
         <nav>
           <a class="active">Studio</a>
           <a href="https://github.com/avalonreset/legends-geogrid" target="_blank" rel="noreferrer">GitHub</a>
@@ -588,7 +588,7 @@ function render() {
           <div>
             <span>Open-source economics</span>
             <h2>289 coordinate checks. About $0.1734 in raw Standard Queue data.</h2>
-            <p>Legends GeoGrid exposes the workflow, cache, evidence, and spend controls so operators can run serious grids locally instead of paying a platform markup for every experiment.</p>
+            <p>legends-geogrid exposes the workflow, cache, evidence, and spend controls so operators can run serious grids locally instead of paying a platform markup for every experiment.</p>
           </div>
           <div>
             <a href="https://dataforseo.com/pricing/serp/google-maps-serp-api" target="_blank" rel="noreferrer">Verify API pricing</a>

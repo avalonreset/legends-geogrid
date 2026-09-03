@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.2 - 2026-09-03
+
+- Standardized the product brand everywhere as lowercase `legends-geogrid`.
+
 ## 0.1.1 - 2026-09-03
 
 - Added explicit software, service, data, trademark, and research-source attribution.
@@ -11,7 +15,7 @@
 
 ## 0.1.0 - 2026-09-03
 
-- Renamed the project to Legends GeoGrid.
+- Renamed the project to `legends-geogrid`.
 - Prepared the first public MIT-licensed release.
 - Made single scans estimate-only by default.
 - Added explicit execution and cost-ceiling gates.

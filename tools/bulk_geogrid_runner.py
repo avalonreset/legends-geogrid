@@ -15,6 +15,7 @@ import csv
 import datetime as dt
 import hashlib
 import json
+import math
 import os
 import re
 import subprocess
@@ -24,6 +25,8 @@ from pathlib import Path
 from typing import Any
 
 from local_heatmap_poc import estimate_scan_cost, generate_grid, normalize
+
+DUPLICATE_STATUSES = {"duplicate", "reused-in-run", "duplicate-error"}
 
 
 @dataclass(frozen=True)
@@ -137,6 +140,9 @@ def validate_scan(scan: ProspectScan) -> None:
         raise ValueError(f"{scan.prospect_id}: grid_size cannot exceed 51")
     if not 0 <= scan.zoom <= 23:
         raise ValueError(f"{scan.prospect_id}: zoom must be between 0 and 23")
+    for label, value in (("center_lat", scan.center_lat), ("center_lng", scan.center_lng), ("radius_km", scan.radius_km)):
+        if not math.isfinite(value):
+            raise ValueError(f"{scan.prospect_id}: {label} must be finite")
 
 
 def validate_run_id(run_id: str) -> str:
@@ -145,6 +151,12 @@ def validate_run_id(run_id: str) -> str:
     if ".." in run_id:
         raise ValueError("run-id cannot contain '..'")
     return run_id
+
+
+def validate_cost_ceiling(value: float) -> float:
+    if not math.isfinite(value) or value < 0:
+        raise ValueError("confirm-cost-usd must be a finite, non-negative number")
+    return value
 
 
 def scan_identity(scan: ProspectScan, method: str) -> dict[str, Any]:
@@ -228,6 +240,7 @@ def normalized_csv(path: Path, rows: list[dict[str, Any]]) -> None:
         "cache_status",
         "task_count",
         "estimated_cost_usd",
+        "duplicate_of",
     ]
     with path.open("w", encoding="utf-8", newline="") as handle:
         writer = csv.DictWriter(handle, fieldnames=fields)
@@ -359,13 +372,19 @@ def execute_pending(
         command = local_runner_command(scan, method, scans_dir, args)
         started_at = utc_now()
         process = subprocess.run(command, capture_output=True, text=True, check=False)
+        runner_result: dict[str, Any] = {}
+        try:
+            runner_result = extract_stdout_json(process.stdout)
+        except (RuntimeError, json.JSONDecodeError):
+            pass
         if process.returncode != 0:
             row["cache_status"] = "error"
             row["error"] = process.stderr[-4000:]
+            if runner_result.get("outputs"):
+                row["outputs"] = runner_result["outputs"]
             completed.append(row)
             continue
 
-        runner_result = extract_stdout_json(process.stdout)
         outputs = runner_result.get("outputs") or {}
         parsed_path = outputs.get("parsed_json")
         parsed_payload: dict[str, Any] = {}
@@ -438,6 +457,7 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
 def main(argv: list[str]) -> int:
     args = parse_args(argv)
     validate_run_id(args.run_id)
+    validate_cost_ceiling(args.confirm_cost_usd)
     output_root = Path(args.output_root).resolve()
     run_dir = output_root / args.run_id
     cache_path = output_root / "cache-index.json"
@@ -459,17 +479,23 @@ def main(argv: list[str]) -> int:
         fingerprint = fingerprint_scan(scan, args.method)
         task_count = len(generate_grid(scan.center_lat, scan.center_lng, scan.grid_size, scan.radius_km))
         estimated_cost = estimate_scan_cost(task_count, scan.depth, args.method)
-        entry = cache.get("entries", {}).get(fingerprint)
-        cache_status = "cached" if entry and is_cache_fresh(entry, args) else "pending"
+        duplicate_of = ""
+        if fingerprint in scans_by_fingerprint:
+            cache_status = "duplicate"
+            duplicate_of = scans_by_fingerprint[fingerprint].prospect_id
+        else:
+            entry = cache.get("entries", {}).get(fingerprint)
+            cache_status = "cached" if entry and is_cache_fresh(entry, args) else "pending"
         row = {
             **asdict(scan),
             "fingerprint": fingerprint,
             "cache_status": cache_status,
             "task_count": task_count,
             "estimated_cost_usd": round(estimated_cost, 6),
+            "duplicate_of": duplicate_of,
         }
         rows.append(row)
-        scans_by_fingerprint[fingerprint] = scan
+        scans_by_fingerprint.setdefault(fingerprint, scan)
         if cache_status == "pending":
             pending_rows.append(row)
 
@@ -486,7 +512,18 @@ def main(argv: list[str]) -> int:
     if args.execute:
         executed_rows = execute_pending(pending_rows, scans_by_fingerprint, cache, run_dir, args.method, args)
         by_fingerprint = {row["fingerprint"]: row for row in executed_rows}
-        rows = [by_fingerprint.get(row["fingerprint"], row) for row in rows]
+        updated_rows: list[dict[str, Any]] = []
+        for row in rows:
+            executed = by_fingerprint.get(row["fingerprint"])
+            if row["cache_status"] == "duplicate" and executed:
+                row["cache_status"] = "reused-in-run" if executed["cache_status"] == "executed" else "duplicate-error"
+                for key in ("outputs", "metrics", "error"):
+                    if key in executed:
+                        row[key] = executed[key]
+                updated_rows.append(row)
+            else:
+                updated_rows.append(executed or row)
+        rows = updated_rows
         normalized_csv(normalized_path, rows)
         cache = load_cache(cache_path)
 
@@ -519,11 +556,23 @@ def main(argv: list[str]) -> int:
             "cached_scans": sum(1 for row in rows if row["cache_status"] == "cached"),
             "pending_scans": sum(1 for row in rows if row["cache_status"] == "pending"),
             "executed_scans": sum(1 for row in rows if row["cache_status"] == "executed"),
+            "duplicate_scans": sum(1 for row in rows if row["cache_status"] in DUPLICATE_STATUSES),
             "error_scans": sum(1 for row in rows if row["cache_status"] == "error"),
-            "total_tasks": sum(int(row["task_count"]) for row in rows),
+            "total_tasks": sum(
+                int(row["task_count"])
+                for row in rows
+                if row["cache_status"] not in DUPLICATE_STATUSES
+            ),
             "pending_tasks": sum(int(row["task_count"]) for row in rows if row["cache_status"] == "pending"),
             "pending_cost_usd": round(sum(float(row["estimated_cost_usd"]) for row in rows if row["cache_status"] == "pending"), 4),
-            "total_cost_if_uncached_usd": round(sum(float(row["estimated_cost_usd"]) for row in rows), 4),
+            "total_cost_if_uncached_usd": round(
+                sum(
+                    float(row["estimated_cost_usd"])
+                    for row in rows
+                    if row["cache_status"] not in DUPLICATE_STATUSES
+                ),
+                4,
+            ),
         },
         "rows": rows,
     }

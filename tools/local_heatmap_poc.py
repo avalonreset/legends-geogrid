@@ -20,6 +20,7 @@ import re
 import sys
 import urllib.error
 import urllib.request
+from urllib.parse import urlparse
 from dataclasses import dataclass
 from difflib import SequenceMatcher
 from pathlib import Path
@@ -89,6 +90,8 @@ def validate_run_args(args: argparse.Namespace) -> None:
         raise ValueError("zoom must be between 0 and 23")
     if not 0 < args.match_threshold <= 1:
         raise ValueError("match_threshold must be greater than 0 and at most 1")
+    if not math.isfinite(args.confirm_cost_usd) or args.confirm_cost_usd < 0:
+        raise ValueError("confirm-cost-usd must be a finite, non-negative number")
 
 
 def generate_grid(center_lat: float, center_lng: float, grid_size: int, radius_km: float) -> list[GridPoint]:
@@ -309,11 +312,30 @@ def item_domain(item: dict[str, Any]) -> str:
     return str(item.get("domain") or item.get("url") or "")
 
 
+def canonical_domain(value: str | None) -> str:
+    text = (value or "").strip().lower()
+    if not text:
+        return ""
+    parsed = urlparse(text if "://" in text else f"//{text}")
+    host = (parsed.hostname or "").rstrip(".")
+    if host.startswith("www."):
+        host = host[4:]
+    return host
+
+
+def domain_matches(candidate: str | None, target: str | None) -> bool:
+    candidate_host = canonical_domain(candidate)
+    target_host = canonical_domain(target)
+    return bool(
+        candidate_host
+        and target_host
+        and (candidate_host == target_host or candidate_host.endswith(f".{target_host}"))
+    )
+
+
 def match_score(item: dict[str, Any], args: argparse.Namespace) -> float:
     title_norm = normalize(str(item.get("title") or ""))
     target_norm = normalize(args.target_name)
-    domain_norm = normalize(item_domain(item))
-    target_domain_norm = normalize(args.target_domain)
     cid = str(item.get("cid") or "")
     place_id = str(item.get("place_id") or "")
 
@@ -321,7 +343,7 @@ def match_score(item: dict[str, Any], args: argparse.Namespace) -> float:
         return 1.0
     if args.target_place_id and place_id == str(args.target_place_id):
         return 1.0
-    if target_domain_norm and target_domain_norm in domain_norm:
+    if domain_matches(item_domain(item), args.target_domain):
         return 0.95
     if target_norm and title_norm == target_norm:
         return 0.92
@@ -361,11 +383,14 @@ def extract_items(task: dict[str, Any]) -> tuple[list[dict[str, Any]], str | Non
 
 def parse_results(payload: dict[str, Any], points: list[GridPoint], args: argparse.Namespace) -> list[PointResult]:
     point_by_tag = {point.tag: point for point in points}
-    results: list[PointResult] = []
+    results_by_tag: dict[str, PointResult] = {}
 
     for index, task in enumerate(payload.get("tasks") or []):
-        tag = ((task.get("data") or {}).get("tag") or task.get("tag") or points[index].tag)
-        point = point_by_tag.get(tag, points[index])
+        fallback = points[index] if index < len(points) else None
+        tag = (task.get("data") or {}).get("tag") or task.get("tag") or (fallback.tag if fallback else "")
+        point = point_by_tag.get(str(tag)) or fallback
+        if point is None or point.tag in results_by_tag:
+            continue
         items, error = extract_items(task)
 
         best_item = None
@@ -383,16 +408,27 @@ def parse_results(payload: dict[str, Any], points: list[GridPoint], args: argpar
         if best_item:
             rank = int(best_item.get("rank_absolute") or best_item.get("rank_group") or 0) or None
 
-        results.append(
+        results_by_tag[point.tag] = PointResult(
+            point=point,
+            rank=rank,
+            matched_item=summarize_item(best_item) if best_item else None,
+            top_items=[summarize_item(item) for item in items[: args.top_competitors]],
+            error=error,
+        )
+
+    return [
+        results_by_tag.get(
+            point.tag,
             PointResult(
                 point=point,
-                rank=rank,
-                matched_item=summarize_item(best_item) if best_item else None,
-                top_items=[summarize_item(item) for item in items[: args.top_competitors]],
-                error=error,
-            )
+                rank=None,
+                matched_item=None,
+                top_items=[],
+                error="No API result returned for this coordinate",
+            ),
         )
-    return sorted(results, key=lambda result: (result.point.row, result.point.col))
+        for point in points
+    ]
 
 
 def rank_symbol(rank: int | None, is_center: bool = False) -> str:
@@ -426,6 +462,7 @@ def calculate_metrics(results: list[PointResult]) -> dict[str, Any]:
     top3 = [rank for rank in ranks if rank <= 3]
     visible = [rank for rank in ranks if rank <= 10]
     total = len(results)
+    error_points = sum(1 for result in results if result.error)
     return {
         "points": total,
         "found_points": len(ranks),
@@ -435,10 +472,16 @@ def calculate_metrics(results: list[PointResult]) -> dict[str, Any]:
         "visible_share": round((len(visible) / total) * 100, 1) if total else 0,
         "average_rank": round(sum(ranks) / len(ranks), 2) if ranks else None,
         "not_found_points": total - len(ranks),
+        "error_points": error_points,
     }
 
 
 def prospecting_verdict(metrics: dict[str, Any]) -> tuple[str, str]:
+    if int(metrics.get("error_points") or 0):
+        return (
+            "Incomplete scan",
+            "One or more coordinates did not return a usable API result. Retry those points before interpreting coverage.",
+        )
     solv = float(metrics["solv"])
     visible = float(metrics["visible_share"])
     if solv < 20 and visible < 35:
@@ -551,6 +594,7 @@ def render_markdown(args: argparse.Namespace, results: list[PointResult], payloa
         f"- Visible share: {metrics['visible_share']}% ({metrics['visible_points']}/{metrics['points']} points in top 10)",
         f"- Average rank where found: {metrics['average_rank'] if metrics['average_rank'] is not None else 'no data'}",
         f"- Not found: {metrics['not_found_points']} points",
+        f"- API/result errors: {metrics['error_points']} points",
         "",
         "## Grid Details",
         "",
@@ -881,7 +925,7 @@ def main(argv: list[str]) -> int:
     outputs = write_outputs(args, tasks, payload, results)
     metrics = calculate_metrics(results)
     print(json.dumps({"metrics": metrics, "outputs": outputs}, indent=2))
-    return 0
+    return 2 if metrics["error_points"] else 0
 
 
 if __name__ == "__main__":

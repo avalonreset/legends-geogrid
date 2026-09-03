@@ -13,8 +13,23 @@ ROOT = Path(__file__).resolve().parents[1]
 TOOLS = ROOT / "tools"
 sys.path.insert(0, str(TOOLS))
 
-from bulk_geogrid_runner import ProspectScan, fingerprint_scan, local_runner_command, validate_run_id  # noqa: E402
-from local_heatmap_poc import estimate_scan_cost, generate_grid, validate_run_args  # noqa: E402
+from bulk_geogrid_runner import (  # noqa: E402
+    ProspectScan,
+    fingerprint_scan,
+    local_runner_command,
+    main as bulk_main,
+    validate_cost_ceiling,
+    validate_run_id,
+)
+from local_heatmap_poc import (  # noqa: E402
+    calculate_metrics,
+    domain_matches,
+    estimate_scan_cost,
+    generate_grid,
+    parse_results,
+    prospecting_verdict,
+    validate_run_args,
+)
 
 
 class GridTests(unittest.TestCase):
@@ -107,6 +122,73 @@ class SafetyTests(unittest.TestCase):
         )
         with self.assertRaises(ValueError):
             validate_run_args(args)
+
+    def test_nan_cost_ceiling_is_rejected(self) -> None:
+        with self.assertRaises(ValueError):
+            validate_cost_ceiling(float("nan"))
+
+    def test_partial_api_response_keeps_full_grid_shape(self) -> None:
+        points = generate_grid(30.249711, -97.749132, 3, 2)
+        args = argparse.Namespace(
+            target_name="Example Pizza",
+            target_domain="",
+            target_cid="",
+            target_place_id="",
+            match_threshold=0.82,
+            top_competitors=3,
+        )
+        payload = {
+            "tasks": [
+                {
+                    "status_code": 20000,
+                    "data": {"tag": "r0c0"},
+                    "result": [{"items": []}],
+                }
+            ]
+        }
+        results = parse_results(payload, points, args)
+        self.assertEqual(9, len(results))
+        self.assertEqual("r0c0", results[0].point.tag)
+        self.assertEqual("No API result returned for this coordinate", results[-1].error)
+        metrics = calculate_metrics(results)
+        self.assertEqual(8, metrics["error_points"])
+        self.assertEqual("Incomplete scan", prospecting_verdict(metrics)[0])
+
+    def test_domain_matching_uses_hostname_boundaries(self) -> None:
+        self.assertTrue(domain_matches("https://www.acme.com/service", "acme.com"))
+        self.assertTrue(domain_matches("maps.acme.com", "acme.com"))
+        self.assertFalse(domain_matches("notacme.com", "acme.com"))
+
+    def test_bulk_dry_run_deduplicates_identical_scans(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            csv_path = root / "prospects.csv"
+            csv_path.write_text(
+                "prospect_id,business_name,keyword,center_lat,center_lng,target_domain\n"
+                "one,Example Pizza,pizza,30.249711,-97.749132,example.com\n"
+                "two,Example Pizza,pizza,30.249711,-97.749132,example.com\n",
+                encoding="utf-8",
+            )
+            exit_code = bulk_main(
+                [
+                    "--prospects",
+                    str(csv_path),
+                    "--run-id",
+                    "dedupe-test",
+                    "--output-root",
+                    str(root / "out"),
+                    "--grid-size",
+                    "17",
+                    "--depth",
+                    "20",
+                ]
+            )
+            self.assertEqual(0, exit_code)
+            manifest = json.loads((root / "out" / "dedupe-test" / "manifest.json").read_text(encoding="utf-8"))
+            self.assertEqual(1, manifest["totals"]["pending_scans"])
+            self.assertEqual(1, manifest["totals"]["duplicate_scans"])
+            self.assertEqual(289, manifest["totals"]["pending_tasks"])
+            self.assertEqual(0.1734, manifest["totals"]["pending_cost_usd"])
 
     def test_bulk_run_id_cannot_escape_output_root(self) -> None:
         with self.assertRaises(ValueError):

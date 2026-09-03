@@ -543,7 +543,7 @@ function render() {
   const m = metrics(points)
   const cost = points.length * queueRates[state.queue]
   const isProof = state.dataset === 'proof5' || state.dataset === 'proof17'
-  const scanCostLabel = state.dataset === 'simulation' ? 'paid equivalent' : 'real scan'
+  const scanCostLabel = state.dataset === 'simulation' ? 'modeled scan' : 'refresh estimate'
   const pressureRows = competitorPressure(points)
     .map(([name, count]) => `<div class="pressure-row"><span>${escapeHtml(name)}</span><b>${count}</b></div>`)
     .join('')

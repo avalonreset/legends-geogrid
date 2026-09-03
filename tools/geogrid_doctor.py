@@ -49,8 +49,12 @@ def main() -> int:
         "tools/bulk_geogrid_runner.py",
         "examples/sample-prospects.csv",
         "tests/test_runners.py",
+        "tests/test_release_hygiene.py",
         "LICENSE",
         "SECURITY.md",
+        "THIRD_PARTY_NOTICES.md",
+        "docs/PROVENANCE.md",
+        "vite.config.js",
     ]
     missing = []
     for rel in required:

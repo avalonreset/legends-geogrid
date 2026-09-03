@@ -17,7 +17,7 @@ CID or place ID is the preferred production identifier.
 
 ## Cost model
 
-The September 2026 documented DataForSEO base rates used by 0.1.0 are:
+The September 2026 documented DataForSEO base rates used by 0.1.x are:
 
 - Standard Queue: $0.0006 per Maps SERP page.
 - Priority Queue: $0.0012 per Maps SERP page.
@@ -37,4 +37,6 @@ Run artifacts are local files. Raw output may include public business fields, ta
 
 ## Browser studio
 
-The studio is a static Vite application. Leaflet renders the map and OpenStreetMap supplies tiles. Rank pins use a canvas layer so a 17 x 17 grid remains responsive. The studio itself never calls DataForSEO and cannot spend credits.
+The studio is a static Vite application. Leaflet renders the map and OpenStreetMap supplies the default tiles from the exact policy endpoint, `https://tile.openstreetmap.org/{z}/{x}/{y}.png`. The map shows linked OpenStreetMap attribution. Rank pins use a canvas layer so a 17 x 17 grid remains responsive. The studio itself never calls DataForSEO and cannot spend credits.
+
+Set `VITE_MAP_TILE_URL` and `VITE_MAP_TILE_ATTRIBUTION` at build time to use another tile provider. The operator is responsible for that provider's licence, attribution, traffic, and caching requirements. Legends GeoGrid does not prefetch or package map tiles.

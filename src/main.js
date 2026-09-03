@@ -6,6 +6,11 @@ import './styles.css'
 
 const austinCenter = { lat: 30.249711, lng: -97.749132 }
 
+const mapTileUrl = import.meta.env.VITE_MAP_TILE_URL
+  || 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
+const mapTileAttribution = import.meta.env.VITE_MAP_TILE_ATTRIBUTION
+  || '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>'
+
 const queueRates = {
   standard: 0.0006,
   priority: 0.0012,
@@ -333,7 +338,7 @@ function activeProject() {
     name: 'Home Slice Pizza 17 x 17 one-prospect demo',
     badge: 'Modeled rank data',
     scope: '1 modeled prospect',
-    note: 'This is the dense Local Falcon-style visual. It shows the experience without buying 289 coordinate results.',
+    note: 'This is a dense modeled visual. It shows the experience without buying 289 coordinate results.',
     plannerNote: 'Use this mode for showpiece visuals. The 1,000-prospect line is only a paid-equivalent scenario.',
   }
 }
@@ -434,9 +439,9 @@ function renderLeafletMap(grid, selected) {
     preferCanvas: true,
   }).setView(center, zoom)
 
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  L.tileLayer(mapTileUrl, {
     maxZoom: 19,
-    attribution: '&copy; OpenStreetMap contributors',
+    attribution: mapTileAttribution,
   }).addTo(leafletMap)
 
   new RankCanvasLayer(grid.points, selected, {
@@ -558,6 +563,7 @@ function render() {
           <a href="https://github.com/avalonreset/legends-geogrid#quick-start-browser-demo" target="_blank" rel="noreferrer">Quick Start</a>
           <a href="https://github.com/avalonreset/legends-geogrid/blob/main/docs/PRODUCT_STATUS.md" target="_blank" rel="noreferrer">Product Status</a>
           <a href="https://github.com/avalonreset/legends-geogrid/blob/main/docs/ROADMAP.md" target="_blank" rel="noreferrer">Roadmap</a>
+          <a href="https://github.com/avalonreset/legends-geogrid/blob/main/THIRD_PARTY_NOTICES.md" target="_blank" rel="noreferrer">Attribution</a>
         </nav>
       </aside>
       <main>
@@ -587,6 +593,7 @@ function render() {
           <div>
             <a href="https://dataforseo.com/pricing/serp/google-maps-serp-api" target="_blank" rel="noreferrer">Verify API pricing</a>
             <a href="https://github.com/avalonreset/legends-geogrid/blob/main/LICENSE" target="_blank" rel="noreferrer">MIT License</a>
+            <a href="https://github.com/avalonreset/legends-geogrid/blob/main/THIRD_PARTY_NOTICES.md" target="_blank" rel="noreferrer">Third-party notices</a>
           </div>
         </section>
         <section class="metrics">

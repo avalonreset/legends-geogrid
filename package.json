@@ -1,6 +1,6 @@
 {
   "name": "legends-geogrid",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "type": "module",
   "description": "Open-source local SEO geo-grid scans with DataForSEO, cost guardrails, and an interactive map studio.",
   "license": "MIT",

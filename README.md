@@ -146,17 +146,25 @@ Cache protection reduces accidental duplicate work; it is not a transactional bi
 - `tests/` — cost, grid, cache, and no-spend safety tests.
 - `examples/` — sample CSV and sanitized proof artifacts.
 - `docs/` — product status, technical notes, roadmap, and demo screenshot.
+- `THIRD_PARTY_NOTICES.md` — software licences, service/data terms, and attribution details.
 
 ## Data and privacy
 
 Fresh run folders can contain business names, coordinates, public Maps listing details, DataForSEO task IDs, and raw API responses. They are ignored by Git by default. Review artifacts before sharing them and follow the terms and legal rights that apply to your DataForSEO account and the underlying search-engine data.
 
-The bundled Home Slice Pizza proof is historical demonstration data collected on June 26, 2026. It is not a current ranking claim, an endorsement, or private client data.
+The bundled Home Slice Pizza proof is historical demonstration data collected on June 26, 2026. It contains only the target name, keyword, general location, scan coordinates, ranks, and public business titles needed for the demo. It contains no credentials, account identifiers, task IDs, raw provider payloads, contact details, or private client data. It is not a current ranking claim or an endorsement.
+
+## Attribution and provenance
+
+- [Leaflet](https://leafletjs.com/) provides the interactive map library under the BSD 2-Clause License.
+- [OpenStreetMap](https://www.openstreetmap.org/copyright) contributors provide the default map data under the ODbL. The app uses the official browser tile endpoint for normal interactive viewing, preserves visible linked attribution, and does not implement tile prefetching or offline download. Public or high-traffic deployments should review the [tile usage policy](https://operations.osmfoundation.org/policies/tiles/) and configure an appropriate provider when necessary.
+- [DataForSEO](https://dataforseo.com/apis/serp-api/google-maps-api) provides the optional Google Maps SERP API used for fresh scans. Users bring their own account and must follow the current [DataForSEO Terms of Service](https://dataforseo.com/terms-of-service) and applicable search-provider terms.
+- [Vite](https://vite.dev/) and [PostCSS](https://postcss.org/) are MIT-licensed build tools. Production builds generate `dist/third-party-licenses.md` from the exact bundled dependency graph.
+
+The original product research compared public workflow and pricing information from [Local Falcon](https://www.localfalcon.com/), [Search Atlas](https://searchatlas.com/local-seo-software/), [LeadSnap](https://leadsnap.com/features/local-citations/), and [BrightLocal](https://www.brightlocal.com/citation-builder/). They were market references only: the current release does not contain their source code, assets, screenshots, or proprietary data. See [Provenance and research sources](docs/PROVENANCE.md) and [Third-party notices](THIRD_PARTY_NOTICES.md).
 
 ## License
 
-MIT. See [LICENSE](LICENSE).
+Legends GeoGrid is MIT licensed. See [LICENSE](LICENSE). Third-party components, services, trademarks, and data remain subject to their own licences and terms; see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
-Leaflet is BSD-2-Clause licensed. OpenStreetMap tiles and data carry their own usage and attribution requirements; the studio displays OpenStreetMap attribution on the map.
-
-Legends GeoGrid is independent software. It is not affiliated with or endorsed by DataForSEO, Google, OpenStreetMap, Local Falcon, or Search Atlas.
+Legends GeoGrid is independent software. It is not affiliated with or endorsed by DataForSEO, Google, OpenStreetMap, Leaflet, Local Falcon, Search Atlas, LeadSnap, or BrightLocal.

@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.1 - 2026-09-03
+
+- Added explicit software, service, data, trademark, and research-source attribution.
+- Added a complete Leaflet BSD 2-Clause notice and a provenance record for the original market research.
+- Switched the default OpenStreetMap layer to the exact policy endpoint with linked ODbL attribution.
+- Documented tile-provider overrides and the no-prefetch/no-offline-use boundary.
+- Generate a bundled-dependency licence file in every production build.
+- Ignore local audit worktrees so release-verification artifacts cannot be committed accidentally.
+
 ## 0.1.0 - 2026-09-03
 
 - Renamed the project to Legends GeoGrid.

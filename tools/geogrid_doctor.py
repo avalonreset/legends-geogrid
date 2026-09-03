@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Local readiness check for the GeoGriddy prototype."""
+"""Local readiness check for Legends GeoGrid."""
 
 from __future__ import annotations
 
@@ -48,8 +48,9 @@ def main() -> int:
         "tools/local_heatmap_poc.py",
         "tools/bulk_geogrid_runner.py",
         "examples/sample-prospects.csv",
-        "docs/local-seo-geogrid-executive-report.pdf",
-        "docs/best-practices-loop/_core.md",
+        "tests/test_runners.py",
+        "LICENSE",
+        "SECURITY.md",
     ]
     missing = []
     for rel in required:
@@ -80,10 +81,11 @@ def main() -> int:
     else:
         warn("DataForSEO env", "not configured, dashboard and dry-runs still work")
 
-    if os.environ.get("GOOGLE_MAPS_API_KEY"):
-        ok("Google Maps env", "configured for future geocoding or Google tile display")
+    if sys.version_info >= (3, 10):
+        ok("Python", sys.version.split()[0])
     else:
-        warn("Google Maps env", "not configured, interactive Leaflet/OSM display still works")
+        missing.append("Python 3.10+")
+        fail("Python", f"3.10+ required; found {sys.version.split()[0]}")
 
     if missing:
         return 1

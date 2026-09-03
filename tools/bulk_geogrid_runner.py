@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Cache-aware bulk runner scaffold for local SEO geo-grid prospect scans.
+Cache-aware bulk runner for Legends GeoGrid prospect scans.
 
 Default behavior is a dry run. It normalizes the prospect list, estimates the
 DataForSEO task count and cost, fingerprints each paid scan, and writes a
@@ -16,26 +16,14 @@ import datetime as dt
 import hashlib
 import json
 import os
+import re
 import subprocess
 import sys
 from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any
 
-from local_heatmap_poc import (
-    LIVE_COST_PER_TASK_USD,
-    PRIORITY_COST_PER_TASK_USD,
-    STANDARD_COST_PER_TASK_USD,
-    generate_grid,
-    normalize,
-)
-
-
-COST_PER_TASK_USD = {
-    "standard": STANDARD_COST_PER_TASK_USD,
-    "priority": PRIORITY_COST_PER_TASK_USD,
-    "live": LIVE_COST_PER_TASK_USD,
-}
+from local_heatmap_poc import estimate_scan_cost, generate_grid, normalize
 
 
 @dataclass(frozen=True)
@@ -141,6 +129,22 @@ def validate_scan(scan: ProspectScan) -> None:
         raise ValueError(f"{scan.prospect_id}: radius_km must be positive")
     if scan.depth <= 0:
         raise ValueError(f"{scan.prospect_id}: depth must be positive")
+    if not -90 < scan.center_lat < 90:
+        raise ValueError(f"{scan.prospect_id}: center_lat must be greater than -90 and less than 90")
+    if not -180 <= scan.center_lng <= 180:
+        raise ValueError(f"{scan.prospect_id}: center_lng must be between -180 and 180")
+    if scan.grid_size > 51:
+        raise ValueError(f"{scan.prospect_id}: grid_size cannot exceed 51")
+    if not 0 <= scan.zoom <= 23:
+        raise ValueError(f"{scan.prospect_id}: zoom must be between 0 and 23")
+
+
+def validate_run_id(run_id: str) -> str:
+    if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]{0,99}", run_id):
+        raise ValueError("run-id must be 1-100 characters using letters, numbers, dots, dashes, or underscores")
+    if ".." in run_id:
+        raise ValueError("run-id cannot contain '..'")
+    return run_id
 
 
 def scan_identity(scan: ProspectScan, method: str) -> dict[str, Any]:
@@ -309,6 +313,9 @@ def local_runner_command(scan: ProspectScan, method: str, output_dir: Path, args
         scan.se_domain,
         "--output-dir",
         str(output_dir),
+        "--execute",
+        "--confirm-cost-usd",
+        str(estimate_scan_cost(scan.grid_size * scan.grid_size, scan.depth, method)),
         "--timeout",
         str(args.timeout),
         "--poll-seconds",
@@ -405,7 +412,7 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--run-id", default=dt.datetime.now().strftime("%Y%m%d-%H%M%S-bulk-geogrid"))
     parser.add_argument("--method", choices=["standard", "priority", "live"], default="standard")
     parser.add_argument("--output-root", default=str(default_root / "bulk-runs"))
-    parser.add_argument("--vault-data-dir", default=str(Path("E:/ai-marketing-hub-pro/wiki/data/local-seo-geogrid")))
+    parser.add_argument("--vault-data-dir", default="", help="Optional directory for an Obsidian-style Markdown run note")
     parser.add_argument("--execute", action="store_true", help="Spend DataForSEO credits for uncached scans")
     parser.add_argument("--confirm-cost-usd", type=float, default=0.0, help="Required spending ceiling when --execute is used")
     parser.add_argument("--max-prospects", type=int, default=0, help="Optional row cap for tests")
@@ -430,12 +437,13 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
 
 def main(argv: list[str]) -> int:
     args = parse_args(argv)
+    validate_run_id(args.run_id)
     output_root = Path(args.output_root).resolve()
     run_dir = output_root / args.run_id
     cache_path = output_root / "cache-index.json"
     manifest_path = run_dir / "manifest.json"
     normalized_path = run_dir / "prospects.normalized.csv"
-    vault_note_path = Path(args.vault_data_dir).resolve() / f"{args.run_id}.md"
+    vault_note_path = Path(args.vault_data_dir).resolve() / f"{args.run_id}.md" if args.vault_data_dir else None
 
     scans = load_prospects(args)
     if not scans:
@@ -450,7 +458,7 @@ def main(argv: list[str]) -> int:
         validate_scan(scan)
         fingerprint = fingerprint_scan(scan, args.method)
         task_count = len(generate_grid(scan.center_lat, scan.center_lng, scan.grid_size, scan.radius_km))
-        estimated_cost = task_count * COST_PER_TASK_USD[args.method]
+        estimated_cost = estimate_scan_cost(task_count, scan.depth, args.method)
         entry = cache.get("entries", {}).get(fingerprint)
         cache_status = "cached" if entry and is_cache_fresh(entry, args) else "pending"
         row = {
@@ -493,7 +501,7 @@ def main(argv: list[str]) -> int:
         "run_dir": str(run_dir),
         "manifest_path": str(manifest_path),
         "normalized_csv_path": str(normalized_path),
-        "vault_note_path": str(vault_note_path),
+        "vault_note_path": str(vault_note_path) if vault_note_path else None,
         "cache_index_path": str(cache_path),
         "defaults": {
             "radius_km": args.radius_km,
@@ -520,8 +528,9 @@ def main(argv: list[str]) -> int:
         "rows": rows,
     }
     write_json(manifest_path, manifest)
-    vault_note_path.parent.mkdir(parents=True, exist_ok=True)
-    vault_note_path.write_text(render_vault_note(manifest), encoding="utf-8")
+    if vault_note_path:
+        vault_note_path.parent.mkdir(parents=True, exist_ok=True)
+        vault_note_path.write_text(render_vault_note(manifest), encoding="utf-8")
 
     print(
         json.dumps(
@@ -533,7 +542,7 @@ def main(argv: list[str]) -> int:
                 "pending_tasks": manifest["totals"]["pending_tasks"],
                 "pending_cost_usd": manifest["totals"]["pending_cost_usd"],
                 "manifest": str(manifest_path),
-                "vault_note": str(vault_note_path),
+                "vault_note": str(vault_note_path) if vault_note_path else None,
             },
             indent=2,
         )

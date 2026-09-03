@@ -1,101 +1,162 @@
-# geo-griddy
+# Legends GeoGrid
 
-geo-griddy is a private local SEO geo-grid feature prototype. It recreates the practical core of a Local Falcon or Search Atlas style heatmap with DataForSEO as the rank source, an interactive browser map as the visual layer, and our own dashboard, cache, scoring, and report workflow.
+Legends GeoGrid is an open-source, local-first geo-grid rank scanner for Google Maps results. It turns one business, one keyword, and a center coordinate into a visual ranking grid without requiring a hosted rank-tracking subscription.
 
-The intended home is the AI Marketing Hub / Local SEO Brain ecosystem, not a standalone SaaS. A user should be able to invoke the workflow from Codex or Claude, reuse business data already stored in the brain, and open a browser artifact for the visual proof.
+![Legends GeoGrid studio](docs/legends-geogrid-studio.png)
 
-## Executive Read
+The browser studio ships with a saved real-world 17 x 17 proof scan, so you can explore the interface without credentials or API spend. The Python runners use DataForSEO for fresh scans, cache results by scan fingerprint, and require explicit execution plus a cost ceiling before spending credits.
 
-The core product is buildable. DataForSEO Google Maps SERP can query local map rankings from precise coordinates, one grid point at a time. Map rendering and geocoding are separate display utilities; the current prototype uses an interactive browser map so the paid rank source stays isolated from the visual layer.
+## Why it exists
 
-Raw rank-data cost is low:
+A 17 x 17 grid contains 289 coordinate checks. At DataForSEO's documented September 2026 Standard Queue base rate of `$0.0006` per Maps SERP, one 17 x 17 business-keyword scan is about `$0.1734` in raw rank-data cost. One thousand equivalent scans are about `$173.40` before any optional parameter multipliers.
 
-| Grid | Pins | DataForSEO Standard | 1,000 prospects |
-|---|---:|---:|---:|
-| 3 x 3 | 9 | $0.0054 | $5.40 |
-| 5 x 5 | 25 | $0.0150 | $15.00 |
-| 9 x 9 | 81 | $0.0486 | $48.60 |
-| 17 x 17 | 289 | $0.1734 | $173.40 |
+That is the point of this project: the underlying data collection can be inexpensive when you own the workflow. Legends GeoGrid gives builders, agencies, and local SEO operators a transparent starting point instead of forcing every experiment through a SaaS credit system.
 
-The recommended first bulk proof is a real 1,000-prospect list at 5 x 5 Standard, or 9 x 9 Standard if the goal is to spend close to $50 for a stronger visual proof. Dense 17 x 17 views are better used as one-prospect showpieces or high-value account scans, not first-pass bulk triage. This repo includes one real 17 x 17 Home Slice Pizza proof scan.
+Pricing changes. Depth above 100 results and other paid parameters can multiply the actual charge. The runners include the documented depth multiplier in estimates, but always review current DataForSEO pricing before a large run.
 
-## What Is In This Repo
+## What works
 
-- `src/` - standalone Vite dashboard demo for the eventual Local SEO Brain feature.
-- `tools/local_heatmap_poc.py` - one-business DataForSEO geo-grid runner.
-- `tools/bulk_geogrid_runner.py` - cache-aware bulk runner scaffold.
-- `tools/geogrid_doctor.py` - local readiness check.
-- `src/data/home-slice-17x17.json` - parsed real 17 x 17 DataForSEO proof scan.
-- `examples/runs/home-slice-5x5/` - saved 5 x 5 DataForSEO proof run.
-- `examples/runs/20260626-105950-homeslicepizza/` - saved 17 x 17 DataForSEO proof run.
-- `examples/bulk-runs/sample-dryrun/` - no-credit bulk dry-run manifest.
-- `docs/local-seo-geogrid-executive-report.pdf` - sendable executive report.
-- `docs/PRODUCT_STATUS.md` - what works today and what still needs product work.
-- `docs/DANIEL_HANDOFF.md` - short review path for Daniel.
-- `docs/CITATION_MODULE_NOTES.md` - parked citation/NAP research for a possible future add-on.
+- Interactive Leaflet/OpenStreetMap studio with rank pins, heat view, evidence view, and cost planning.
+- Saved 17 x 17 and 5 x 5 proof datasets that do not trigger API calls.
+- Single-business DataForSEO Google Maps SERP runner.
+- CSV-driven bulk runner with estimates, fingerprints, freshness-aware caching, and resumable artifacts.
+- Standard, Priority, and Live DataForSEO methods.
+- Explicit `--execute` and `--confirm-cost-usd` spend gates.
+- Markdown, HTML, JSON, JSONL, and CSV artifacts.
+- No database, hosted backend, analytics, or telemetry.
 
-## Quickstart
+This is a practical local tool and reference implementation, not feature-for-feature parity with a mature hosted platform.
+
+## Quick start: browser demo
+
+Requirements:
+
+- Node.js 20.19+ or 22.12+
+- pnpm 10+
+- Python 3.10+ for scan runners
 
 ```powershell
-pnpm install
+git clone https://github.com/avalonreset/legends-geogrid.git
+cd legends-geogrid
+pnpm install --frozen-lockfile
 pnpm dev
 ```
 
-Then open the local Vite URL.
+Open the local URL printed by Vite. No DataForSEO credentials are needed for the saved proof or modeled demo.
 
-Build check:
-
-```powershell
-pnpm build
-pnpm check:python
-pnpm doctor
-```
-
-## What Works Today
-
-This is usable as local agent-operated software plus CLI:
-
-- The browser app opens on a real cached 17 x 17 DataForSEO proof scan and visualizes it on an interactive pan/zoom map.
-- The browser app includes an Alana-style keyword scan list with CSV export.
-- The Python runners can execute real DataForSEO scans after credentials are set.
-- The bulk runner can dry-run, estimate, fingerprint, and cache scans.
-
-## Proof Artifacts
-
-- `docs/proof-geogriddy-17x17-clean.png` - real one-prospect 17 x 17 proof map.
-- `docs/proof-geogriddy-keyword-list.png` - Alana-style multi-keyword scan list.
-
-It is not trying to become a hosted SaaS. The next product shape is a Local SEO Brain feature where the agent prepares scan inputs, executes cached or paid DataForSEO work, and opens the browser report. See `docs/PRODUCT_STATUS.md`.
-
-Citations are intentionally not mixed into the core feature. The research is parked in `docs/CITATION_MODULE_NOTES.md` because citation fulfillment is a separate local SEO service, not the rank-map product Alana asked for.
-
-## Running A Paid Scan
-
-Set credentials in your shell, not in Git:
+Run the full local verification:
 
 ```powershell
-$env:DATAFORSEO_USERNAME="..."
-$env:DATAFORSEO_PASSWORD="..."
+pnpm check
 ```
 
-Dry-run a bulk estimate:
+## Estimate a fresh scan
+
+Estimation is the default. This command makes no API call and spends nothing:
 
 ```powershell
-python tools/bulk_geogrid_runner.py --prospects examples/sample-prospects.csv --run-id sample-dryrun --method standard --grid-size 5 --radius-km 2 --depth 20 --zoom 15
+python tools/local_heatmap_poc.py `
+  --keyword "pizza" `
+  --target-name "Example Pizza" `
+  --center-lat 30.249711 `
+  --center-lng -97.749132 `
+  --grid-size 17 `
+  --radius-km 2 `
+  --depth 20 `
+  --method standard
 ```
 
-Execute only after confirming a real prospect list and cost ceiling:
+## Run a paid scan
+
+Set credentials in your shell. Do not put them in Git:
 
 ```powershell
-python tools/bulk_geogrid_runner.py --prospects prospects.csv --run-id dentists-austin-202606 --method standard --grid-size 5 --radius-km 2 --depth 20 --zoom 15 --execute --confirm-cost-usd 15
+$env:DATAFORSEO_USERNAME="your-login"
+$env:DATAFORSEO_PASSWORD="your-password"
 ```
 
-## Cache Rule
+Then repeat the estimate command with both spend gates:
 
-Do not pay twice for the same dataset. The bulk runner fingerprints scans by target identity, keyword, center coordinate, radius, grid size, depth, zoom, device, language, search domain, search-places flag, and queue mode.
+```powershell
+python tools/local_heatmap_poc.py `
+  --keyword "pizza" `
+  --target-name "Example Pizza" `
+  --center-lat 30.249711 `
+  --center-lng -97.749132 `
+  --grid-size 17 `
+  --radius-km 2 `
+  --depth 20 `
+  --method standard `
+  --execute `
+  --confirm-cost-usd 0.18
+```
 
-Keep raw paid receipts outside Obsidian-style note folders when runs become large. Store compact indexes, manifests, parsed JSONL or SQLite, screenshots, timestamps, freshness labels, and DataForSEO task IDs.
+The command refuses to execute when its estimated base cost exceeds the ceiling.
 
-## Private Status
+For stronger business matching, add a known `--target-cid`, `--target-place-id`, or `--target-domain`. Name matching alone is intentionally conservative but can still produce false positives for similar business names.
 
-This is an internal prototype. No open-source license is granted by default.
+## Bulk scans
+
+Start with the bundled no-credit dry run:
+
+```powershell
+pnpm dryrun:sample
+```
+
+Estimate your own CSV:
+
+```powershell
+python tools/bulk_geogrid_runner.py `
+  --prospects prospects.csv `
+  --run-id dentists-austin `
+  --method standard `
+  --grid-size 5 `
+  --radius-km 2 `
+  --depth 20
+```
+
+Execute only after reviewing the manifest and total ceiling:
+
+```powershell
+python tools/bulk_geogrid_runner.py `
+  --prospects prospects.csv `
+  --run-id dentists-austin `
+  --method standard `
+  --grid-size 5 `
+  --radius-km 2 `
+  --depth 20 `
+  --execute `
+  --confirm-cost-usd 15
+```
+
+The sample CSV documents accepted columns. By default, artifacts stay under the repository's ignored `bulk-runs/` directory. To write an optional Obsidian-style summary elsewhere, pass `--vault-data-dir <directory>` explicitly.
+
+## Cache identity
+
+Paid scans are fingerprinted by target identity, keyword, center coordinate, radius, grid size, depth, zoom, device, language, search domain, search-places setting, and queue method. Fresh cached scans are skipped before paid calls.
+
+Cache protection reduces accidental duplicate work; it is not a transactional billing guarantee. DataForSEO does not refund duplicate tasks caused by client-side mistakes, so keep the spend ceiling conservative.
+
+## Repository map
+
+- `src/` — local Vite studio and saved parsed proof datasets.
+- `tools/local_heatmap_poc.py` — estimate-first single scan runner.
+- `tools/bulk_geogrid_runner.py` — cache-aware CSV runner.
+- `tools/geogrid_doctor.py` — local readiness check.
+- `tests/` — cost, grid, cache, and no-spend safety tests.
+- `examples/` — sample CSV and sanitized proof artifacts.
+- `docs/` — product status, technical notes, roadmap, and demo screenshot.
+
+## Data and privacy
+
+Fresh run folders can contain business names, coordinates, public Maps listing details, DataForSEO task IDs, and raw API responses. They are ignored by Git by default. Review artifacts before sharing them and follow the terms and legal rights that apply to your DataForSEO account and the underlying search-engine data.
+
+The bundled Home Slice Pizza proof is historical demonstration data collected on June 26, 2026. It is not a current ranking claim, an endorsement, or private client data.
+
+## License
+
+MIT. See [LICENSE](LICENSE).
+
+Leaflet is BSD-2-Clause licensed. OpenStreetMap tiles and data carry their own usage and attribution requirements; the studio displays OpenStreetMap attribution on the map.
+
+Legends GeoGrid is independent software. It is not affiliated with or endorsed by DataForSEO, Google, OpenStreetMap, Local Falcon, or Search Atlas.

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Small DataForSEO-powered local SEO geo-grid proof of concept.
+DataForSEO-powered local SEO geo-grid runner for Legends GeoGrid.
 
 This script creates a grid around a target coordinate, calls the DataForSEO
 Google Maps SERP live endpoint, matches a target business in each result set,
@@ -33,6 +33,11 @@ LIVE_COST_PER_TASK_USD = 0.002
 PRIORITY_COST_PER_TASK_USD = 0.0012
 STANDARD_COST_PER_TASK_USD = 0.0006
 QUEUE_TASK_BATCH_SIZE = 100
+COST_PER_TASK_USD = {
+    "standard": STANDARD_COST_PER_TASK_USD,
+    "priority": PRIORITY_COST_PER_TASK_USD,
+    "live": LIVE_COST_PER_TASK_USD,
+}
 
 
 @dataclass(frozen=True)
@@ -57,6 +62,33 @@ def normalize(value: str | None) -> str:
     if not value:
         return ""
     return re.sub(r"[^a-z0-9]+", "", value.lower())
+
+
+def estimate_scan_cost(task_count: int, depth: int, method: str) -> float:
+    """Return the documented base estimate, including depth billing units."""
+    if task_count < 0:
+        raise ValueError("task_count cannot be negative")
+    if depth < 1:
+        raise ValueError("depth must be positive")
+    if method not in COST_PER_TASK_USD:
+        raise ValueError(f"unsupported method: {method}")
+    depth_units = math.ceil(depth / 100)
+    return task_count * COST_PER_TASK_USD[method] * depth_units
+
+
+def validate_run_args(args: argparse.Namespace) -> None:
+    if not -90 < args.center_lat < 90:
+        raise ValueError("center_lat must be greater than -90 and less than 90")
+    if not -180 <= args.center_lng <= 180:
+        raise ValueError("center_lng must be between -180 and 180")
+    if args.grid_size > 51:
+        raise ValueError("grid_size cannot exceed 51")
+    if args.depth < 1:
+        raise ValueError("depth must be positive")
+    if not 0 <= args.zoom <= 23:
+        raise ValueError("zoom must be between 0 and 23")
+    if not 0 < args.match_threshold <= 1:
+        raise ValueError("match_threshold must be greater than 0 and at most 1")
 
 
 def generate_grid(center_lat: float, center_lng: float, grid_size: int, radius_km: float) -> list[GridPoint]:
@@ -771,8 +803,8 @@ def write_outputs(args: argparse.Namespace, tasks: list[dict[str, Any]], payload
 
 
 def parse_args(argv: list[str]) -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Run a DataForSEO Google Maps geo-grid heatmap proof")
-    parser.add_argument("--method", choices=["live", "priority", "standard"], default="live")
+    parser = argparse.ArgumentParser(description="Estimate or run a DataForSEO Google Maps geo-grid scan")
+    parser.add_argument("--method", choices=["live", "priority", "standard"], default="standard")
     parser.add_argument("--keyword", required=True, help="Local-intent keyword, for example 'pizza' or 'emergency dentist'")
     parser.add_argument("--target-name", required=True, help="Business name to match in Maps SERP items")
     parser.add_argument("--center-lat", type=float, required=True)
@@ -796,22 +828,27 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--timeout", type=int, default=90)
     parser.add_argument("--poll-seconds", type=int, default=360)
     parser.add_argument("--poll-interval", type=int, default=15)
-    parser.add_argument("--estimate-only", action="store_true")
+    parser.add_argument("--execute", action="store_true", help="Spend DataForSEO credits; omitted means estimate only")
+    parser.add_argument("--confirm-cost-usd", type=float, default=0.0, help="Required maximum estimated spend when --execute is used")
+    parser.add_argument("--estimate-only", action="store_true", help="Deprecated compatibility flag; estimates are already the default")
     return parser.parse_args(argv)
 
 
 def main(argv: list[str]) -> int:
     args = parse_args(argv)
+    validate_run_args(args)
     points = generate_grid(args.center_lat, args.center_lng, args.grid_size, args.radius_km)
     tasks = build_tasks(args, points)
-    live_estimate = len(tasks) * LIVE_COST_PER_TASK_USD
-    priority_estimate = len(tasks) * PRIORITY_COST_PER_TASK_USD
-    standard_estimate = len(tasks) * STANDARD_COST_PER_TASK_USD
+    live_estimate = estimate_scan_cost(len(tasks), args.depth, "live")
+    priority_estimate = estimate_scan_cost(len(tasks), args.depth, "priority")
+    standard_estimate = estimate_scan_cost(len(tasks), args.depth, "standard")
 
-    if args.estimate_only:
+    if args.estimate_only or not args.execute:
         print(
             json.dumps(
                 {
+                    "status": "estimate-only",
+                    "execute": False,
                     "tasks": len(tasks),
                     "live_estimate_usd": round(live_estimate, 4),
                     "priority_estimate_usd": round(priority_estimate, 4),
@@ -823,11 +860,21 @@ def main(argv: list[str]) -> int:
         )
         return 0
 
+    expected = {
+        "live": live_estimate,
+        "priority": priority_estimate,
+        "standard": standard_estimate,
+    }[args.method]
+    if expected > args.confirm_cost_usd:
+        raise RuntimeError(
+            f"Refusing to execute: estimated cost ${expected:.4f} exceeds "
+            f"--confirm-cost-usd ${args.confirm_cost_usd:.4f}"
+        )
+
     if args.method == "live":
         print(f"Running {len(tasks)} DataForSEO Maps live tasks (~${live_estimate:.4f})", file=sys.stderr)
         payload = call_dataforseo_live(tasks, timeout=args.timeout)
     else:
-        expected = priority_estimate if args.method == "priority" else standard_estimate
         print(f"Posting {len(tasks)} DataForSEO Maps {args.method} queue tasks (~${expected:.4f})", file=sys.stderr)
         payload = call_dataforseo_standard(tasks, timeout=args.timeout, poll_seconds=args.poll_seconds, poll_interval=args.poll_interval)
     results = parse_results(payload, points, args)

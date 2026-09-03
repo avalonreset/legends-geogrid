@@ -1,20 +1,38 @@
 {
-  "name": "geo-griddy",
+  "name": "legends-geogrid",
   "version": "0.1.0",
-  "private": true,
   "type": "module",
-  "description": "Agent-operated local SEO geo-grid heatmap feature using DataForSEO rank data and interactive map display.",
-  "license": "UNLICENSED",
+  "description": "Open-source local SEO geo-grid scans with DataForSEO, cost guardrails, and an interactive map studio.",
+  "license": "MIT",
+  "author": "Avalon Reset",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/avalonreset/legends-geogrid.git"
+  },
+  "bugs": {
+    "url": "https://github.com/avalonreset/legends-geogrid/issues"
+  },
+  "homepage": "https://github.com/avalonreset/legends-geogrid#readme",
+  "engines": {
+    "node": ">=20.19",
+    "python": ">=3.10"
+  },
+  "packageManager": "pnpm@10.33.0",
   "scripts": {
     "dev": "vite --host 127.0.0.1",
     "build": "vite build",
     "preview": "vite preview --host 127.0.0.1",
-    "check:python": "python -m py_compile tools/local_heatmap_poc.py tools/bulk_geogrid_runner.py tools/geogrid_doctor.py",
+    "check:python": "python -m py_compile tools/local_heatmap_poc.py tools/bulk_geogrid_runner.py tools/geogrid_doctor.py tests/test_runners.py",
+    "test": "python -m unittest discover -s tests -v",
     "doctor": "python tools/geogrid_doctor.py",
-    "dryrun:sample": "python tools/bulk_geogrid_runner.py --prospects examples/sample-prospects.csv --run-id sample-dryrun --method standard --grid-size 5 --radius-km 2 --depth 20 --zoom 15"
+    "dryrun:sample": "python tools/bulk_geogrid_runner.py --prospects examples/sample-prospects.csv --run-id sample-dryrun --output-root bulk-runs --method standard --grid-size 5 --radius-km 2 --depth 20 --zoom 15",
+    "check": "pnpm audit --prod --audit-level high && pnpm build && pnpm check:python && pnpm test && pnpm doctor && pnpm dryrun:sample"
   },
   "dependencies": {
-    "leaflet": "^1.9.4",
-    "vite": "^8.0.8"
+    "leaflet": "^1.9.4"
+  },
+  "devDependencies": {
+    "postcss": "^8.5.18",
+    "vite": "^8.2.2"
   }
 }

@@ -1,39 +1,40 @@
-# GeoGriddy Technical Notes
+# Legends GeoGrid Technical Notes
 
-## Data Backbone
+## Rank-data path
 
-GeoGriddy uses DataForSEO Google Maps SERP as the rank source. Each coordinate in the grid is a separate task. The target business is matched against returned map results by CID, place ID, domain, exact name, partial name, and fuzzy name score.
+Each grid coordinate becomes one DataForSEO Google Maps SERP task. The runner can use the Standard Queue, Priority Queue, or Live endpoint. Standard and Priority tasks are posted in batches of at most 100 and polled until complete or until the configured timeout.
 
-The browser map is a display layer. The current prototype renders an interactive Leaflet map with OpenStreetMap tiles so the demo can pan and zoom without spending Google Maps Platform quota. A Google Maps tile/geocoding layer can be swapped in later without changing the rank-data contract.
+The target business is matched in this order:
 
-## Why Square Grids
+1. Exact CID.
+2. Exact place ID.
+3. Domain containment.
+4. Exact normalized name.
+5. Partial normalized name.
+6. Fuzzy name score above the configured threshold.
 
-Square grids are the audit baseline because the scan is a repeatable coordinate lattice. Radius defines how far the grid extends from the business center. A circular display can be added later, but the paid evidence should stay square so scans compare cleanly over time.
+CID or place ID is the preferred production identifier.
 
-## Cost Model
+## Cost model
 
-DataForSEO Google Maps SERP rates used by this prototype:
+The September 2026 documented DataForSEO base rates used by 0.1.0 are:
 
-- Standard Queue: $0.0006 per coordinate.
-- Priority Queue: $0.0012 per coordinate.
-- Live Mode: $0.0020 per coordinate.
+- Standard Queue: $0.0006 per Maps SERP page.
+- Priority Queue: $0.0012 per Maps SERP page.
+- Live Mode: $0.0020 per Maps SERP page.
 
-Standard Queue is the bulk affordability mode.
+The estimator multiplies those rates by the number of grid coordinates and by `ceil(depth / 100)`. Other paid request parameters may add multipliers that this release does not model.
 
-## Current Proof
+The direct runner estimates by default. Paid execution requires both `--execute` and a sufficient `--confirm-cost-usd` value. The bulk runner checks the total pending cost first, and every child scan also receives its own calculated ceiling.
 
-The main included Home Slice Pizza proof scan is a 17 x 17 Standard Queue run:
+## Coordinates
 
-- Keyword: pizza.
-- Location: South Congress, Austin, TX.
-- Reported API cost: $0.1734.
-- Found points: 225 of 289.
-- Top 3 points: 100 of 289.
-- Top 10 points: 201 of 289.
-- Average found rank: 4.97.
+The grid is an odd square lattice centered on the supplied latitude and longitude. Radius is the center-to-edge distance, not the full grid width. Longitude spacing is latitude-adjusted with cosine scaling; polar coordinates at ±90 degrees are rejected.
 
-The older 5 x 5 proof scan is retained as historical cache data, but the dashboard now opens on the real 17 x 17 proof.
+## Storage
 
-## PDF Performance Note
+Run artifacts are local files. Raw output may include public business fields, task IDs, request coordinates, and other provider data. Run folders are ignored by Git. The bulk cache is a JSON index and should not be treated as concurrent or transactional storage.
 
-Tall PDFs are allowed. For browser performance, embedded screenshots should be JPEG streams, not lossless PNG-style PDF image streams. Avoid CSS image filters during PDF export because Chrome can rasterize filtered images into expensive Flate streams.
+## Browser studio
+
+The studio is a static Vite application. Leaflet renders the map and OpenStreetMap supplies tiles. Rank pins use a canvas layer so a 17 x 17 grid remains responsive. The studio itself never calls DataForSEO and cannot spend credits.

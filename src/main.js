@@ -124,9 +124,9 @@ const RankCanvasLayer = L.Layer.extend({
       L.popup()
         .setLatLng([point.lat, point.lng])
         .setContent(`
-          <strong>${point.id}: ${labelRank(point.rank)}</strong><br>
-          Top result: ${point.topResult}<br>
-          Top three: ${(point.topThree || []).join(', ')}
+          <strong>${escapeHtml(point.id)}: ${labelRank(point.rank)}</strong><br>
+          Top result: ${escapeHtml(point.topResult)}<br>
+          Top three: ${(point.topThree || []).map(escapeHtml).join(', ')}
         `)
         .openOn(this._map)
     }
@@ -136,15 +136,14 @@ const RankCanvasLayer = L.Layer.extend({
 })
 
 const keywordScans = [
-  { business: 'Summit Building Group - Remodeling services', address: '1401 21st Street #7958, Sacramento, CA', keyword: 'home improvement', avgScore: null, lastScan: 'Jun 19 2026 12:16 PM', timezone: 'America/Los_Angeles', shape: 'Circle', points: 39, duration: '15 minutes', cadence: 'Once at 9:00 AM' },
-  { business: 'Summit Building Group - Remodeling services', address: '1401 21st Street #7958, Sacramento, CA', keyword: 'roofing services', avgScore: null, lastScan: 'Jun 19 2026 12:18 PM', timezone: 'America/Los_Angeles', shape: 'Circle', points: 39, duration: '15 minutes', cadence: 'Once at 9:00 AM' },
-  { business: 'Summit Building Group - Remodeling services', address: '1401 21st Street #7958, Sacramento, CA', keyword: 'adu contractor', avgScore: 20.4, lastScan: 'Jun 19 2026 12:19 PM', timezone: 'America/Los_Angeles', shape: 'Circle', points: 39, duration: '15 minutes', cadence: 'Once at 9:00 AM' },
-  { business: 'Summit Building Group - Remodeling services', address: '1401 21st Street #7958, Sacramento, CA', keyword: 'bathroom remodeling', avgScore: 16.7, lastScan: 'Jun 19 2026 12:20 PM', timezone: 'America/Los_Angeles', shape: 'Circle', points: 39, duration: '15 minutes', cadence: 'Once at 9:00 AM' },
-  { business: 'Summit Building Group - Remodeling services', address: '1401 21st Street #7958, Sacramento, CA', keyword: 'kitchen remodeling', avgScore: 16.1, lastScan: 'Jun 19 2026 12:15 PM', timezone: 'America/Los_Angeles', shape: 'Circle', points: 39, duration: '15 minutes', cadence: 'Once at 9:00 AM' },
-  { business: 'Summit Building Group - Remodeling services', address: '1401 21st Street #7958, Sacramento, CA', keyword: 'general contractor', avgScore: 12.2, lastScan: 'Jun 19 2026 12:18 PM', timezone: 'America/Los_Angeles', shape: 'Circle', points: 39, duration: '15 minutes', cadence: 'Once at 9:00 AM' },
-  { business: 'Summit Building Group - Remodeling services', address: '1401 21st Street #7958, Sacramento, CA', keyword: 'general contractor', avgScore: 11.7, lastScan: 'Jun 19 2026 12:17 PM', timezone: 'America/Los_Angeles', shape: 'Circle', points: 39, duration: '15 minutes', cadence: 'Once at 9:00 AM' },
-  { business: 'Summit Building Group - Remodeling services', address: '1401 21st Street #7958, Sacramento, CA', keyword: 'home remodeling', avgScore: 10.4, lastScan: 'Jun 19 2026 12:18 PM', timezone: 'America/Los_Angeles', shape: 'Circle', points: 39, duration: '15 minutes', cadence: 'Once at 9:00 AM' },
-  { business: 'Summit Building Group - Remodeling services', address: '1401 21st Street #7958, Sacramento, CA', keyword: 'home remodeling', avgScore: 9.9, lastScan: 'Jun 19 2026 12:18 PM', timezone: 'America/Los_Angeles', shape: 'Circle', points: 39, duration: '15 minutes', cadence: 'Once at 9:00 AM' },
+  { business: 'Example Remodeling Co.', address: 'Sacramento, CA · modeled demo', keyword: 'home improvement', avgScore: null, lastScan: 'Modeled dataset', timezone: 'America/Los_Angeles', shape: 'Circle', points: 39, duration: 'estimated 15 minutes', cadence: 'One-time' },
+  { business: 'Example Remodeling Co.', address: 'Sacramento, CA · modeled demo', keyword: 'roofing services', avgScore: null, lastScan: 'Modeled dataset', timezone: 'America/Los_Angeles', shape: 'Circle', points: 39, duration: 'estimated 15 minutes', cadence: 'One-time' },
+  { business: 'Example Remodeling Co.', address: 'Sacramento, CA · modeled demo', keyword: 'adu contractor', avgScore: 20.4, lastScan: 'Modeled dataset', timezone: 'America/Los_Angeles', shape: 'Circle', points: 39, duration: 'estimated 15 minutes', cadence: 'One-time' },
+  { business: 'Example Remodeling Co.', address: 'Sacramento, CA · modeled demo', keyword: 'bathroom remodeling', avgScore: 16.7, lastScan: 'Modeled dataset', timezone: 'America/Los_Angeles', shape: 'Circle', points: 39, duration: 'estimated 15 minutes', cadence: 'One-time' },
+  { business: 'Example Remodeling Co.', address: 'Sacramento, CA · modeled demo', keyword: 'kitchen remodeling', avgScore: 16.1, lastScan: 'Modeled dataset', timezone: 'America/Los_Angeles', shape: 'Circle', points: 39, duration: 'estimated 15 minutes', cadence: 'One-time' },
+  { business: 'Example Remodeling Co.', address: 'Sacramento, CA · modeled demo', keyword: 'general contractor', avgScore: 12.2, lastScan: 'Modeled dataset', timezone: 'America/Los_Angeles', shape: 'Circle', points: 39, duration: 'estimated 15 minutes', cadence: 'One-time' },
+  { business: 'Example Remodeling Co.', address: 'Sacramento, CA · modeled demo', keyword: 'home remodeling', avgScore: 10.4, lastScan: 'Modeled dataset', timezone: 'America/Los_Angeles', shape: 'Circle', points: 39, duration: 'estimated 15 minutes', cadence: 'One-time' },
+  { business: 'Example Remodeling Co.', address: 'Sacramento, CA · modeled demo', keyword: 'remodeling contractor', avgScore: 9.9, lastScan: 'Modeled dataset', timezone: 'America/Los_Angeles', shape: 'Circle', points: 39, duration: 'estimated 15 minutes', cadence: 'One-time' },
 ]
 
 const state = {
@@ -382,6 +381,15 @@ function csvEscape(value) {
   return `"${text.replaceAll('"', '""')}"`
 }
 
+function escapeHtml(value) {
+  return String(value ?? '')
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#039;')
+}
+
 function exportKeywordCsv() {
   const headers = ['business', 'address', 'keyword', 'avg_score', 'last_scan', 'settings']
   const rows = keywordScans.map((row) => [
@@ -397,7 +405,7 @@ function exportKeywordCsv() {
   const url = URL.createObjectURL(blob)
   const link = document.createElement('a')
   link.href = url
-  link.download = 'geo-griddy-keyword-scan-list.csv'
+  link.download = 'legends-geogrid-keyword-scan-list.csv'
   link.click()
   URL.revokeObjectURL(url)
 }
@@ -456,7 +464,7 @@ function renderLeafletMap(grid, selected) {
   mapEl.dataset.mapReady = 'true'
   mapEl.dataset.project = state.dataset
   mapEl.dataset.markerCount = String(grid.points.length)
-  window.__geogriddyMapState = () => {
+  window.__legendsGeoGridState = () => {
     const c = leafletMap.getCenter()
     return {
       center: { lat: c.lat, lng: c.lng },
@@ -493,7 +501,7 @@ function renderKeywordReport() {
         <div>
           <div class="filter-row"><span>Business: <b>1 selected</b></span><span>Keyword</span><span>Avg score</span></div>
           <h2>Keyword Scan List</h2>
-          <p>Built for Alana's request: the lead can receive one visual package with every keyword, score, scan setting, and map drilldown.</p>
+          <p>Modeled campaign data demonstrates one visual package with every keyword, score, scan setting, and map drilldown.</p>
         </div>
         <button class="export-button" id="exportKeywords">Export CSV</button>
       </div>
@@ -537,36 +545,34 @@ function render() {
   const isProof = state.dataset === 'proof5' || state.dataset === 'proof17'
   const scanCostLabel = state.dataset === 'simulation' ? 'paid equivalent' : 'real scan'
   const pressureRows = competitorPressure(points)
-    .map(([name, count]) => `<div class="pressure-row"><span>${name}</span><b>${count}</b></div>`)
+    .map(([name, count]) => `<div class="pressure-row"><span>${escapeHtml(name)}</span><b>${count}</b></div>`)
     .join('')
 
   document.querySelector('#app').innerHTML = `
     <div class="shell">
       <aside class="sidebar">
-        <div class="brand">geo-griddy</div>
+        <div class="brand">Legends GeoGrid</div>
         <nav>
           <a class="active">Studio</a>
-          <a href="/docs/local-seo-geogrid-executive-report.html">Executive Report</a>
-          <a href="/docs/local-seo-geogrid-executive-report.pdf">Executive PDF</a>
-          <a href="/docs/DANIEL_HANDOFF.md">Daniel Handoff</a>
-          <a href="/docs/PRODUCT_STATUS.md">Product Status</a>
-          <a href="/docs/ROADMAP.md">Roadmap</a>
-          <a href="/docs/TECHNICAL_NOTES.md">Technical Notes</a>
+          <a href="https://github.com/avalonreset/legends-geogrid" target="_blank" rel="noreferrer">GitHub</a>
+          <a href="https://github.com/avalonreset/legends-geogrid#quick-start-browser-demo" target="_blank" rel="noreferrer">Quick Start</a>
+          <a href="https://github.com/avalonreset/legends-geogrid/blob/main/docs/PRODUCT_STATUS.md" target="_blank" rel="noreferrer">Product Status</a>
+          <a href="https://github.com/avalonreset/legends-geogrid/blob/main/docs/ROADMAP.md" target="_blank" rel="noreferrer">Roadmap</a>
         </nav>
       </aside>
       <main>
         <header class="hero">
           <div>
             <div class="badges"><span>${project.badge}</span><span>Interactive map display</span><span>Keyword list reports</span><span>$${cost.toFixed(3)} ${scanCostLabel}</span></div>
-            <h1>Local SEO geo-griddy Studio</h1>
-            <p>Interactive map rank pins, Alana-style keyword scan lists, raw proof receipts, and prospect economics in one focused workflow.</p>
+            <h1>Own the grid.</h1>
+            <p>Interactive local rank pins, campaign views, saved evidence, and prospect economics in one open-source workflow.</p>
             <div class="hero-actions">
-              <a href="/docs/local-seo-geogrid-executive-report.html" target="_blank" rel="noreferrer">Open Executive Report</a>
-              <a href="/docs/local-seo-geogrid-executive-report.pdf" target="_blank" rel="noreferrer">Open PDF</a>
+              <a href="https://github.com/avalonreset/legends-geogrid" target="_blank" rel="noreferrer">View source</a>
+              <a href="https://github.com/avalonreset/legends-geogrid#estimate-a-fresh-scan" target="_blank" rel="noreferrer">Run your own scan</a>
             </div>
           </div>
           <div class="controls">
-            <label>Project<select id="dataset"><option value="proof17">17 x 17 real proof</option></select></label>
+            <label>Dataset<select id="dataset"><option value="proof17">17 x 17 saved proof</option><option value="proof5">5 x 5 saved proof</option><option value="simulation">Modeled demo</option></select></label>
             <label class="${isProof ? 'control-disabled' : ''}">Grid<select id="gridSize" ${isProof ? 'disabled' : ''}><option>7</option><option>9</option><option>15</option><option selected>17</option><option>21</option></select></label>
             <label class="${isProof ? 'control-disabled' : ''}">Shape<select id="shape" ${isProof ? 'disabled' : ''}><option value="square">Square</option><option value="circle">Circle</option></select></label>
             <label>Queue<select id="queue"><option value="standard">Standard</option><option value="priority">Priority</option><option value="live">Live</option></select></label>
@@ -574,13 +580,13 @@ function render() {
         </header>
         <section class="report-cta">
           <div>
-            <span>Executive brief</span>
-            <h2>Cost model, build-vs-buy reasoning, and source notes</h2>
-            <p>The report explains why DataForSEO is the rank-data backbone, what 3 x 3 through 17 x 17 scans cost, and how this becomes a Local SEO Brain feature instead of another SaaS.</p>
+            <span>Open-source economics</span>
+            <h2>289 coordinate checks. About $0.1734 in raw Standard Queue data.</h2>
+            <p>Legends GeoGrid exposes the workflow, cache, evidence, and spend controls so operators can run serious grids locally instead of paying a platform markup for every experiment.</p>
           </div>
           <div>
-            <a href="/docs/local-seo-geogrid-executive-report.html" target="_blank" rel="noreferrer">Open designed HTML</a>
-            <a href="/docs/local-seo-geogrid-executive-report.pdf" target="_blank" rel="noreferrer">Open PDF</a>
+            <a href="https://dataforseo.com/pricing/serp/google-maps-serp-api" target="_blank" rel="noreferrer">Verify API pricing</a>
+            <a href="https://github.com/avalonreset/legends-geogrid/blob/main/LICENSE" target="_blank" rel="noreferrer">MIT License</a>
           </div>
         </section>
         <section class="metrics">
@@ -630,10 +636,10 @@ function render() {
               <dl>
                 <div><dt>Rank</dt><dd>${labelRank(selected.rank)}</dd></div>
                 <div><dt>Cell</dt><dd>${selected.id}</dd></div>
-                <div><dt>Top result</dt><dd>${selected.topResult}</dd></div>
+                <div><dt>Top result</dt><dd>${escapeHtml(selected.topResult)}</dd></div>
               </dl>
               <h3>Top three at this point</h3>
-              ${(selected.topThree || []).map((name, index) => `<div class="mini-row"><span>${name}</span><b>${index + 1}</b></div>`).join('')}
+              ${(selected.topThree || []).map((name, index) => `<div class="mini-row"><span>${escapeHtml(name)}</span><b>${index + 1}</b></div>`).join('')}
             </aside>
             <aside class="panel">
               <h2>Prospect Economics</h2>

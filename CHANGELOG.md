@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.1 - 2026-09-17
+
+- Fixed report_builder.py crash on missing map-block placeholder (caught by release self-test).
+
 ## 0.2.0 - 2026-09-17
 
 - New report layer: keyword-selection formula (`docs/keyword-formula.md`), pre-spend pollution gate (`tools/pollution_gate.py`), multi-intent HTML report builder (`tools/report_builder.py`), and evidence-gate pin verifier (`tools/verify_pins.py`). A report that fails verification does not ship.

@@ -72,3 +72,22 @@ DataForSEO is not bundled with or affiliated with legends-geogrid. Users are res
 Generated reports can optionally display a Google Maps embed or a user-supplied Google Static Maps image. Google Maps content and brand features remain subject to Google's terms and attribution requirements. legends-geogrid does not bundle a Google API key or remove provider attribution.
 
 Google, Google Maps, DataForSEO, OpenStreetMap, Leaflet, Local Falcon, Search Atlas, LeadSnap, and BrightLocal are names or marks of their respective owners. Their mention identifies interoperability, data sources, or historical product research; it does not imply endorsement or affiliation.
+
+## Bundled Claude SEO skills (report layer)
+
+`third_party/claude-seo/` vendors two skills from
+[Claude SEO](https://github.com/AgriciDaniel/claude-seo) by Daniel Agrici
+([agricidaniel.com](https://agricidaniel.com)), version 2.3.1:
+
+- `skills/seo-dataforseo` — live keyword volume, difficulty, intent, and SERP
+  data procedures plus `references/cost-tiers.md`, `references/tool-catalog.md`.
+- `skills/seo-maps` — maps intelligence procedures plus the shared
+  `skills/seo/references/` files it loads.
+- `scripts/dataforseo_costs.py` — API cost guardrail (run from
+  `third_party/claude-seo/scripts/`; the skill text says `scripts/`, which
+  means this directory in the vendored layout).
+- `LICENSE` (MIT, copyright 2026 agricidaniel) and `CITATION.cff`, kept intact.
+  See `third_party/claude-seo/VENDORED_FROM.txt` for the source revision.
+
+These skills are procedures and documentation consumed with the user's own
+DataForSEO account. No credentials ship with them.

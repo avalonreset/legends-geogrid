@@ -131,6 +131,26 @@ python tools/bulk_geogrid_runner.py `
 
 The sample CSV documents accepted columns. By default, artifacts stay under the repository's ignored `bulk-runs/` directory. To write an optional Obsidian-style summary elsewhere, pass `--vault-data-dir <directory>` explicitly.
 
+## Strategy reports
+
+Raw grids are data. Reports are the product. The report layer turns verified
+rank JSON into a multi-intent client PDF:
+
+1. Pick keywords with `docs/keyword-formula.md` — four gates (site nominates,
+   pollution test disqualifies, intent names the winner, volume prioritizes).
+2. Gate each nominee before spending:
+   `python tools/pollution_gate.py --keyword "..." --points "lat,lng;..." --category "hvac|heating|..."`.
+3. Run the grids with the bulk runner, then build:
+   `python tools/report_builder.py --config report.json --target "business name" --category "..."`.
+4. Verify before publishing: `python tools/verify_pins.py --config report.json --target "..." --category "..." --html report.html`.
+   The verifier traces every pin to raw JSON and matches baked map circles to
+   overlay pins. A report that fails verification does not ship.
+
+Keyword demand and difficulty come from the vendored
+`third_party/claude-seo/skills/seo-dataforseo` skill (MIT, AgriciDaniel);
+GBP and review context from `third_party/claude-seo/skills/seo-maps`.
+You need your own DataForSEO account; spend gates apply throughout.
+
 ## Cache identity
 
 Paid scans are fingerprinted by target identity, keyword, center coordinate, radius, grid size, depth, zoom, device, language, search domain, search-places setting, and queue method. Fresh cached scans are skipped before paid calls.
@@ -143,6 +163,11 @@ Cache protection reduces accidental duplicate work; it is not a transactional bi
 - `tools/local_heatmap_poc.py` — estimate-first single scan runner.
 - `tools/bulk_geogrid_runner.py` — cache-aware CSV runner.
 - `tools/geogrid_doctor.py` — local readiness check.
+- `tools/pollution_gate.py` — pre-spend keyword probe (formula gate 2).
+- `tools/report_builder.py` — multi-intent HTML report + map PNGs.
+- `tools/verify_pins.py` — evidence gate: every pin traced to raw JSON.
+- `docs/keyword-formula.md` — the four-gate keyword doctrine.
+- `third_party/claude-seo/` — vendored MIT skills (DataForSEO data, Maps intel).
 - `tests/` — cost, grid, cache, and no-spend safety tests.
 - `examples/` — sample CSV and sanitized proof artifacts.
 - `docs/` — product status, technical notes, roadmap, and demo screenshot.
@@ -160,6 +185,7 @@ The bundled Home Slice Pizza proof is historical demonstration data collected on
 - [OpenStreetMap](https://www.openstreetmap.org/copyright) contributors ([GitHub](https://github.com/openstreetmap)) provide the default map data under the ODbL. The app uses the official browser tile endpoint for normal interactive viewing, preserves visible linked attribution, and does not implement tile prefetching or offline download. Public or high-traffic deployments should review the [tile usage policy](https://operations.osmfoundation.org/policies/tiles/) and configure an appropriate provider when necessary.
 - [DataForSEO](https://dataforseo.com/apis/serp-api/google-maps-api) ([GitHub](https://github.com/dataforseo)) provides the optional Google Maps SERP API used for fresh scans. Users bring their own account and must follow the current [DataForSEO Terms of Service](https://dataforseo.com/terms-of-service) and applicable search-provider terms.
 - [Vite](https://github.com/vitejs/vite) and [PostCSS](https://github.com/postcss/postcss) are MIT-licensed build tools. Production builds generate `dist/third-party-licenses.md` from the exact bundled dependency graph.
+- [Claude SEO](https://github.com/AgriciDaniel/claude-seo) by Daniel Agrici ([agricidaniel.com](https://agricidaniel.com)) contributes the vendored `seo-dataforseo` and `seo-maps` skills under `third_party/claude-seo/` under the MIT License (see `third_party/claude-seo/LICENSE` and `CITATION.cff`). If you use this software, please cite it using that file's metadata.
 
 The original product research compared public workflow and pricing information from [Local Falcon](https://www.localfalcon.com/) ([GitHub](https://github.com/local-falcon)), [Search Atlas](https://searchatlas.com/local-seo-software/) ([GitHub](https://github.com/search-atlas-group)), [LeadSnap](https://leadsnap.com/features/local-citations/), and [BrightLocal](https://www.brightlocal.com/citation-builder/) ([GitHub](https://github.com/BrightLocal)). They were market references only: the current release does not contain their source code, assets, screenshots, or proprietary data. See [Provenance and research sources](docs/PROVENANCE.md) and [Third-party notices](THIRD_PARTY_NOTICES.md).
 

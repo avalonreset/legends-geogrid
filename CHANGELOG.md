@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.0 - 2026-09-17
+
+- New report layer: keyword-selection formula (`docs/keyword-formula.md`), pre-spend pollution gate (`tools/pollution_gate.py`), multi-intent HTML report builder (`tools/report_builder.py`), and evidence-gate pin verifier (`tools/verify_pins.py`). A report that fails verification does not ship.
+- Vendored claude-seo `seo-dataforseo` and `seo-maps` skills (MIT, AgriciDaniel) under `third_party/claude-seo/` with license, citation, and cost-guardrail script intact; documented in THIRD_PARTY_NOTICES.md and README attribution.
+
 ## 0.1.3 - 2026-09-03
 
 - Added verified official GitHub hotlinks for attributed dependencies, services, map data, and market-research references.

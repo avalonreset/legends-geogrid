@@ -1,3 +1,7 @@
+<p align="left" id="banner">
+  <a href="https://cto-legends.com"><img src="assets/banner.webp" alt="legends-geogrid — local search rank grids" width="100%"></a>
+</p>
+
 # legends-geogrid
 
 legends-geogrid is an open-source, local-first geo-grid rank scanner for Google Maps results. It turns one business, one keyword, and a center coordinate into a visual ranking grid without requiring a hosted rank-tracking subscription.

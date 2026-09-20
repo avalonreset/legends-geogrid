@@ -6,9 +6,13 @@ This record separates code dependencies, data/services, and product research so 
 
 legends-geogrid is an original implementation maintained by Avalon Reset. Repository-history review found no copied source code, bundled assets, screenshots, or proprietary datasets from the commercial products listed below.
 
-The shipped runtime code directly imports one third-party library:
+The shipped runtime code directly imports one third-party library in the browser:
 
 - [Leaflet 1.9.4](https://github.com/Leaflet/Leaflet/tree/v1.9.4), BSD 2-Clause License, for interactive map rendering.
+
+The strategy report engine (`tools/strategy_report.py`) utilizes open-source Python libraries ([ReportLab](https://www.reportlab.com/) under BSD license with bundled Bitstream Vera fonts, [Pillow](https://python-pillow.org/) under HPND license, plus optional [pypdfium2](https://github.com/pypdfium2-team/pypdfium2) under Apache-2.0/BSD-3-Clause with bundled Google PDFium binaries) declared in `requirements-report.txt`. These libraries are optional local dependencies installed via pip, not vendored in the repository tree.
+
+The report layer vendors two MIT-licensed skills from [Claude SEO](https://github.com/AgriciDaniel/claude-seo) by Daniel Agrici under `third_party/claude-seo/` (`seo-dataforseo` and `seo-maps`).
 
 Vite and PostCSS are build-time dependencies. Their licences and the licences of exact bundled transitive dependencies are recorded in `THIRD_PARTY_NOTICES.md` and generated into `dist/third-party-licenses.md` during `pnpm build`.
 

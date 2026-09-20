@@ -1,0 +1,7 @@
+{
+  "default": {"state": "not_returned", "returned_count": 20},
+  "observations": {
+    "pizza:0:0": {"state": "found", "rank": 2, "returned_count": 20},
+    "delivery:3:0": {"state": "found", "rank": 7, "returned_count": 20}
+  }
+}

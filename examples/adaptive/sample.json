@@ -1,0 +1,22 @@
+{
+  "center": {"lat": 40.0, "lng": -100.0},
+  "queries": [
+    {"id": "pizza", "keyword": "pizza restaurant"},
+    {"id": "delivery", "keyword": "pizza delivery"}
+  ],
+  "targets": [{"domain": "example.com"}],
+  "strategy": "adaptive8sectors",
+  "spacing_km": 0.5,
+  "starting_grid": 3,
+  "max_shell": 5,
+  "provider_zoom": 13,
+  "display_zoom": 11,
+  "depth": 20,
+  "negative_depth": 20,
+  "language_code": "en",
+  "device": "desktop",
+  "se_domain": "google.com",
+  "search_this_area": true,
+  "max_calls": 250,
+  "timeout_seconds": 90
+}

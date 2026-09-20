@@ -91,3 +91,52 @@ Google, Google Maps, DataForSEO, OpenStreetMap, Leaflet, Local Falcon, Search At
 
 These skills are procedures and documentation consumed with the user's own
 DataForSEO account. No credentials ship with them.
+
+## Python strategy report dependencies
+
+The strategy report engine (`tools/strategy_report.py`) requires optional Python libraries declared in `requirements-report.txt`. These packages are installed by the user via pip and are not vendored into the repository source tree:
+
+### ReportLab 4.x and Bitstream Vera Fonts
+
+- Project: https://www.reportlab.com/
+- License: ReportLab License (BSD-style; copyright (c) 2000-2024, ReportLab Inc.)
+
+ReportLab bundles the Bitstream Vera font family (`Vera.ttf`, `VeraBd.ttf`), which `tools/strategy_report.py` registers and embeds into generated strategy report PDFs.
+
+- Font License: Bitstream Vera License
+
+```text
+Copyright (c) 2003 by Bitstream, Inc. All Rights Reserved.
+Bitstream Vera is a trademark of Bitstream, Inc.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of the fonts accompanying this license ("Fonts") and associated documentation
+files (the "Font Software"), to reproduce and distribute the Font Software,
+including without limitation the rights to use, copy, merge, publish, distribute,
+and/or sell copies of the Font Software, and to permit persons to whom the Font
+Software is furnished to do so, subject to the following conditions:
+
+The above copyright and trademark notices and this permission notice shall be
+included in all copies of one or more of the Font Software typefaces.
+
+The Font Software may be modified, altered, or added to, and in such form
+distributed, but only on the condition that the trademark "Bitstream" or
+"Vera" shall not be used in any modified Software.
+```
+
+### Pillow (PIL Fork)
+
+- Project: https://python-pillow.org/
+- Source: https://github.com/python-pillow/Pillow
+- License: HPND (Historical Permission Notice and Disclaimer; MIT-CMU style)
+- Copyright: (c) 1997-2011 by Secret Labs AB, (c) 1995-2011 by Fredrik Lundh, (c) 2010 by Alex Clark and contributors
+
+### pypdfium2 and PDFium Binaries
+
+- Project: https://github.com/pypdfium2-team/pypdfium2
+- License: Apache-2.0 or BSD-3-Clause (dual-licensed)
+- Bundled Binaries: Pre-built wheels bundle Google's PDFium library (BSD 3-Clause, copyright 2014 The PDFium Authors). PDFium binaries incorporate third-party notices from embedded libraries (including FreeType, ICU, libjpeg, libpng, and zlib).
+
+### Distribution notice guidance
+
+When distributing binary wheels, container images, or bundled environments containing these dependencies, retain upstream license texts for ReportLab, Pillow, and pypdfium2, along with PDFium third-party notices and the Bitstream Vera font notice for fonts embedded into generated PDFs. No AGPL dependencies (such as PyMuPDF) are introduced.

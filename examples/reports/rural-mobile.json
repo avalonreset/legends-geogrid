@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "synthetic": true,
+  "business": {
+    "name": "Synthetic Prairie Mobile Bicycle Repair",
+    "location": "Synthetic rural service area • Nebraska",
+    "lat": 41.1,
+    "lng": -100.77
+  },
+  "thesis": "Hypothesis: a mobile service could appear at scattered rural origins. Supplied observations cannot establish travel demand or a service-area boundary.",
+  "objectives": [
+    "Establish a single-query observed baseline over irregular rural origins."
+  ],
+  "map": {
+    "radius_bands_km": [
+      10,
+      25,
+      50
+    ],
+    "bounds": [
+      -101,
+      40.95,
+      -100.5,
+      41.3
+    ]
+  },
+  "lanes": [
+    {
+      "query_id": "mobile",
+      "label": "Mobile bicycle repair across an irregular rural sample",
+      "query": "mobile bicycle repair",
+      "records_path": "rural-mobile-observations.json"
+    }
+  ],
+  "next_actions": [
+    "User-supplied: validate the hypothesis using a fresh, comparable real-world sample before making business decisions."
+  ],
+  "missing_evidence": [
+    "Synthetic observations provide no evidence of real demand, conversion, revenue, or competitive causes."
+  ]
+}

@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "synthetic": true,
+  "business": {
+    "name": "Synthetic Harbor Dental & Family Care",
+    "location": "Synthetic urban study • Philadelphia",
+    "lat": 39.9526,
+    "lng": -75.1652
+  },
+  "thesis": "Hypothesis: visibility may vary between general dentistry, urgent care, and cosmetic queries; the synthetic sample tests the reporting workflow only.",
+  "objectives": [
+    "Compare observed visibility across three query lanes.",
+    "Identify measured ranks 4–10 separately from top-three appearances."
+  ],
+  "map": {
+    "radius_bands_km": [
+      1,
+      2,
+      4
+    ]
+  },
+  "lanes": [
+    {
+      "query_id": "general",
+      "label": "General dentistry",
+      "query": "dentist near me",
+      "records_path": "urban-dentist-observations.json"
+    },
+    {
+      "query_id": "urgent",
+      "label": "Emergency dental care and same-day appointments",
+      "query": "emergency dentist",
+      "records_path": "urban-dentist-observations.json"
+    },
+    {
+      "query_id": "cosmetic",
+      "label": "Cosmetic dentistry",
+      "query": "cosmetic dentist",
+      "records_path": "urban-dentist-observations.json"
+    }
+  ],
+  "next_actions": [
+    "User-supplied: validate the hypothesis using a fresh, comparable real-world sample before making business decisions."
+  ],
+  "missing_evidence": [
+    "Synthetic observations provide no evidence of real demand, conversion, revenue, or competitive causes."
+  ]
+}

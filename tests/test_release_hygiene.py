@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 import json
+import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -11,6 +13,7 @@ SKIP_PARTS = {
     ".codex-tmp",
     ".private",
     "bulk-runs",
+    "runs",
     "dist",
     "node_modules",
     "__pycache__",
@@ -30,10 +33,23 @@ PRIVATE_MARKERS = (
 
 
 class ReleaseHygieneTests(unittest.TestCase):
+    def test_ignored_ancestor_does_not_disable_source_scan(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory) / ".private" / "checkout"
+            root.mkdir(parents=True)
+            (root / "source.md").write_text(PRIVATE_MARKERS[0], encoding="utf-8")
+            with patch.dict(globals(), ROOT=root):
+                with self.assertRaises(AssertionError):
+                    self.test_public_tree_has_no_house_or_personal_markers()
+                (root / "source.md").write_text("Public example", encoding="utf-8")
+                (root / "runs").mkdir()
+                (root / "runs" / "private.md").write_text(PRIVATE_MARKERS[0], encoding="utf-8")
+                self.test_public_tree_has_no_house_or_personal_markers()
+
     def test_public_tree_has_no_house_or_personal_markers(self) -> None:
         offenders: list[str] = []
         for path in ROOT.rglob("*"):
-            if not path.is_file() or any(part in SKIP_PARTS for part in path.parts):
+            if not path.is_file() or any(part in SKIP_PARTS for part in path.relative_to(ROOT).parts):
                 continue
             if path.suffix.lower() not in TEXT_SUFFIXES:
                 continue
@@ -88,7 +104,7 @@ class ReleaseHygieneTests(unittest.TestCase):
     def test_product_brand_is_lowercase_slug(self) -> None:
         offenders: list[str] = []
         for path in ROOT.rglob("*"):
-            if not path.is_file() or any(part in SKIP_PARTS for part in path.parts):
+            if not path.is_file() or any(part in SKIP_PARTS for part in path.relative_to(ROOT).parts):
                 continue
             if path.suffix.lower() not in TEXT_SUFFIXES:
                 continue

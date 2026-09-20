@@ -15,6 +15,7 @@ Costs ~$0.002 per probe on the Live endpoint (or use the repo bulk runner's
 standard queue for ~$0.0006 per probe on large batches).
 """
 import argparse, base64, json, re, sys, urllib.request
+from local_heatmap_poc import extract_items, organic_maps_items
 
 ENDPOINT = "https://api.dataforseo.com/v3/serp/google/maps/live/advanced"
 
@@ -53,10 +54,13 @@ def main():
                    "language_code": "en", "device": "desktop", "depth": a.depth}],
                  login, password)
         task = (d.get("tasks") or [{}])[0]
-        status = task.get("status_code")
-        items = ((task.get("result") or [{}])[0].get("items")) or []
-        if status == 40102 or not items:
-            print(f"point {lat},{lng}: no pack (dead geography candidate)")
+        items, error = extract_items(task)
+        if d.get("status_code") != 20000 or error:
+            fails.append((f"{lat},{lng}", "Provider failure or missing successful response"))
+            continue
+        items = organic_maps_items(items)
+        if not items:
+            fails.append((f"{lat},{lng}", "No organic results; query relevance is unverified"))
             continue
         for it in items:
             t = it.get("title") or ""

@@ -4,6 +4,8 @@
 from __future__ import annotations
 
 import json
+import argparse
+import importlib.util
 import os
 import shutil
 import subprocess
@@ -40,6 +42,9 @@ def command_exists(command: str) -> bool:
 
 
 def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--reports', action='store_true', help='Require the optional PDF report engine and its dependencies')
+    args = parser.parse_args()
     required = [
         "package.json",
         "src/main.js",
@@ -57,6 +62,14 @@ def main() -> int:
         "vite.config.js",
     ]
     missing = []
+    if args.reports:
+        required.extend(['tools/strategy_report.py', 'tools/report_model.py', 'tools/adaptive_geogrid.py', 'requirements-report.txt'])
+        for module in ('reportlab', 'PIL'):
+            if importlib.util.find_spec(module) is None:
+                missing.append(module)
+                fail('report dependency', f'{module}; install requirements-report.txt')
+            else:
+                ok('report dependency', module)
     for rel in required:
         path = ROOT / rel
         if path.exists():

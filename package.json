@@ -1,6 +1,6 @@
 {
   "name": "legends-geogrid",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "type": "module",
   "description": "Open-source local SEO geo-grid scans with DataForSEO, cost guardrails, and an interactive map studio.",
   "license": "MIT",
@@ -22,11 +22,13 @@
     "dev": "vite --host 127.0.0.1",
     "build": "vite build",
     "preview": "vite preview --host 127.0.0.1",
-    "check:python": "python -m py_compile tools/local_heatmap_poc.py tools/bulk_geogrid_runner.py tools/geogrid_doctor.py tests/test_runners.py",
+    "check:python": "python -m compileall -q tools tests",
     "test": "python -m unittest discover -s tests -v",
     "doctor": "python tools/geogrid_doctor.py",
+    "doctor:reports": "python tools/geogrid_doctor.py --reports",
+    "check:reports": "python tools/release_smoke.py",
     "dryrun:sample": "python tools/bulk_geogrid_runner.py --prospects examples/sample-prospects.csv --run-id sample-dryrun --output-root bulk-runs --method standard --grid-size 5 --radius-km 2 --depth 20 --zoom 15",
-    "check": "pnpm audit --prod --audit-level high && pnpm build && pnpm check:python && pnpm test && pnpm doctor && pnpm dryrun:sample"
+    "check": "pnpm audit --prod --audit-level high && pnpm build && pnpm check:python && pnpm test && pnpm doctor:reports && pnpm dryrun:sample && pnpm check:reports"
   },
   "dependencies": {
     "leaflet": "^1.9.4"

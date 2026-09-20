@@ -20,11 +20,12 @@ import os
 import re
 import subprocess
 import sys
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, fields
 from pathlib import Path
 from typing import Any
 
-from local_heatmap_poc import estimate_scan_cost, generate_grid, normalize
+from local_heatmap_poc import (estimate_scan_cost, generate_grid, normalize, RANK_BASIS,
+                               build_tasks, parse_results, calculate_metrics)
 
 DUPLICATE_STATUSES = {"duplicate", "reused-in-run", "duplicate-error"}
 
@@ -49,6 +50,9 @@ class ProspectScan:
     language_code: str
     se_domain: str
     search_places: bool
+    search_this_area: bool = True
+    match_threshold: float = 0.82
+    top_competitors: int = 5
 
 
 def utc_now() -> str:
@@ -58,7 +62,15 @@ def utc_now() -> str:
 def parse_bool(value: str | None) -> bool:
     if not value:
         return False
-    return value.strip().lower() in {"1", "true", "yes", "y"}
+    text = value.strip().lower()
+    if text not in {"1", "true", "yes", "y", "0", "false", "no", "n"}:
+        raise ValueError(f"Invalid boolean value: {value!r}")
+    return text in {"1", "true", "yes", "y"}
+
+
+def bool_cell(row: dict[str, str], default: bool, name: str) -> bool:
+    value = cell(row, name)
+    return default if not value else parse_bool(value)
 
 
 def cell(row: dict[str, str], *names: str) -> str:
@@ -117,7 +129,10 @@ def load_prospects(args: argparse.Namespace) -> list[ProspectScan]:
                     device=cell(row, "device") or args.device,
                     language_code=cell(row, "language_code", "language") or args.language_code,
                     se_domain=cell(row, "se_domain") or args.se_domain,
-                    search_places=parse_bool(cell(row, "search_places")) or args.search_places,
+                    search_places=bool_cell(row, args.search_places, "search_places"),
+                    search_this_area=bool_cell(row, args.search_this_area, "search_this_area"),
+                    match_threshold=number_cell(row, args.match_threshold, "match_threshold"),
+                    top_competitors=int_cell(row, args.top_competitors, "top_competitors"),
                 )
             )
             if args.max_prospects and len(scans) >= args.max_prospects:
@@ -138,8 +153,12 @@ def validate_scan(scan: ProspectScan) -> None:
         raise ValueError(f"{scan.prospect_id}: center_lng must be between -180 and 180")
     if scan.grid_size > 51:
         raise ValueError(f"{scan.prospect_id}: grid_size cannot exceed 51")
-    if not 0 <= scan.zoom <= 23:
-        raise ValueError(f"{scan.prospect_id}: zoom must be between 0 and 23")
+    if not 3 <= scan.zoom <= 21:
+        raise ValueError(f"{scan.prospect_id}: zoom must be between 3 and 21")
+    if not 0 < scan.match_threshold <= 1:
+        raise ValueError(f"{scan.prospect_id}: match_threshold must be greater than 0 and at most 1")
+    if scan.top_competitors < 0:
+        raise ValueError(f"{scan.prospect_id}: top_competitors must be non-negative")
     for label, value in (("center_lat", scan.center_lat), ("center_lng", scan.center_lng), ("radius_km", scan.radius_km)):
         if not math.isfinite(value):
             raise ValueError(f"{scan.prospect_id}: {label} must be finite")
@@ -168,6 +187,13 @@ def scan_identity(scan: ProspectScan, method: str) -> dict[str, Any]:
     )
     return {
         "source": "dataforseo-google-maps-serp",
+        "schema_version": 4,
+        "rank_basis": RANK_BASIS,
+        "identifier_policy": "all_supplied_exact_no_fallback",
+        "domain_policy": "ambiguous_branches_require_identifier",
+        "target_cid": scan.target_cid,
+        "target_place_id": scan.target_place_id,
+        "target_domain": scan.target_domain,
         "method": method,
         "target": identity_key,
         "business_name": normalize(scan.business_name),
@@ -182,6 +208,9 @@ def scan_identity(scan: ProspectScan, method: str) -> dict[str, Any]:
         "language_code": scan.language_code,
         "se_domain": scan.se_domain,
         "search_places": scan.search_places,
+        "search_this_area": scan.search_this_area,
+        "match_threshold": scan.match_threshold,
+        "top_competitors": scan.top_competitors,
     }
 
 
@@ -201,18 +230,73 @@ def write_json(path: Path, payload: Any) -> None:
     path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
 
 
-def is_cache_fresh(entry: dict[str, Any], args: argparse.Namespace) -> bool:
-    if args.allow_stale_cache:
-        return True
+def inspect_artifacts(outputs: dict, identity: dict, expected_digests: dict | None = None) -> tuple[dict, dict]:
+    """Validate stored bytes and request/parsed lineage before accepting a scan."""
+    required = ("parsed_json", "raw_tasks", "raw_payload", "markdown", "html")
+    data = {key: Path(outputs[key]).read_bytes() for key in required}
+    digests = {key: hashlib.sha256(value).hexdigest() for key, value in data.items()}
+    if expected_digests is not None and digests != expected_digests:
+        raise ValueError("cached artifact digest mismatch")
+    parsed = json.loads(data["parsed_json"])
+    settings = parsed["measurement_settings"]
+    if settings.get("schema_version") != 4:
+        raise ValueError("cached measurement schema mismatch")
+    values = {"row_number": 0, "prospect_id": "", "business_name": settings["target_name"], "location_label": ""}
+    values.update({field.name: settings[field.name] for field in fields(ProspectScan) if field.name not in values})
+    scan = ProspectScan(**values)
+    if scan_identity(scan, settings["method"]) != identity:
+        raise ValueError("cached measurement identity mismatch")
+    if any(settings.get(key) != identity.get(key) for key in
+           ("rank_basis", "identifier_policy", "domain_policy")):
+        raise ValueError("cached measurement policy mismatch")
+    if parsed.get("keyword") != settings["keyword"] or parsed.get("target") != settings["target_name"]:
+        raise ValueError("cached parsed labels mismatch")
+    points = generate_grid(scan.center_lat, scan.center_lng, scan.grid_size, scan.radius_km)
+    if json.loads(data["raw_tasks"]) != build_tasks(argparse.Namespace(**settings), points):
+        raise ValueError("cached request lineage mismatch")
+    response = json.loads(data["raw_payload"])
+    if not isinstance(response, dict):
+        raise ValueError("cached provider response is invalid")
+    if not isinstance(parsed.get("metrics"), dict) or not isinstance(parsed.get("results"), list):
+        raise ValueError("cached parsed artifact lacks metrics/results")
+    if [row.get("point") for row in parsed["results"]] != [asdict(point) for point in points]:
+        raise ValueError("cached parsed origins mismatch")
+    reproduced = parse_results(response, points, argparse.Namespace(**settings))
+    if (calculate_metrics(reproduced) != parsed["metrics"] or
+            json.loads(json.dumps([asdict(result) for result in reproduced])) != parsed["results"]):
+        raise ValueError("cached parsed evidence does not reproduce from provider response")
+    if not parsed.get("generated_at"):
+        raise ValueError("cached artifact missing acquisition timestamp")
+    return parsed, digests
+
+
+def is_cache_fresh(entry: dict[str, Any], args: argparse.Namespace,
+                   scan: ProspectScan | None = None, method: str | None = None) -> bool:
+    # allow_stale_cache relaxes only age, never integrity or acquisition lineage.
+    try:
+        identity = entry["identity"]
+        expected = scan_identity(scan, method) if scan is not None else identity
+        if identity != expected or not entry.get("artifact_sha256"):
+            return False
+        fingerprint = hashlib.sha256(json.dumps(identity, sort_keys=True, separators=(",", ":")).encode()).hexdigest()[:20]
+        if entry.get("fingerprint") != fingerprint:
+            return False
+        parsed, _ = inspect_artifacts(entry["outputs"], identity, entry["artifact_sha256"])
+        if parsed["metrics"] != entry.get("metrics") or parsed["generated_at"] != entry.get("generated_at"):
+            return False
+    except (KeyError, TypeError, ValueError, OSError, AttributeError):
+        return False
     generated_at = entry.get("generated_at")
     if not generated_at:
         return False
     try:
         generated = dt.datetime.fromisoformat(str(generated_at).replace("Z", "+00:00"))
-    except ValueError:
+    except (ValueError, TypeError):
+        return False
+    if generated.tzinfo is None:
         return False
     age = dt.datetime.now(dt.timezone.utc) - generated
-    return age <= dt.timedelta(days=args.freshness_days)
+    return age >= dt.timedelta(0) and (args.allow_stale_cache or age <= dt.timedelta(days=args.freshness_days))
 
 
 def normalized_csv(path: Path, rows: list[dict[str, Any]]) -> None:
@@ -236,6 +320,9 @@ def normalized_csv(path: Path, rows: list[dict[str, Any]]) -> None:
         "language_code",
         "se_domain",
         "search_places",
+        "search_this_area",
+        "match_threshold",
+        "top_competitors",
         "fingerprint",
         "cache_status",
         "task_count",
@@ -245,7 +332,9 @@ def normalized_csv(path: Path, rows: list[dict[str, Any]]) -> None:
     with path.open("w", encoding="utf-8", newline="") as handle:
         writer = csv.DictWriter(handle, fieldnames=fields)
         writer.writeheader()
-        writer.writerows(rows)
+        # Keep the normalized CSV interface stable; nested provenance belongs in
+        # the manifest, which carries hashes, artifact links, metrics and lineage.
+        writer.writerows({key: row.get(key, "") for key in fields} for row in rows)
 
 
 def render_vault_note(manifest: dict[str, Any]) -> str:
@@ -280,7 +369,7 @@ def render_vault_note(manifest: dict[str, Any]) -> str:
         "",
         "## Cache Rule",
         "",
-        "Each paid scan is fingerprinted by target identity, keyword, center coordinate, radius, grid size, depth, zoom, device, language, search domain, search places flag, and DataForSEO queue mode. Fresh cached scans are skipped before any paid call is made.",
+        "Each paid scan is fingerprinted by exact target fields, matching policy and threshold, keyword, center coordinate, radius, grid size, depth, zoom, device, language, search domain, search_places, search_this_area, competitor limit, and DataForSEO queue mode. Fresh compatible cached scans are skipped before any paid call is made.",
         "",
         "## Next Action",
         "",
@@ -338,6 +427,8 @@ def local_runner_command(scan: ProspectScan, method: str, output_dir: Path, args
     ]
     if scan.search_places:
         command.append("--search-places")
+    command.append("--search-this-area" if scan.search_this_area else "--no-search-this-area")
+    command.extend(["--match-threshold", str(scan.match_threshold), "--top-competitors", str(scan.top_competitors)])
     if scan.target_domain:
         command.extend(["--target-domain", scan.target_domain])
     if scan.target_cid:
@@ -394,10 +485,10 @@ def execute_pending(
             continue
 
         try:
-            parsed_payload = json.loads(Path(parsed_path).read_text(encoding="utf-8"))
-        except (OSError, json.JSONDecodeError) as exc:
+            parsed_payload, artifact_digests = inspect_artifacts(outputs, scan_identity(scan, method))
+        except (OSError, ValueError, KeyError, TypeError, AttributeError):
             row["cache_status"] = "error"
-            row["error"] = f"Runner parsed_json could not be read: {exc}"
+            row["error"] = "Runner artifacts failed integrity or measurement-lineage validation"
             completed.append(row)
             continue
 
@@ -424,18 +515,23 @@ def execute_pending(
 
         entry = {
             "fingerprint": fingerprint,
-            "generated_at": started_at,
+            "generated_at": parsed_payload["generated_at"],
+            "execution_started_at": started_at,
             "method": method,
             "prospect_id": scan.prospect_id,
             "business_name": scan.business_name,
             "keyword": scan.keyword,
             "identity": scan_identity(scan, method),
             "outputs": outputs,
+            "artifact_sha256": artifact_digests,
             "metrics": metrics,
         }
         cache.setdefault("entries", {})[fingerprint] = entry
         row["cache_status"] = "executed"
         row["outputs"] = outputs
+        row["metrics"] = metrics
+        row["generated_at"] = entry["generated_at"]
+        row["artifact_sha256"] = artifact_digests
         completed.append(row)
         write_json(run_dir.parent / "cache-index.json", cache)
 
@@ -466,6 +562,9 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--language-code", default="en")
     parser.add_argument("--se-domain", default="google.com")
     parser.add_argument("--search-places", action="store_true")
+    parser.add_argument("--search-this-area", action=argparse.BooleanOptionalAction, default=True)
+    parser.add_argument("--match-threshold", type=float, default=0.82)
+    parser.add_argument("--top-competitors", type=int, default=5)
     parser.add_argument("--timeout", type=int, default=90)
     parser.add_argument("--poll-seconds", type=int, default=420)
     parser.add_argument("--poll-interval", type=int, default=15)
@@ -503,7 +602,7 @@ def main(argv: list[str]) -> int:
             duplicate_of = scans_by_fingerprint[fingerprint].prospect_id
         else:
             entry = cache.get("entries", {}).get(fingerprint)
-            cache_status = "cached" if entry and is_cache_fresh(entry, args) else "pending"
+            cache_status = "cached" if entry and is_cache_fresh(entry, args, scan, args.method) else "pending"
         row = {
             **asdict(scan),
             "fingerprint": fingerprint,
@@ -513,6 +612,11 @@ def main(argv: list[str]) -> int:
             "duplicate_of": duplicate_of,
         }
         rows.append(row)
+        if cache_status == "cached":
+            for key in ("outputs", "metrics", "generated_at", "artifact_sha256"):
+                row[key] = entry[key]
+            row["cache_reuse"] = {"fingerprint": fingerprint, "acquired_at": entry["generated_at"],
+                                  "artifact_validation": "sha256_and_measurement_lineage"}
         scans_by_fingerprint.setdefault(fingerprint, scan)
         if cache_status == "pending":
             pending_rows.append(row)
@@ -535,7 +639,7 @@ def main(argv: list[str]) -> int:
             executed = by_fingerprint.get(row["fingerprint"])
             if row["cache_status"] == "duplicate" and executed:
                 row["cache_status"] = "reused-in-run" if executed["cache_status"] == "executed" else "duplicate-error"
-                for key in ("outputs", "metrics", "error"):
+                for key in ("outputs", "metrics", "generated_at", "artifact_sha256", "error"):
                     if key in executed:
                         row[key] = executed[key]
                 updated_rows.append(row)
@@ -546,7 +650,9 @@ def main(argv: list[str]) -> int:
         cache = load_cache(cache_path)
 
     manifest = {
-        "version": 1,
+        "version": 3,
+        "rank_basis": RANK_BASIS,
+        "identifier_policy": "all_supplied_exact_no_fallback",
         "run_id": args.run_id,
         "generated_at": utc_now(),
         "status": "executed" if args.execute else "dry-run",
@@ -567,6 +673,9 @@ def main(argv: list[str]) -> int:
             "language_code": args.language_code,
             "se_domain": args.se_domain,
             "search_places": args.search_places,
+            "search_this_area": args.search_this_area,
+            "match_threshold": args.match_threshold,
+            "top_competitors": args.top_competitors,
             "freshness_days": args.freshness_days,
         },
         "totals": {

@@ -1,0 +1,5 @@
+# Offline report rendering; retain dependency and bundled-font license notices.
+reportlab>=4.2,<6
+Pillow>=10.4,<13
+# Optional independent PDF validation (required by --require-pdf-qa).
+pypdfium2>=4.30,<6

@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "synthetic": true,
+  "center_kind": "market",
+  "center_label": "Synthetic rural market reference",
+  "business": {"name": "Synthetic Prairie Mobile Bicycle Repair", "location": "Synthetic georeferenced map demonstration", "lat": 41.1, "lng": -100.77},
+  "thesis": "Hypothesis: visibility varies across these synthetic origins; this fixture validates map placement and attribution only.",
+  "objectives": ["Check a non-square supplied image against exact-coordinate pins and protected credits."],
+  "lanes": [{"query_id": "mobile", "label": "Mobile bicycle repair", "query": "mobile bicycle repair", "records_path": "rural-mobile-observations.json"}],
+  "map": {
+    "bounds": [-101.28, 40.76, -100.25, 41.37],
+    "radius_bands_km": [10, 25, 50],
+    "basemap": {
+      "path": "synthetic-georeferenced.png",
+      "bounds": [-101.28, 40.76, -100.25, 41.37],
+      "crs": "EPSG:4326",
+      "credit_strip_px": 64,
+      "attribution_policy": "preserve-bottom-strip",
+      "attribution": "Synthetic test artwork | Project MIT license | No real cartography"
+    }
+  }
+}

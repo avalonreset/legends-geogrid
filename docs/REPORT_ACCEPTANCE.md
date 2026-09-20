@@ -45,4 +45,3 @@ Choose and label the mode based on the actual question: restrictive viewport dis
 5. Deliver the inspected PDF. Record unresolved limitations explicitly. Reopen acceptance when a user identifies material visual drift.
 
 Synthetic examples and automated tests are necessary evidence, but cannot substitute for the real-business acceptance step.
-

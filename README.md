@@ -7,9 +7,9 @@
 [![checks](https://img.shields.io/github/actions/workflow/status/avalonreset/legends-geogrid/ci.yml?branch=main&label=checks&style=flat-square&labelColor=000000)](https://github.com/avalonreset/legends-geogrid/actions/workflows/ci.yml)
 [![license](https://img.shields.io/github/license/avalonreset/legends-geogrid?label=license&style=flat-square&labelColor=000000&color=666666)](LICENSE)
 
-legends-geogrid is an open-source toolkit for measuring local search visibility and turning the evidence into readable PDF reports. Compare services across shared locations, explore how far visibility extends, and present findings, limitations, and a concrete next action without a hosted rank-tracking subscription.
+legends-geogrid is an **open-source google maps rank checker** for local SEO. See where a business ranks across a geographic grid, compare visibility across services, and turn the evidence into readable PDF reports. Run it locally with your own DataForSEO account, without a rank-tracking subscription.
 
-The browser studio ships with a saved real-world 17 x 17 proof scan, so you can explore the interface without credentials or API spend. The Python runners use DataForSEO for fresh scans, cache results by scan fingerprint, and require explicit execution plus a cost ceiling before spending credits.
+Explore a saved real-world 17 × 17 pizza-shop scan in the browser, or generate a sample strategy report without credentials or API spend. Fresh scans use [legends-dataforseo-kit](https://github.com/avalonreset/legends-dataforseo-kit), with explicit execution, cost estimates, and reusable cached results.
 
 <p align="center">
   <a href="https://www.youtube.com/shorts/4RYY_gh6b70">
@@ -49,9 +49,9 @@ Open `runs/first-report/report.pdf`. This synthetic example makes no network req
 
 Street geography requires a supplied georeferenced image with attribution. Default examples use explicitly labeled coordinate diagrams. See the [basemap contract](examples/reports/README.md) before adding imagery.
 
-## Economics and control
+## A local rank tracker at data cost
 
-You own the workflow and local outputs. Fresh searches use your DataForSEO account. The single and bulk runners estimate Standard Queue scans at a modeled base of `$0.0006` per task: 289 tasks in a 17 x 17 scan total `$0.1734` before optional multipliers. Adaptive collection uses the Live endpoint and its different rate. These are software estimates, not a live price quotation or a provider-enforced billing cap.
+If you are evaluating a Local Falcon alternative, start with the tradeoff: you own the workflow and local outputs, and take responsibility for setup, scheduling, and interpretation. This is a self-managed tool rather than a managed-service feature match. Fresh searches use your DataForSEO account. The single and bulk runners estimate Standard Queue scans at a modeled base of `$0.0006` per task: 289 tasks in a 17 x 17 scan total `$0.1734` before optional multipliers. Adaptive collection uses the Live endpoint and its different rate. These are software estimates, not a live price quotation or a provider-enforced billing cap.
 
 Review the generated estimate and [current provider pricing](https://dataforseo.com/apis/serp-api/google-maps-api) before paid execution. Both an execution flag and a cost ceiling are required. The offline examples and replay mode spend nothing.
 
@@ -111,12 +111,23 @@ python tools/local_heatmap_poc.py `
   --method standard
 ```
 
+## Install the shared DataForSEO engine
+
+Fresh scans depend on [legends-dataforseo-kit](https://github.com/avalonreset/legends-dataforseo-kit), an open-source Python API client and CLI. It handles provider access without an MCP server. GeoGrid handles the grid, evidence, caching, and reports.
+
+```sh
+python -m pip install -r requirements-dataforseo.txt
+python tools/geogrid_doctor.py --dataforseo
+```
+
+The kit is required for fresh scans; saved demos, cost estimates, replay, and offline reports work without it. An agent setting up live scans should install this dependency before execution. See [agent instructions](AGENTS.md).
+
 ## Run a paid scan
 
 Set credentials in your shell. Do not put them in Git:
 
 ```powershell
-$env:DATAFORSEO_USERNAME="your-login"
+$env:DATAFORSEO_LOGIN="your-login"
 $env:DATAFORSEO_PASSWORD="your-password"
 ```
 

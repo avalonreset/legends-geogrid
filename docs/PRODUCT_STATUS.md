@@ -2,6 +2,8 @@
 
 ## Release state
 
+Version 0.3.1 adds the shared legends-dataforseo-kit dependency for fresh provider calls. Offline reporting and saved demos remain credential-free. The transport change keeps existing queue handling and scan spend gates.
+
 Version 0.3.0 adds the multi-lane strategy report engine, adaptive sampling collector, and copy-fit contracts. Source distributions and release notes are available from [GitHub Releases](https://github.com/avalonreset/legends-geogrid/releases).
 
 Today it can:

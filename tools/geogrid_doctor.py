@@ -44,6 +44,7 @@ def command_exists(command: str) -> bool:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--reports', action='store_true', help='Require the optional PDF report engine and its dependencies')
+    parser.add_argument('--dataforseo', action='store_true', help='Require the shared DataForSEO kit for fresh scans; no API calls')
     args = parser.parse_args()
     required = [
         "package.json",
@@ -62,6 +63,14 @@ def main() -> int:
         "vite.config.js",
     ]
     missing = []
+    if args.dataforseo:
+        try:
+            from legends_dataforseo import api_request
+            from importlib.metadata import version
+            ok('legends-dataforseo-kit', version('legends-dataforseo-kit'))
+        except (ImportError, ModuleNotFoundError):
+            missing.append('legends-dataforseo-kit')
+            fail('legends-dataforseo-kit', 'install requirements-dataforseo.txt')
     if args.reports:
         required.extend(['tools/strategy_report.py', 'tools/report_model.py', 'tools/adaptive_geogrid.py', 'requirements-report.txt'])
         for module in ('reportlab', 'PIL'):
@@ -91,7 +100,7 @@ def main() -> int:
     else:
         warn("pnpm", "not found on PATH")
 
-    username = os.environ.get("DATAFORSEO_USERNAME")
+    username = os.environ.get("DATAFORSEO_LOGIN") or os.environ.get("DATAFORSEO_USERNAME")
     password = os.environ.get("DATAFORSEO_PASSWORD")
     if username and password:
         ok("DataForSEO env", "configured for paid scans")

@@ -1,8 +1,8 @@
 {
   "name": "legends-geogrid",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "type": "module",
-  "description": "Open-source local SEO geo-grid scans with DataForSEO, cost guardrails, and an interactive map studio.",
+  "description": "Open-source google maps rank checker with geo-grid scans, an interactive map studio, PDF reports, and DataForSEO cost controls.",
   "license": "MIT",
   "author": "Avalon Reset",
   "repository": {

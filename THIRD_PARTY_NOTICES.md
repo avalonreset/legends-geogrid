@@ -140,3 +140,7 @@ distributed, but only on the condition that the trademark "Bitstream" or
 ### Distribution notice guidance
 
 When distributing binary wheels, container images, or bundled environments containing these dependencies, retain upstream license texts for ReportLab, Pillow, and pypdfium2, along with PDFium third-party notices and the Bitstream Vera font notice for fonts embedded into generated PDFs. No AGPL dependencies (such as PyMuPDF) are introduced.
+
+## legends-dataforseo-kit
+
+Fresh scans use the separately installed [legends-dataforseo-kit](https://github.com/avalonreset/legends-dataforseo-kit), distributed under the MIT license. Its license is included with its distribution. No MCP server is required.

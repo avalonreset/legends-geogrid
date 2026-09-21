@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.1 - 2026-09-20
+
+- Use the public legends-dataforseo-kit for fresh Live and Standard/Priority Queue requests, preserving task statuses, existing spend gates, and credential-free offline workflows.
+- Add the pinned provider dependency manifest, agent setup instructions, and a no-network dependency doctor.
+- Lead with open-source google maps rank checker across the banner, README, and project metadata; clarify data costs and self-managed operation.
+
 ## 0.3.0 - 2026-09-20
 
 - Refreshed the existing release with continuous basemap rendering: preserve embedded credits in their original image position instead of detaching and rescaling a bottom strip. Reject legacy strip configurations with migration guidance; use complete-image bounds and `protected_bottom_px`. Added continuity and credit-overlap regression checks.

@@ -410,7 +410,7 @@ class CliTests(unittest.TestCase):
             path = directory / "config.json"
             path.write_text(json.dumps(config()), encoding="utf-8")
             with patch.object(ag.runner, "call_dataforseo_live_task", side_effect=AssertionError("network")), \
-                    patch.object(ag.runner, "dataforseo_auth_header", side_effect=AssertionError("credentials")):
+                    patch.object(ag.runner, "http_json", side_effect=AssertionError("provider transport")):
                 with patch("builtins.print"):
                     self.assertEqual(0, ag.main(["--config", str(path), "--output-dir", str(directory)]))
                     self.assertEqual(2, ag.main(["--config", str(path), "--execute", "--output-dir", str(directory)]))
@@ -420,7 +420,7 @@ class CliTests(unittest.TestCase):
     def test_replay_does_not_access_authentication_or_network(self):
         with tempfile.TemporaryDirectory() as temp:
             with patch.object(ag.runner, "call_dataforseo_live_task", side_effect=AssertionError("network")), \
-                    patch.object(ag.runner, "dataforseo_auth_header", side_effect=AssertionError("credentials")), \
+                    patch.object(ag.runner, "http_json", side_effect=AssertionError("provider transport")), \
                     patch("builtins.print"):
                 result = ag.main(["--config", str(ROOT / "examples/adaptive/sample.json"),
                                   "--replay", str(ROOT / "examples/adaptive/replay.json"), "--output-dir", temp])

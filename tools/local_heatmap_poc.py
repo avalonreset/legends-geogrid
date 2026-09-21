@@ -10,17 +10,13 @@ and writes raw JSON plus Markdown/HTML heatmap reports.
 from __future__ import annotations
 
 import argparse
-import base64
 import datetime as dt
 import html
 import json
 import math
-import os
 import re
 import sys
 import tempfile
-import urllib.error
-import urllib.request
 from urllib.parse import urlparse
 from dataclasses import dataclass
 from difflib import SequenceMatcher
@@ -172,32 +168,8 @@ def build_tasks(args: argparse.Namespace, points: list[GridPoint]) -> list[dict[
     return tasks
 
 
-def dataforseo_auth_header() -> str:
-    username = os.environ.get("DATAFORSEO_USERNAME")
-    password = os.environ.get("DATAFORSEO_PASSWORD")
-    if not username or not password:
-        raise RuntimeError("DATAFORSEO_USERNAME and DATAFORSEO_PASSWORD must be set in the environment")
-    token = base64.b64encode(f"{username}:{password}".encode("utf-8")).decode("ascii")
-    return f"Basic {token}"
-
-
 def call_dataforseo_live_task(task: dict[str, Any], timeout: int) -> dict[str, Any]:
-    request = urllib.request.Request(
-        DATAFORSEO_MAPS_LIVE_URL,
-        data=json.dumps([task]).encode("utf-8"),
-        headers={
-            "Authorization": dataforseo_auth_header(),
-            "Content-Type": "application/json",
-        },
-        method="POST",
-    )
-    try:
-        with urllib.request.urlopen(request, timeout=timeout) as response:
-            body = response.read().decode("utf-8")
-    except urllib.error.HTTPError as exc:
-        body = exc.read().decode("utf-8", errors="replace")
-        raise RuntimeError(f"DataForSEO HTTP {exc.code}: {body}") from exc
-    return json.loads(body)
+    return http_json(DATAFORSEO_MAPS_LIVE_URL, timeout=timeout, payload=[task])
 
 
 def call_dataforseo_live(tasks: list[dict[str, Any]], timeout: int) -> dict[str, Any]:
@@ -244,23 +216,22 @@ def call_dataforseo_live(tasks: list[dict[str, Any]], timeout: int) -> dict[str,
 
 
 def http_json(url: str, timeout: int, payload: list[dict[str, Any]] | None = None) -> dict[str, Any]:
-    data = None if payload is None else json.dumps(payload).encode("utf-8")
-    request = urllib.request.Request(
-        url,
-        data=data,
-        headers={
-            "Authorization": dataforseo_auth_header(),
-            "Content-Type": "application/json",
-        },
-        method="GET" if payload is None else "POST",
-    )
+    """Use the shared kit after the runner has checked its execution/spend gates.
+
+    Lazy import preserves credential-free estimates and offline report examples.
+    Raw task statuses remain available to the queue and evidence parsers.
+    """
     try:
-        with urllib.request.urlopen(request, timeout=timeout) as response:
-            body = response.read().decode("utf-8")
-    except urllib.error.HTTPError as exc:
-        body = exc.read().decode("utf-8", errors="replace")
-        raise RuntimeError(f"DataForSEO HTTP {exc.code}: {body}") from exc
-    return json.loads(body)
+        from legends_dataforseo import API_ROOT, api_request
+    except ImportError as exc:
+        raise RuntimeError(
+            "Fresh scans require legends-dataforseo-kit. "
+            "Run: python -m pip install -r requirements-dataforseo.txt"
+        ) from exc
+    if not url.startswith(API_ROOT + "/"):
+        raise ValueError("Only the official DataForSEO v3 API is supported")
+    return api_request(url[len(API_ROOT):], payload, timeout=timeout,
+                       confirm=payload is not None, consumer="legends-geogrid")
 
 
 def call_dataforseo_standard(tasks: list[dict[str, Any]], timeout: int, poll_seconds: int, poll_interval: int) -> dict[str, Any]:

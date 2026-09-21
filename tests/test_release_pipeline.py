@@ -98,7 +98,7 @@ class ReleasePipelineAcceptance(unittest.TestCase):
                     actual = tuple(metrics[k] for k in ("points", "found_points", "visible_eligible_points",
                                                         "top3_eligible_points", "solv", "error_points"))
                     self.assertEqual(expected, actual)
-                    with patch.object(local.urllib.request, "urlopen", side_effect=AssertionError("Network forbidden")):
+                    with patch.object(local, "http_json", side_effect=AssertionError("Network forbidden")):
                         outputs = local.write_outputs(args, local.build_tasks(args, points), payload, results)
                     parsed = json.loads(Path(outputs["parsed_json"]).read_text(encoding="utf-8"))
                     self.assertEqual(metrics, parsed["metrics"])
@@ -492,7 +492,7 @@ class AdaptiveReleaseAcceptance(unittest.TestCase):
 
     def test_clean_negative_layers_require_sentinels_and_resume_is_free(self):
         import adaptive_geogrid as adaptive
-        with tempfile.TemporaryDirectory() as directory, patch.object(local.urllib.request, "urlopen", side_effect=AssertionError("Network forbidden")):
+        with tempfile.TemporaryDirectory() as directory, patch.object(local, "http_json", side_effect=AssertionError("Network forbidden")):
             adapter = adaptive.ReplayAdapter({"default": {"state": "not_returned"}})
             collector = adaptive.Collector(self.config(), adapter, Path(directory), 1)
             receipt = collector.run()

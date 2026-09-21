@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.3.1 - 2026-09-21
+
+- Pin the separately maintained legends-dataforseo-kit v0.4.0 for fresh scans.
+  Installation uses an immutable source ZIP and does not require Git.
+- Retain the shared transport contract for live requests, queued submissions,
+  and task retrieval, including pending, empty, and failed task statuses.
+- Clarify the tested dependency pairing in user and agent setup instructions.
+  Offline reports, existing caches, and explicit execution/cost gates are unchanged.
+
 ## 0.3.0 - 2026-09-20
 
 - Use the public legends-dataforseo-kit for fresh Live and Standard/Priority Queue requests, preserving task statuses, existing spend gates, and credential-free offline workflows.

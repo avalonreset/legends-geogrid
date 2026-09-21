@@ -604,7 +604,7 @@ class RenderTests(unittest.TestCase):
                     self.assertIn('User-supplied evidence',tp.get_text_range())
                     tp.close();page.close()
 
-    def test_nonsquare_basemap_credit_strip_is_protected_and_resolution_recorded(self):
+    def test_nonsquare_basemap_stays_continuous_with_credits_in_place(self):
         from PIL import Image
         with tempfile.TemporaryDirectory() as folder:
             root=Path(folder)
@@ -614,14 +614,25 @@ class RenderTests(unittest.TestCase):
             self.assertEqual([1548,1356],qa['native_pixels'])
             self.assertEqual(516,qa['geographic_plot_pt']['width'])
             self.assertNotEqual(asset['requested_bounds'],asset['bounds'])
+            self.assertEqual(1356,asset['geographic_height_px'])
             self.assertEqual([216,216],qa['effective_ppi'])
             self.assertTrue(qa['protected_credit_pixels_checked'])
-            with Image.open(ROOT/'examples/reports/synthetic-georeferenced.png') as source:
-                credit=source.convert('RGB').crop((0,640,1280,704))
+            model=load_config(ROOT/'examples/reports/georeferenced-mobile.json')
+            base=model['lanes'][0]['map']['basemap']
+            self.assertEqual(base['bounds'],asset['bounds'])
+            frame=asset['geographic_frame_px']
+            expected=georeferenced_image(base,base['bounds'],frame[2]-frame[0],frame[3]-frame[1]).convert('RGB')
             box=asset['protected_credit_box_px']
-            expected=credit.resize((box[2]-box[0],box[3]-box[1]),Image.Resampling.LANCZOS)
+            self.assertEqual(frame[3],box[3])
+            self.assertGreater(box[1],frame[1])
             with Image.open(root/'output'/asset['file']) as rendered:
-                self.assertEqual(expected.tobytes(),rendered.crop(box).tobytes())
+                local=[box[0]-frame[0],box[1]-frame[1],box[2]-frame[0],box[3]-frame[1]]
+                self.assertEqual(expected.crop(local).tobytes(),rendered.crop(box).tobytes())
+                # A quiet left-edge column crosses the old slice boundary. Both
+                # sides must match ONE continuous transform, with no inset/gap.
+                crossing=[frame[0]+12,box[1]-24,frame[0]+18,box[3]]
+                local=[crossing[0]-frame[0],crossing[1]-frame[1],crossing[2]-frame[0],crossing[3]-frame[1]]
+                self.assertEqual(expected.crop(local).tobytes(),rendered.crop(crossing).tobytes())
             self.assertEqual(17,qa['markers_checked'])
             self.assertGreater(qa['rings_checked'],0)
 
@@ -676,10 +687,40 @@ class RenderTests(unittest.TestCase):
         cfg=json.loads((ROOT/'examples/reports/georeferenced-mobile.json').read_text(encoding='utf-8'))
         cfg['lanes'][0]['records_path']=str(ROOT/'examples/reports/rural-mobile-observations.json')
         cfg['map']['basemap']['path']=str(ROOT/'examples/reports/synthetic-georeferenced.png')
-        cfg['map']['basemap'].pop('credit_strip_px');cfg['map']['basemap'].pop('attribution_policy')
+        cfg['map']['basemap'].pop('protected_bottom_px');cfg['map']['basemap'].pop('attribution_policy')
         with tempfile.TemporaryDirectory() as folder:
             with self.assertRaisesRegex(ValueError,'attribution_policy'):
                 self.render(cfg,Path(folder))
+
+    def test_legacy_detached_credit_mode_requires_complete_image_migration(self):
+        cfg=json.loads((ROOT/'examples/reports/georeferenced-mobile.json').read_text(encoding='utf-8'))
+        cfg['lanes'][0]['records_path']=str(ROOT/'examples/reports/rural-mobile-observations.json')
+        base=cfg['map']['basemap']
+        base['path']=str(ROOT/'examples/reports/synthetic-georeferenced.png')
+        base['credit_strip_px']=base.pop('protected_bottom_px')
+        for policy in ('preserve-bottom-strip',None):
+            base['attribution_policy']=policy
+            with self.subTest(policy=policy),tempfile.TemporaryDirectory() as folder:
+                with self.assertRaisesRegex(ValueError,'COMPLETE image'):
+                    self.render(cfg,Path(folder))
+        with self.assertRaisesRegex(ValueError,'detached credit strips'):
+            georeferenced_image(base,base['bounds'],100,100)
+
+    def test_embedded_credits_default_to_in_place_and_reject_marker_overlap(self):
+        cfg=json.loads((ROOT/'examples/reports/georeferenced-mobile.json').read_text(encoding='utf-8'))
+        cfg['lanes'][0]['records_path']=str(ROOT/'examples/reports/rural-mobile-observations.json')
+        base=cfg['map']['basemap'];base['path']=str(ROOT/'examples/reports/synthetic-georeferenced.png')
+        base.pop('attribution_policy')
+        with tempfile.TemporaryDirectory() as folder:
+            root=Path(folder);cfgpath=root/'config.json';cfgpath.write_text(json.dumps(cfg))
+            model=load_config(cfgpath);lane=model['lanes'][0];fonts=register_fonts(model)
+            self.assertEqual('preserve-in-place',lane['map']['basemap']['attribution_policy'])
+            lane['records'][0].update(lat=40.66,lng=-100.77)
+            with self.assertRaisesRegex(ValueError,'marker overlaps embedded credits'):
+                map_image(lane,model['business'],root/'map.png',fonts)
+            lane['map']['bounds'][0]-=1
+            with self.assertRaisesRegex(ValueError,'cover the requested view'):
+                map_image(lane,model['business'],root/'map.png',fonts)
 
     def test_projection_retains_geometry_and_extreme_latitude(self):
         projection=Projection([-76,39,-74,41])

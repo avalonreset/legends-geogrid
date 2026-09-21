@@ -102,9 +102,9 @@ US Letter uses fixed 48 pt side margins and a 516 pt content column. Schematic
 maps and full-extent appendix maps are 516×410 pt; supplied-basemap service maps
 are 516×452 pt. Raster resolution is 216 effective PPI (1548×1230 or 1548×1356).
 Geography always uses equal projected x/y scale. Schematics use letterboxing.
-Supplied-basemap viewports expand around the requested bounds with 16 pt marker
-clearance to fill the entire geographic frame, never stretch coordinates or crop
-the requested view. This can reveal additional supplied origins. The asset ledger
+Overlay-safe basemap viewports expand around the requested bounds with 16 pt marker
+clearance to fill the geographic frame. Images with embedded credits instead retain
+their complete extent and use letterboxing when needed; no image strip is detached. This can reveal additional supplied origins. The asset ledger
 records both `requested_bounds` and actual displayed `bounds`. Expansion beyond
 supported latitude/longitude bounds fails explicitly. Source imagery must cover
 the expanded view for edge-to-edge street context; uncovered pixels stay schematic.
@@ -124,35 +124,48 @@ or dense pins retain their positions; collisions are disclosed, and the HTML
 observation ledger provides exact coordinates and states for every origin.
 
 Optional `map.basemap` (also allowed per lane) is a locally supplied image:
-`{"path":"map.png","bounds":[-75.1,39.9,-74.9,40.1],"crs":"EPSG:3857","credit_strip_px":64,"attribution":"Required source and license credit"}`.
-Bounds are WGS84 degrees for the **geographic content edges**, excluding the
-declared bottom credit strip. Pixels must be north-up and
-linearly georeferenced in the declared `EPSG:3857` or `EPSG:4326` CRS.
-The renderer transforms/resamples the image to the map extent. Attribution is
-mandatory and printed without truncation. User is responsible for source rights.
+`{"path":"map.png","bounds":[-75.1,39.9,-74.9,40.1],"crs":"EPSG:3857","protected_bottom_px":44,"attribution_policy":"preserve-in-place","attribution":"Required source and license credit"}`.
+Bounds are WGS84 degrees for the **complete image edges**, including all bottom
+rows. Pixels must be north-up and linearly georeferenced in the declared
+`EPSG:3857` or `EPSG:4326` CRS. Attribution is mandatory and printed without
+truncation. User is responsible for source rights.
 
-One of two attribution policies is required:
+Two attribution policies are supported:
 
-- `credit_strip_px: N` selects `attribution_policy: "preserve-bottom-strip"`.
-  The bottom N source rows are removed before georeferencing and retained as a
-  complete, uniformly resized strip below the map and axis labels. Pins/rings
-  cannot enter it. No strip cropping or overpainting occurs. Its final height
-  must fit 8–60 pt; otherwise rendering fails with an alternative-policy hint.
-  This preserves the complete credit area **at uniform scale**, not original
-  native pixels or original font size. Supply a legible source strip.
-- Without a bottom strip, explicitly set `attribution_policy: "separate-caption"`
-  and `overlay_safe: true`. This declares the image suitable for cropping and
-  overlays and the complete required credit suitable for separate caption use.
-  The supplied attribution is printed outside the image. Embedded credits in
-  this mode are **not** protected against cropping or overlays; do not use this
-  mode for a source that requires embedded credit preservation.
+- `protected_bottom_px: N` defaults to `attribution_policy: "preserve-in-place"`.
+  The whole image is rendered with one geographic transform. Credits stay in
+  their original location; the bottom N source rows are protected from overlays.
+  No strip is removed, separately resized, or pasted back. The displayed extent
+  is the complete image extent, with letterboxing if its projected aspect ratio
+  differs from the frame. Supply an image covering the requested bounds with
+  enough room for complete marker footprints above the credits. A marker or
+  origin overlapping credits or an image edge fails clearly; rings that cannot
+  fit are omitted and disclosed. Source-image bounds and protection geometry are
+  checked against the final raster.
+- `attribution_policy: "separate-caption"` with `overlay_safe: true` declares an
+  image suitable for cropping and overlays, with the complete required credit
+  suitable for separate caption use. The supplied attribution is printed outside
+  the image. Embedded credits are **not** protected in this mode; do not use it
+  for a source that requires embedded credit preservation.
+
+### Migrating configurations that detached credits
+
+`credit_strip_px` and `preserve-bottom-strip` are rejected with a migration
+message. Their old behavior could splice streets at different scales. Replace
+those settings with `protected_bottom_px` and `preserve-in-place`, and supply
+bounds for the **entire original image**. Do not simply rename the field while
+retaining bounds that exclude the bottom rows: that would misregister markers.
+If the source has a separate non-geographic footer, supply a continuous,
+fully georeferenced image with credits embedded, or an overlay-safe image using
+`separate-caption` as appropriate. The renderer does not guess missing bounds.
 
 Outside image bounds the schematic backdrop remains visible. Without an image,
 maps explicitly say **Schematic coordinate map — no street basemap**. No API key
 or map provider is required. No roads or geographic detail are invented.
 
-`georeferenced-mobile.json` uses a 1280×704 synthetic image: a 1280×640
-EPSG:4326 latitude/longitude graticule and a 64 px visible bottom credit strip.
+`georeferenced-mobile.json` uses a continuous 1280×704 synthetic EPSG:4326
+latitude/longitude graticule, with credits overlaid in the bottom 64 pixels. A
+diagonal crosses the protected-area boundary to expose any slicing regression.
 It depicts coordinate context only, not real terrain or streets. Regenerate it
 with `python examples/reports/make_basemap_fixture.py`. QA records source native
 pixels and effective PPI over its projected span (vertical average for

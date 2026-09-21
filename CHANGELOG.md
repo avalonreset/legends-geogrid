@@ -2,6 +2,8 @@
 
 ## 0.3.0 - 2026-09-20
 
+- Refreshed the existing release with continuous basemap rendering: preserve embedded credits in their original image position instead of detaching and rescaling a bottom strip. Reject legacy strip configurations with migration guidance; use complete-image bounds and `protected_bottom_px`. Added continuity and credit-overlap regression checks.
+
 - Reject malformed target-rank evidence and provider errors in legacy diagnostic paths; export only validated map fields.
 - Added a discovery-first study recipe and explicit operator-led market-fit requirements before dense paid collection. This is documented guidance, not an automatic commercial-market selector.
 - Added a reusable client acceptance policy covering restrained colors, map-first pages, geographic registration, neutral distance bands, small readable markers, no em dashes, and visual inspection of every final page.

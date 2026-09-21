@@ -8,9 +8,13 @@ legends-geogrid is an open-source toolkit for measuring local search visibility 
 
 The browser studio ships with a saved real-world 17 x 17 proof scan, so you can explore the interface without credentials or API spend. The Python runners use DataForSEO for fresh scans, cache results by scan fingerprint, and require explicit execution plus a cost ceiling before spending credits.
 
-https://github.com/user-attachments/assets/294d4cd4-eb2f-4dd8-a9f9-a96db32033b2
-
-<p align="center"><em>why have we never met before?</em></p>
+<p align="center">
+  <a href="https://www.youtube.com/shorts/4RYY_gh6b70">
+    <img src="assets/why-have-we-never-met-before.png" alt="why have we never met before? — watch on YouTube" width="560" height="560">
+  </a>
+  <br>
+  <a href="https://www.youtube.com/shorts/4RYY_gh6b70"><em>why have we never met before?</em></a>
+</p>
 
 ## Why 0.3.0 is useful
 

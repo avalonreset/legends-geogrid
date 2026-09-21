@@ -1,0 +1,33 @@
+{
+  "template": "legends-social-v1",
+  "title": "legends-geogrid",
+  "subtitle": "open-source google maps rank checker",
+  "size": [
+    1280,
+    640
+  ],
+  "title_px": 64,
+  "subtitle_px": 36,
+  "safe_margin_px": 80,
+  "lines": [
+    "open-source google maps rank checker"
+  ],
+  "text_bounds": [
+    [
+      80,
+      176,
+      680,
+      239
+    ],
+    [
+      80,
+      324,
+      872,
+      361
+    ]
+  ],
+  "font_sha256": "3769f0f76477a7d9e2e6cb40422dedacb56c9ab1a6f7beee89b2b9ba6b8091ee",
+  "image_sha256": "aa036f3d144e725680e3332a5663281fff1c6cc1f658479215909f9e15cd5b00",
+  "bytes": 15645,
+  "upload_status": "not_attempted"
+}

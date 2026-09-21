@@ -1,2 +1,2 @@
-# Public v0.3.0 provider engine pinned to immutable source; no git client needed.
-legends-dataforseo-kit @ https://github.com/avalonreset/legends-dataforseo-kit/archive/1c0dd262d782f759f86b9e5c897e53859fd2eb65.zip
+# Public v0.4.0 provider engine pinned to immutable source; no git client needed.
+legends-dataforseo-kit @ https://github.com/avalonreset/legends-dataforseo-kit/archive/2b413367eec136e1cbd57d3d8f0dfd7bcdeffe31.zip

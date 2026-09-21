@@ -309,6 +309,18 @@ The bundled Home Slice Pizza proof is historical demonstration data collected on
 
 The original product research compared public workflow and pricing information from [Local Falcon](https://www.localfalcon.com/) ([GitHub](https://github.com/local-falcon)), [Search Atlas](https://searchatlas.com/local-seo-software/) ([GitHub](https://github.com/search-atlas-group)), [LeadSnap](https://leadsnap.com/features/local-citations/), and [BrightLocal](https://www.brightlocal.com/citation-builder/) ([GitHub](https://github.com/BrightLocal)). They were market references only: the current release does not contain their source code, assets, screenshots, or proprietary data. See [Provenance and research sources](docs/PROVENANCE.md) and [Third-party notices](THIRD_PARTY_NOTICES.md).
 
+## After the grids
+
+<p align="center">
+  <a href="https://www.youtube.com/shorts/4RYY_gh6b70">
+    <img src="https://i.ytimg.com/vi/4RYY_gh6b70/hqdefault.jpg" alt="Watch avalon-reset's Short: who should I ask all wet and hungry?" width="420">
+  </a>
+  <br>
+  <sub>AVALON-RESET / A CREATIVE INTERLUDE</sub>
+  <br>
+  <a href="https://www.youtube.com/shorts/4RYY_gh6b70">▶ who should I ask all wet and hungry?</a>
+</p>
+
 ## License
 
 legends-geogrid is MIT licensed. See [LICENSE](LICENSE). Third-party components, services, trademarks, and data remain subject to their own licences and terms; see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).

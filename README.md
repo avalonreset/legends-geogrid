@@ -1,8 +1,11 @@
-<p align="left" id="banner">
-  <a href="https://cto-legends.com"><img src="assets/banner.webp" alt="legends-geogrid: local ranking maps and reports, without a tracking subscription" width="100%"></a>
-</p>
+<a name="banner"></a>
+<a name="legends-geogrid"></a>
 
-# legends-geogrid
+# ![legends-geogrid](assets/banner.webp)
+
+[![release](https://img.shields.io/github/v/release/avalonreset/legends-geogrid?label=release&sort=date&style=flat-square&labelColor=000000&color=ff0000)](https://github.com/avalonreset/legends-geogrid/releases/latest)
+[![checks](https://img.shields.io/github/actions/workflow/status/avalonreset/legends-geogrid/ci.yml?branch=main&label=checks&style=flat-square&labelColor=000000)](https://github.com/avalonreset/legends-geogrid/actions/workflows/ci.yml)
+[![license](https://img.shields.io/github/license/avalonreset/legends-geogrid?label=license&style=flat-square&labelColor=000000&color=666666)](LICENSE)
 
 legends-geogrid is an open-source toolkit for measuring local search visibility and turning the evidence into readable PDF reports. Compare services across shared locations, explore how far visibility extends, and present findings, limitations, and a concrete next action without a hosted rank-tracking subscription.
 

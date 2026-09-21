@@ -12,7 +12,8 @@ The browser studio ships with a saved real-world 17 x 17 proof scan, so you can 
   <a href="https://www.youtube.com/shorts/4RYY_gh6b70">
     <img src="assets/why-have-we-never-met-before.png" alt="why have we never met before? — watch on YouTube" width="560" height="560">
   </a>
-  <br>
+</p>
+<p align="left">
   <a href="https://www.youtube.com/shorts/4RYY_gh6b70"><em>why have we never met before?</em></a>
 </p>
 

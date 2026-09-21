@@ -8,6 +8,16 @@ legends-geogrid is an open-source toolkit for measuring local search visibility 
 
 The browser studio ships with a saved real-world 17 x 17 proof scan, so you can explore the interface without credentials or API spend. The Python runners use DataForSEO for fresh scans, cache results by scan fingerprint, and require explicit execution plus a cost ceiling before spending credits.
 
+<p align="center">
+  <a href="https://www.youtube.com/shorts/4RYY_gh6b70">
+    <img src="https://i.ytimg.com/vi/4RYY_gh6b70/hqdefault.jpg" alt="Watch avalon-reset's Short: who should I ask all wet and hungry?" width="420">
+  </a>
+  <br>
+  <sub>AVALON-RESET / A CREATIVE INTERLUDE</sub>
+  <br>
+  <a href="https://www.youtube.com/shorts/4RYY_gh6b70">▶ who should I ask all wet and hungry?</a>
+</p>
+
 ## Why 0.3.0 is useful
 
 A ranking grid should help answer a decision: where does a business appear, which services are weaker, and what should be investigated or changed next? Version 0.3.0 adds a reusable reporting and sampling workflow to the earlier scanner.
@@ -308,18 +318,6 @@ The bundled Home Slice Pizza proof is historical demonstration data collected on
 - [ReportLab](https://www.reportlab.com/) and [Pillow](https://python-pillow.org/) are open-source Python libraries used for local vector PDF generation and image processing (`requirements-report.txt`). They are optional local dependencies, not vendored in this repository.
 
 The original product research compared public workflow and pricing information from [Local Falcon](https://www.localfalcon.com/) ([GitHub](https://github.com/local-falcon)), [Search Atlas](https://searchatlas.com/local-seo-software/) ([GitHub](https://github.com/search-atlas-group)), [LeadSnap](https://leadsnap.com/features/local-citations/), and [BrightLocal](https://www.brightlocal.com/citation-builder/) ([GitHub](https://github.com/BrightLocal)). They were market references only: the current release does not contain their source code, assets, screenshots, or proprietary data. See [Provenance and research sources](docs/PROVENANCE.md) and [Third-party notices](THIRD_PARTY_NOTICES.md).
-
-## After the grids
-
-<p align="center">
-  <a href="https://www.youtube.com/shorts/4RYY_gh6b70">
-    <img src="https://i.ytimg.com/vi/4RYY_gh6b70/hqdefault.jpg" alt="Watch avalon-reset's Short: who should I ask all wet and hungry?" width="420">
-  </a>
-  <br>
-  <sub>AVALON-RESET / A CREATIVE INTERLUDE</sub>
-  <br>
-  <a href="https://www.youtube.com/shorts/4RYY_gh6b70">▶ who should I ask all wet and hungry?</a>
-</p>
 
 ## License
 

@@ -508,6 +508,32 @@ def rank_class(rank: int | None) -> str:
     return "rank-none"
 
 
+STATUS_LABELS = {
+    "found": "Found",
+    "not_returned_depth_reached": "Not in the full returned list",
+    "not_returned_incomplete": "Short list, target absent (unknown)",
+    "empty_results": "No results returned (unknown)",
+    "no_organic_results": "No organic Maps results (unknown)",
+    "ambiguous_target": "Ambiguous target identity",
+    "invalid_target_rank": "Target matched without a valid rank",
+    "provider_error": "Provider error",
+    "missing_result": "No API result for this point",
+}
+
+
+def result_class(result: PointResult) -> str:
+    """Colour class that keeps a measured miss apart from missing evidence."""
+    if result.rank is not None:
+        return rank_class(result.rank)
+    if result.error and result.status != "ambiguous_target":
+        return "rank-error"
+    if result.status == "not_returned_depth_reached":
+        return "rank-none"
+    if result.status == "empty_results":
+        return "rank-empty"
+    return "rank-short"
+
+
 def calculate_metrics(results: list[PointResult]) -> dict[str, Any]:
     ranks = [result.rank for result in results if result.rank is not None and not result.error]
     top3 = [rank for rank in ranks if rank <= 3]
@@ -735,6 +761,9 @@ def render_html(args: argparse.Namespace, results: list[PointResult], markdown_p
     verdict, verdict_reason = prospecting_verdict(metrics)
     weak_summary = weak_zone_summary(results, args.grid_size)
     title = f"Local SEO Heatmap - {args.target_name}"
+    grid_size = args.grid_size
+    compact = grid_size > 7
+    wide = grid_size > 9
 
     # Schematic local east/north distances. A supplied image has no extent or
     # projection contract, so it must not appear underneath geographic pins.
@@ -744,26 +773,34 @@ def render_html(args: argparse.Namespace, results: list[PointResult], markdown_p
                 (point.lat - args.center_lat) * 111.32)
     extent = max([abs(value) for result in results for value in offsets(result.point)] or [0])
     half_width_km = max(1, math.ceil(extent * 1.2))
+    # Size pins from the physical point spacing so dense grids never overlap.
+    spacing_km = (2 * args.radius_km / (grid_size - 1)) if grid_size > 1 else args.radius_km
+    pin_size = max(1.5, min(12.0, spacing_km / (2 * half_width_km) * 100 * 0.86))
 
     cells = []
     pins = []
-    center_index = args.grid_size // 2
+    center_index = grid_size // 2
     for result in results:
         label = "-" if result.rank is None else str(result.rank)
-        matched_title = (result.matched_item or {}).get("title") or result.status
+        if result.rank is None and result.status == "empty_results":
+            label = ""
+        matched_title = (result.matched_item or {}).get("title") or STATUS_LABELS.get(result.status, result.status)
         tooltip = f"{result.point.tag} | {result.point.lat:.6f},{result.point.lng:.6f} | {matched_title}"
         east_km, north_km = offsets(result.point)
         left = 50 + east_km / (2 * half_width_km) * 100
         top = 50 - north_km / (2 * half_width_km) * 100
-        center_class = " center-pin" if result.point.row == center_index and result.point.col == center_index else ""
+        is_center = result.point.row == center_index and result.point.col == center_index
+        center_class = " center-pin" if is_center else ""
+        css = result_class(result)
+        tag = "" if compact else f"<small>{html.escape(result.point.tag)}</small>"
         cells.append(
-            f'<div class="cell {rank_class(result.rank)}" title="{html.escape(tooltip)}">'
-            f'<span>{html.escape(label)}</span><small>{html.escape(result.point.tag)}</small></div>'
+            f'<div class="cell {css}{center_class}" title="{html.escape(tooltip)}">'
+            f'<span>{html.escape(label)}</span>{tag}</div>'
         )
         pins.append(
-            f'<div class="rank-pin {rank_class(result.rank)}{center_class}" '
+            f'<div class="rank-pin {css}{center_class}" '
             f'style="left:{left:.3f}%;top:{top:.3f}%;" title="{html.escape(tooltip)}">'
-            f'<span>{html.escape(label)}</span><small>{html.escape(result.point.tag)}</small></div>'
+            f'<span>{html.escape(label)}</span>{tag}</div>'
         )
     competitors = competitor_counts(results)[:6]
     max_count = max([count for _, count in competitors] or [1])
@@ -771,12 +808,22 @@ def render_html(args: argparse.Namespace, results: list[PointResult], markdown_p
         f'<div class="bar-row"><span>{html.escape(title)}</span><b style="width:{(count / max_count) * 100:.1f}%"></b><em>{count}</em></div>'
         for title, count in competitors
     )
+    status_rows = "".join(
+        f'<tr><td>{html.escape(STATUS_LABELS.get(state, state))}<br><code>{html.escape(state)}</code></td><td>{count}</td></tr>'
+        for state, count in sorted(metrics["status_counts"].items(), key=lambda pair: -pair[1])
+    )
+    settings_rows = "".join(
+        f'<tr><th><code>{html.escape(str(key))}</code></th><td>{html.escape(str(value))}</td></tr>'
+        for key, value in measurement_settings(args).items()
+    )
     map_surface = '<div class="schematic-north">N</div>'
     map_layer_note = (f"Schematic local east/north distances, approximate kilometres; north up. "
-                      f"Extent: {half_width_km} km each side of center. No street basemap. "
-                      "Provider zoom controls acquisition only.")
+                      f"Extent: {half_width_km} km each side of center; points {spacing_km:.2f} km apart. "
+                      "No street basemap. Provider zoom controls acquisition only.")
     if getattr(args, "map_image", ""):
         map_layer_note += " Supplied image omitted because its geographic extent is unspecified."
+    layout_class = "layout layout-wide" if wide else "layout"
+    grid_class = "grid grid-compact" if compact else "grid"
     return f"""<!doctype html>
 <html lang="en">
 <head>
@@ -784,85 +831,122 @@ def render_html(args: argparse.Namespace, results: list[PointResult], markdown_p
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{html.escape(title)}</title>
   <style>
+    * {{ box-sizing: border-box; }}
     body {{ font-family: Arial, sans-serif; margin: 0; color: #17202a; background: #f6f7f9; }}
-    main {{ max-width: 980px; margin: 0 auto; }}
-    header {{ padding: 32px 32px 20px; background: #ffffff; border-bottom: 1px solid #d7dde5; }}
-    h1 {{ font-size: 28px; margin: 0 0 8px; }}
-    .meta {{ color: #52606d; margin-bottom: 24px; }}
-    .layout {{ display: grid; grid-template-columns: 1.45fr .55fr; gap: 20px; padding: 24px 32px 16px; }}
-    .supporting {{ padding: 0 32px 32px; }}
-    .map-shell {{ position: relative; aspect-ratio: 1; overflow: hidden; border-radius: 8px; border: 1px solid #c9d3df; background: #dfe7ef; background-image: linear-gradient(#bdcbd9 1px, transparent 1px), linear-gradient(90deg, #bdcbd9 1px, transparent 1px); background-size: 25% 25%; }}
-    .schematic-north {{ position: absolute; top: 6px; left: 50%; font-weight: bold; }}
-    .map-frame {{ position: absolute; inset: 0; width: 100%; height: 100%; border: 0; object-fit: cover; filter: saturate(.96) contrast(.98); }}
-    .pin-layer {{ position: absolute; inset: 0; z-index: 2; pointer-events: none; }}
-    .rank-pin {{ position: absolute; width: 48px; height: 48px; transform: translate(-50%, -50%); border-radius: 999px; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 3px solid #fff; box-shadow: 0 5px 16px rgba(15, 23, 42, .45); font-weight: 800; }}
-    .rank-pin span {{ font-size: 20px; line-height: 1; }}
-    .rank-pin small {{ font-size: 9px; margin-top: 2px; opacity: .84; }}
-    .center-pin {{ outline: 4px solid rgba(15, 94, 238, .65); outline-offset: 3px; }}
-    .map-legend {{ display: flex; flex-wrap: wrap; gap: 8px 14px; margin-top: 12px; color: #52606d; font-size: 13px; }}
-    .legend-dot {{ display: inline-block; width: 11px; height: 11px; border-radius: 999px; margin-right: 5px; vertical-align: -1px; }}
-    .grid {{ display: grid; grid-template-columns: repeat({args.grid_size}, minmax(64px, 1fr)); gap: 8px; }}
-    .cell {{ aspect-ratio: 1; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 1px solid rgba(0,0,0,.08); }}
-    .cell span {{ font-size: 26px; font-weight: 700; line-height: 1; }}
+    main {{ max-width: 1120px; margin: 0 auto; padding-bottom: 32px; }}
+    header {{ padding: 28px 32px 20px; background: #ffffff; border-bottom: 1px solid #d7dde5; }}
+    h1 {{ font-size: 26px; margin: 0 0 8px; }}
+    .meta {{ color: #52606d; }}
+    .metrics {{ display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; padding: 20px 32px 0; }}
+    .metric {{ background: white; border: 1px solid #d7dde5; border-radius: 8px; padding: 14px; color: #52606d; font-size: 14px; }}
+    .metric strong {{ display: block; font-size: 24px; color: #17202a; margin-bottom: 4px; }}
+    .layout {{ display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(0, .55fr); gap: 20px; padding: 20px 32px 0; }}
+    .side {{ display: grid; gap: 20px; align-content: start; }}
+    .layout-wide {{ grid-template-columns: minmax(0, 1fr); }}
+    .layout-wide .side {{ grid-template-columns: repeat(2, minmax(0, 1fr)); }}
+    .supporting {{ padding: 20px 32px 0; }}
+    .panel {{ background: #fff; border: 1px solid #d7dde5; border-radius: 8px; padding: 18px; min-width: 0; }}
+    .panel h2 {{ margin: 0 0 12px; font-size: 18px; }}
+    .panel h3 {{ margin: 18px 0 8px; font-size: 15px; }}
+    .map-shell {{ position: relative; aspect-ratio: 1; width: 100%; max-width: 820px; margin: 0 auto; overflow: hidden; border-radius: 8px; border: 1px solid #c9d3df; background: #eef2f6; background-image: linear-gradient(#d5dee8 1px, transparent 1px), linear-gradient(90deg, #d5dee8 1px, transparent 1px); background-size: 25% 25%; container-type: inline-size; --pin: {pin_size:.3f}; }}
+    .schematic-north {{ position: absolute; top: 8px; left: 50%; transform: translateX(-50%); font-weight: bold; z-index: 3; color: #52606d; }}
+    .pin-layer {{ position: absolute; inset: 0; z-index: 2; }}
+    .rank-pin {{ position: absolute; width: calc(var(--pin) * 1%); aspect-ratio: 1; transform: translate(-50%, -50%); border-radius: 999px; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 2px solid #fff; box-shadow: 0 2px 6px rgba(15, 23, 42, .3); font-weight: 800; overflow: hidden; }}
+    .rank-pin span {{ font-size: max(9px, calc(var(--pin) * .45cqw)); line-height: 1; }}
+    .rank-pin small {{ font-size: max(7px, calc(var(--pin) * .16cqw)); margin-top: 2px; opacity: .84; }}
+    .center-pin {{ outline: 3px solid #155eef; outline-offset: 2px; z-index: 3; }}
+    .map-legend {{ display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 14px; color: #52606d; font-size: 13px; }}
+    .legend-dot {{ display: inline-block; width: 12px; height: 12px; border-radius: 999px; margin-right: 5px; vertical-align: -2px; }}
+    .legend-ring {{ display: inline-block; width: 12px; height: 12px; border-radius: 999px; margin-right: 5px; vertical-align: -2px; outline: 3px solid #155eef; outline-offset: 1px; }}
+    .grid {{ display: grid; grid-template-columns: repeat({grid_size}, minmax(0, 1fr)); gap: 8px; container-type: inline-size; }}
+    .grid-compact {{ gap: 3px; }}
+    .cell {{ aspect-ratio: 1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 1px solid rgba(0,0,0,.08); min-width: 0; }}
+    .cell span {{ font-size: max(9px, calc(55cqw / {grid_size})); font-weight: 700; line-height: 1; }}
     .cell small {{ margin-top: 6px; color: rgba(0,0,0,.55); }}
+    .cell.center-pin {{ outline-offset: 1px; }}
     .rank-one {{ background: #0f9f6e; color: white; }}
     .rank-top3 {{ background: #8bd450; color: #102a12; }}
     .rank-visible {{ background: #ffd166; color: #3b2f00; }}
     .rank-buried {{ background: #f79d65; color: #3a1600; }}
     .rank-none {{ background: #e55b5b; color: white; }}
-    .metrics {{ display: grid; grid-template-columns: repeat(4, minmax(120px, 1fr)); gap: 12px; padding: 0 32px 8px; }}
-    .metric {{ background: white; border: 1px solid #d7dde5; border-radius: 8px; padding: 14px; }}
-    .metric strong {{ display: block; font-size: 22px; }}
-    .panel {{ background: #fff; border: 1px solid #d7dde5; border-radius: 8px; padding: 16px; }}
-    .panel h2 {{ margin: 0 0 12px; font-size: 18px; }}
-    .bar-row {{ position: relative; display: grid; grid-template-columns: 1fr 32px; gap: 8px; align-items: center; margin: 10px 0; min-height: 28px; }}
+    .rank-short {{ background: #c3cad3; color: #3e4c59; }}
+    .rank-empty {{ background: #f1f4f7; color: #9aa5b1; border: 1px dashed #b8c2cc; box-shadow: none; }}
+    .rank-error {{ background: #3e4c59; color: white; }}
+    .bar-row {{ position: relative; display: grid; grid-template-columns: minmax(0, 1fr) 36px; gap: 8px; align-items: center; margin: 8px 0; min-height: 30px; }}
     .bar-row b {{ position: absolute; left: 0; top: 0; bottom: 0; background: #dbeafe; border-radius: 6px; z-index: 0; }}
-    .bar-row span, .bar-row em {{ position: relative; z-index: 1; padding: 0 8px; font-style: normal; }}
-    .notes {{ margin-top: 16px; color: #52606d; font-size: 14px; line-height: 1.4; }}
+    .bar-row span, .bar-row em {{ position: relative; z-index: 1; padding: 0 8px; font-style: normal; overflow-wrap: anywhere; }}
+    .bar-row em {{ text-align: right; font-weight: 700; }}
+    .verdict {{ font-weight: 700; font-size: 16px; margin: 0 0 8px; }}
+    p {{ line-height: 1.45; margin: 0 0 10px; }}
+    table {{ width: 100%; border-collapse: collapse; font-size: 14px; }}
+    td, th {{ padding: 6px 4px; border-bottom: 1px solid #edf0f3; text-align: left; vertical-align: top; overflow-wrap: anywhere; }}
+    td:last-child {{ text-align: right; }}
+    th {{ font-weight: normal; color: #52606d; width: 40%; }}
+    .settings td {{ text-align: left; }}
+    details {{ margin-top: 14px; }}
+    summary {{ cursor: pointer; color: #155eef; }}
+    code {{ font-size: 11px; color: #7b8794; }}
+    .notes {{ margin-top: 12px; color: #52606d; font-size: 13px; line-height: 1.45; }}
     a {{ color: #155eef; }}
-    @media (max-width: 760px) {{ .layout, .metrics {{ grid-template-columns: 1fr; }} }}
+    @media (max-width: 760px) {{
+      header, .metrics, .layout, .supporting {{ padding-left: 16px; padding-right: 16px; }}
+      .metrics {{ grid-template-columns: repeat(2, minmax(0, 1fr)); }}
+      .layout, .layout-wide .side {{ grid-template-columns: minmax(0, 1fr); }}
+    }}
   </style>
 </head>
 <body>
   <main>
     <header>
       <h1>{html.escape(title)}</h1>
-      <div class="meta">Keyword: {html.escape(args.keyword)} | {html.escape(args.location_label)} | {args.grid_size}x{args.grid_size}, {args.radius_km:g} km radius | DataForSEO {html.escape(args.method)}</div>
+      <div class="meta">Keyword: {html.escape(args.keyword)} | {html.escape(args.location_label)} | {grid_size}x{grid_size}, {args.radius_km:g} km radius | DataForSEO {html.escape(args.method)}</div>
     </header>
     <section class="metrics">
       <div class="metric"><strong>{format_share(metrics['solv'])}</strong>Observed top-3 share ({metrics['top3_eligible_points']} eligible)</div>
       <div class="metric"><strong>{format_share(metrics['visible_share'])}</strong>Observed top-10 share ({metrics['visible_eligible_points']} eligible)</div>
-      <div class="metric"><strong>{metrics['average_rank'] if metrics['average_rank'] is not None else 'no data'}</strong>Avg rank</div>
-      <div class="metric"><strong>{metrics['not_found_points']}</strong>Not found</div>
+      <div class="metric"><strong>{metrics['average_rank'] if metrics['average_rank'] is not None else 'no data'}</strong>Avg rank where found</div>
+      <div class="metric"><strong>{metrics['found_points']} / {metrics['points']}</strong>Points where found</div>
     </section>
-    <section class="layout">
+    <section class="{layout_class}">
       <div class="panel">
-        <h2>Rank origins — schematic</h2>
+        <h2>Rank origins (schematic)</h2>
         <div class="map-shell">
           {map_surface}
           <div class="pin-layer">{''.join(pins)}</div>
         </div>
         <div class="map-legend">
-          <span><i class="legend-dot rank-top3"></i>top 3</span>
+          <span><i class="legend-dot rank-one"></i>rank 1</span>
+          <span><i class="legend-dot rank-top3"></i>rank 2-3</span>
           <span><i class="legend-dot rank-visible"></i>rank 4-10</span>
-          <span><i class="legend-dot rank-none"></i>no numeric rank (hover for status)</span>
-          <span>Blue ring = business center</span>
+          <span><i class="legend-dot rank-buried"></i>rank 11-20</span>
+          <span><i class="legend-dot rank-none"></i>not in full returned list</span>
+          <span><i class="legend-dot rank-short"></i>short list, target absent (unknown)</span>
+          <span><i class="legend-dot rank-empty"></i>no results (unknown)</span>
+          <span><i class="legend-ring"></i>business center</span>
         </div>
+        <div class="notes">{html.escape(map_layer_note)} Hover a point for its tag, coordinates and status.</div>
       </div>
-      <aside class="panel">
-        <h2>Competitor Pressure</h2>
-        {competitor_rows or '<p>no data</p>'}
-        <h2>Prospecting Verdict</h2>
-        <p><strong>{html.escape(verdict)}</strong></p>
-        <p>{html.escape(verdict_reason)}</p>
-        <p>{html.escape(weak_summary)}</p>
-        <div class="notes">{html.escape(map_layer_note)} Rank pins: DataForSEO Google Maps SERP results. A missing rank is not a claim of rank beyond depth or no market. Hover for point status. Shares exclude points without a found target or a complete returned rank sequence through the cutoff; they are not whole-market estimates.</div>
-        <div class="notes">Measurement settings: {html.escape(json.dumps(measurement_settings(args), sort_keys=True))}. Point statuses: {html.escape(json.dumps(metrics['status_counts'], sort_keys=True))}</div>
-        <p><a href="{html.escape(markdown_path.name)}">Open Markdown report</a></p>
-      </aside>
+      <div class="side">
+        <aside class="panel">
+          <h2>Competitor pressure</h2>
+          <p class="notes">Points where each business appears in the top 3.</p>
+          {competitor_rows or '<p>no data</p>'}
+        </aside>
+        <aside class="panel">
+          <h2>Prospecting verdict</h2>
+          <p class="verdict">{html.escape(verdict)}</p>
+          <p>{html.escape(verdict_reason)}</p>
+          <p>{html.escape(weak_summary)}</p>
+          <h3>Point status</h3>
+          <table>{status_rows}</table>
+          <details><summary>Measurement settings</summary><table class="settings">{settings_rows}</table></details>
+          <div class="notes">Rank pins: DataForSEO Google Maps SERP results. A missing rank is not a claim of rank beyond depth or no market. Shares exclude points without a found target or a complete returned rank sequence through the cutoff; they are not whole-market estimates.</div>
+          <p class="notes"><a href="{html.escape(markdown_path.name)}">Open Markdown report</a></p>
+        </aside>
+      </div>
     </section>
     <section class="supporting">
-      <div class="panel"><h2>Rank Grid Data</h2><div class="grid">{''.join(cells)}</div></div>
+      <div class="panel"><h2>Rank grid data</h2><div class="{grid_class}">{''.join(cells)}</div></div>
     </section>
   </main>
 </body>

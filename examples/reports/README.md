@@ -171,9 +171,9 @@ with `python examples/reports/make_basemap_fixture.py`. QA records source native
 pixels and effective PPI over its projected span (vertical average for
 EPSG:4326), as well as final raster pixels/PPI and the actual geographic plot.
 
-ReportLab's bundled Bitstream Vera fonts are the portable default. Optional
-`fonts: {"regular":"font.ttf","bold":"font-bold.ttf","title":"font-light.ttf"}`
-supplies local Unicode TrueType fonts; `title` is optional and otherwise uses
+Reports use the Jev theme by default: paper background, ink text, blue accent, a holographic header bar, Inter body and title type, and uppercase JetBrains Mono labels. Both fonts ship in `tools/fonts/` under the SIL Open Font License. Set `"theme": "geogrid"` for the original dark theme, which uses ReportLab's bundled Bitstream Vera fonts. Optional `verification_notes` (a list of strings) adds a "How the findings were checked" section and, in the Jev theme, a CHECKED WITH JEV header label. Optional
+`fonts: {"regular":"font.ttf","bold":"font-bold.ttf","title":"font-light.ttf","mono":"font-mono.ttf"}`
+supplies local Unicode TrueType fonts; `title` and `mono` are optional and otherwise use
 `regular`. Supply only fonts you have permission to use and embed; none are
 downloaded. Unsupported glyphs fail rather than disappear. Titles are 24/30 pt;
 body is 11/16 pt and map findings 10.5/14 pt. Captions/legend are at least 8.5 pt;

@@ -20,6 +20,24 @@ INK = '#F3F6F8'
 MUTED = '#A9BDCA'
 ACCENT = '#A9BDCA'
 LINE = '#375061'
+THEME = 'geogrid'
+# Page palettes. Rank marker colors are part of the evidence contract and never change.
+THEMES = {
+    'geogrid': dict(BG='#08131E', PANEL='#102434', INK='#F3F6F8', MUTED='#A9BDCA', ACCENT='#A9BDCA', LINE='#375061'),
+    'jev': dict(BG='#F3F3F1', PANEL='#FFFFFF', INK='#0F0F10', MUTED='#6D6D6A', ACCENT='#1F5BFF', LINE='#D8D8D4'),
+}
+HOLO = ('#FFC9E8', '#CDBDFF', '#A9E9FF', '#B9FFDC', '#FFF4AB', '#FFC9E8')
+DEFAULT_THEME = 'jev'
+THEME_FONTS = Path(__file__).parent / 'fonts'
+
+
+def apply_theme(name):
+    global THEME
+    THEME = name
+    globals().update(THEMES[name])
+
+
+apply_theme(DEFAULT_THEME)
 PAGE_W, PAGE_H, MARGIN, COLUMN = 612, 792, 48, 516
 MAP_W, MAP_H, SCALE = 516, 410, 3
 LEGEND = 'Ranks 1–3: green | Ranks 4–10: yellow | Ranks 11+: red | Hollow: not returned | E: error | Ø: empty | U: unmeasured'
@@ -136,14 +154,21 @@ def register_fonts(model):
     from reportlab.pdfbase import pdfmetrics
     from reportlab.pdfbase.ttfonts import TTFont
     root = Path(reportlab.__file__).parent / 'fonts'
-    paths = model.get('fonts', {'regular': str(root / 'Vera.ttf'), 'bold': str(root / 'VeraBd.ttf')})
+    if model.get('theme', DEFAULT_THEME) == 'jev' and (THEME_FONTS / 'Inter-Regular.ttf').is_file():
+        # Bundled OFL fonts for the Jev theme (see tools/fonts/*-OFL.txt).
+        default = {'regular': str(THEME_FONTS / 'Inter-Regular.ttf'), 'bold': str(THEME_FONTS / 'Inter-SemiBold.ttf'),
+                   'title': str(THEME_FONTS / 'Inter-SemiBold.ttf'), 'mono': str(THEME_FONTS / 'JetBrainsMono-Medium.ttf')}
+    else:
+        default = {'regular': str(root / 'Vera.ttf'), 'bold': str(root / 'VeraBd.ttf')}
+    paths = model.get('fonts', default)
     paths = dict(paths, title=paths.get('title', paths['regular']))
-    for key, name in (('regular', 'ReportBody'), ('bold', 'ReportBold'), ('title', 'ReportTitle')):
+    paths = dict(paths, mono=paths.get('mono', paths['regular']))
+    for key, name in (('regular', 'ReportBody'), ('bold', 'ReportBold'), ('title', 'ReportTitle'), ('mono', 'ReportMono')):
         pdfmetrics.registerFont(TTFont(name, paths[key]))
     pdfmetrics.registerFontFamily('ReportBody', normal='ReportBody', bold='ReportBold', italic='ReportBody', boldItalic='ReportBold')
     # Never silently replace unsupported characters in a business identity or copy.
     strings = [model['business']['name'], model['business']['location'], model['thesis'], model['center_label'], LIMITS, LEGEND]
-    strings += model['objectives'] + model['next_actions'] + model['missing_evidence']
+    strings += model['objectives'] + model['next_actions'] + model['missing_evidence'] + model.get('verification_notes', [])
     for lane in model['lanes']:
         strings += [lane['label'], lane['query'], lane.get('narrative') or '']
         strings += [r['source'] for r in lane['records']]
@@ -605,17 +630,48 @@ def render_pdf(model, assets, output):
                     value = min(candidates)[1]
         return TrackedParagraph(escape(value).replace('\n', '<br/>'), paragraph_style)
 
+    def label(canv, x, y, value, right=False):
+        # Uppercase tracked mono labels (Jev theme); plain labels otherwise.
+        if THEME != 'jev':
+            (canv.drawRightString if right else canv.drawString)(x, y, value)
+            return
+        spacing = .8
+        width = pdfmetrics.stringWidth(value, 'ReportMono', 8.5) + spacing*(len(value)-1)
+        canv.saveState()  # character spacing is PDF text state; keep it out of body copy
+        text = canv.beginText(x-width if right else x, y)
+        text.setFont('ReportMono', 8.5)
+        text.setCharSpace(spacing)
+        text.textOut(value)
+        text.setCharSpace(0)
+        canv.drawText(text)
+        canv.restoreState()
+
+    def holo_bar(canv, y, height):
+        steps = 120
+        width = (PAGE_W-2*MARGIN)/steps
+        stops = [HexColor(c) for c in HOLO]
+        for i in range(steps):
+            t = i/(steps-1)*(len(stops)-1)
+            a, b = stops[int(t)], stops[min(int(t)+1, len(stops)-1)]
+            f = t-int(t)
+            canv.setFillColorRGB(a.red+(b.red-a.red)*f, a.green+(b.green-a.green)*f, a.blue+(b.blue-a.blue)*f)
+            canv.rect(MARGIN+i*width, y, width+.3, height, fill=1, stroke=0)
+
     def page(canv, doc):
         canv.setFillColor(HexColor(BG))
         canv.rect(0, 0, PAGE_W, PAGE_H, fill=1, stroke=0)
+        if THEME == 'jev':
+            holo_bar(canv, 739, 3)
         canv.setStrokeColor(HexColor(LINE))
-        canv.line(MARGIN, 747, PAGE_W-MARGIN, 747)
+        canv.line(MARGIN, 747 if THEME != 'jev' else 735, PAGE_W-MARGIN, 747 if THEME != 'jev' else 735)
         canv.line(MARGIN, 43, PAGE_W-MARGIN, 43)
         canv.setFillColor(HexColor(MUTED))
         canv.setFont('ReportBody', 8.5)
-        canv.drawString(MARGIN, 761, 'GEOGRID / LOCAL SEARCH OBSERVATIONS')
-        canv.drawString(MARGIN, 28, 'SYNTHETIC DEMONSTRATION' if model['synthetic'] else 'SUPPLIED OBSERVATIONAL EVIDENCE')
-        canv.drawRightString(PAGE_W-MARGIN, 28, str(doc.page))
+        label(canv, MARGIN, 752 if THEME == 'jev' else 761, 'GEOGRID / LOCAL SEARCH OBSERVATIONS')
+        if THEME == 'jev' and model.get('verification_notes'):
+            label(canv, PAGE_W-MARGIN, 752, 'CHECKED WITH JEV', right=True)
+        label(canv, MARGIN, 28, 'SYNTHETIC DEMONSTRATION' if model['synthetic'] else 'SUPPLIED OBSERVATIONAL EVIDENCE')
+        label(canv, PAGE_W-MARGIN, 28, str(doc.page), right=True)
 
     doc = BaseDocTemplate(str(output / 'report.pdf'), pagesize=(PAGE_W, PAGE_H),
                           title=display_text(model['business']['name'])+' | GeoGrid report', author='GeoGrid',
@@ -647,6 +703,8 @@ def render_pdf(model, assets, output):
         story += [p(t) for t in model['next_actions']]
     else:
         story += [p('No business recommendations were supplied. Observations alone do not establish causes, demand, or likely returns.')]
+    if model.get('verification_notes'):
+        story += [p('How the findings were checked', 'heading')] + [p(t) for t in model['verification_notes']]
     story += [p('What remains unverified', 'heading')]
     for lane in model['lanes']:
         story += [p(lane['label'], 'heading')]
@@ -712,7 +770,9 @@ def render_html(model, assets, output):
         return '<p style="font-size:13px;color:'+MUTED+'">'+''.join(items)+'</p>'
     parts = ['<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width">',
              '<title>'+escape(model['business']['name'])+' | GeoGrid</title>',
-             '<style>body{margin:0;background:'+BG+';color:'+INK+';font:16px/1.6 system-ui,sans-serif}main{max-width:860px;margin:auto;padding:40px 24px}h1{font-size:36px;line-height:1.2}h2{color:'+ACCENT+'}p,h1,h2,td{overflow-wrap:anywhere}section{border-top:1px solid '+LINE+';padding:24px 0}img{width:100%;height:auto}table{border-collapse:collapse;font-size:13px;width:100%}th,td{padding:7px;text-align:left;border-bottom:1px solid '+LINE+'}.scroll{overflow:auto}small{color:'+MUTED+'}a{color:'+ACCENT+'}</style><main>',
+             '<style>'+('.holo{height:6px;background:linear-gradient(115deg,'+','.join(HOLO)+')}.mono{font-family:"JetBrains Mono",ui-monospace,monospace;text-transform:uppercase;letter-spacing:.09em;font-size:12px;color:'+MUTED+'}h1,h2,h3{font-weight:600;letter-spacing:-.02em}' if THEME == 'jev' else '')+'body{margin:0;background:'+BG+';color:'+INK+';font:16px/1.6 '+('Inter,' if THEME == 'jev' else '')+'system-ui,sans-serif}main{max-width:860px;margin:auto;padding:40px 24px}h1{font-size:36px;line-height:1.2}h2{color:'+ACCENT+'}p,h1,h2,td{overflow-wrap:anywhere}section{border-top:1px solid '+LINE+';padding:24px 0}img{width:100%;height:auto}table{border-collapse:collapse;font-size:13px;width:100%}th,td{padding:7px;text-align:left;border-bottom:1px solid '+LINE+'}.scroll{overflow:auto}small{color:'+MUTED+'}a{color:'+ACCENT+'}</style><main>',
+             *(['<div class="holo"></div>'] if THEME == 'jev' else []),
+             *(['<p class="mono">GeoGrid / local search observations'+(' · checked with Jev' if model.get('verification_notes') else '')+'</p>'] if THEME == 'jev' else []),
              h(model['business']['name'],1), p(model['business']['location'])]
     if model['synthetic']:
         parts += [h('Synthetic demonstration — no real business findings')]
@@ -743,6 +803,8 @@ def render_html(model, assets, output):
             parts += ['<tr>'] + ['<td>'+escape(str(row[x]) if row[x] is not None else 'unknown')+'</td>' for x in columns] + ['</tr>']
         parts += ['</tbody></table></div></details></section>']
     parts += [h('Recommended next steps')]+[p(x) for x in model['next_actions'] or ['No business recommendations supplied.']]
+    if model.get('verification_notes'):
+        parts += [h('How the findings were checked')]+[p(x) for x in model['verification_notes']]
     parts += [h('What remains unverified')]+[p(x) for x in model['missing_evidence']]
     parts += ['<p><a href="report.pdf">PDF report</a> · <a href="report-model.json">Normalized evidence and metrics</a> · <a href="report-qa.json">QA receipt</a></p></main></html>']
     html = display_text('\n'.join(parts))
@@ -780,8 +842,10 @@ def pdf_qa(path, proof=False, required=False):
                 issues.append(f'page {i+1}: {len(bad)} text glyphs outside bounds')
             bitmap = page.render(scale=1.5 if proof else .25)
             rendered = bitmap.to_pil().convert('RGB')
-            if max(rendered.getpixel((1,1))) > 45:
-                issues.append(f'page {i+1}: dark background missing')
+            corner = rendered.getpixel((1,1))
+            expected = tuple(int(BG[k:k+2], 16) for k in (1, 3, 5))
+            if max(abs(a-b) for a, b in zip(corner, expected)) > 20:
+                issues.append(f'page {i+1}: theme background missing')
             if proof:
                 proof_dir = path.parent/'proof'
                 proof_dir.mkdir(exist_ok=True)
@@ -799,6 +863,7 @@ def write_json(path, value):
 
 def build(config, output_dir, require_pdf_qa=False, proof=False):
     model = load_config(config)
+    apply_theme(model.get('theme', DEFAULT_THEME))
     output = Path(output_dir).resolve()
     require(not output.exists() or not any(output.iterdir()), 'output directory must be new or empty; existing files are preserved')
     fonts = register_fonts(model)

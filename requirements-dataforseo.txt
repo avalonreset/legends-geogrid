@@ -1,2 +1,2 @@
-# Shared provider transport for fresh scans. Offline reports do not require it.
-legends-dataforseo-kit @ git+https://github.com/avalonreset/legends-dataforseo-kit.git@v0.3.0
+# Public v0.3.0 provider engine pinned to immutable source; no git client needed.
+legends-dataforseo-kit @ https://github.com/avalonreset/legends-dataforseo-kit/archive/1c0dd262d782f759f86b9e5c897e53859fd2eb65.zip

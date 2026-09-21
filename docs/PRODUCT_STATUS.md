@@ -21,6 +21,14 @@ Client acceptance completed on 19 September 2026 with a second real business: fo
 
 Final 0.3.0 local acceptance passed 172 tests, four PDF workflows, the browser build, and dependency audit. The exact source package independently passed all 172 tests and four PDF workflows on Windows. The preceding candidate passed 168 tests and four offline PDF workflows on Windows and clean Linux. A final renderer-disclosure correction passed 45 report tests on both platforms and all four Linux PDF workflows. Version 0.3.0 retains that implementation and includes the discovery-first operating recipe learned during client review. Release scope is the improved collection and reporting tool, not an automated guarantee of commercially useful market selection. Operators must complete the study-purpose and market-fit review before dense collection. See [Start a study](START_A_STUDY.md).
 
+## v0.3.0 release refresh
+
+The refreshed v0.3.0 source distribution replaces detached basemap credit strips with continuous-image
+rendering. Embedded credits remain in place and protected from overlays. Legacy
+`credit_strip_px` configurations require complete-image bounds and the new
+`protected_bottom_px` setting; see [map configuration and migration](../examples/reports/README.md#maps-and-fonts).
+The refresh passes 174 tests and four offline PDF workflows. The version and release URL remain unchanged.
+
 ## Honest limitations
 
 - Business discovery and market-fit acceptance are operator-led procedures. The software does not automatically research an operating base, validate travel economics, or enforce that review before a scan.

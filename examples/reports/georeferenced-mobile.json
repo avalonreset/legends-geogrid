@@ -12,10 +12,10 @@
     "radius_bands_km": [10, 25, 50],
     "basemap": {
       "path": "synthetic-georeferenced.png",
-      "bounds": [-101.28, 40.76, -100.25, 41.37],
+      "bounds": [-101.40, 40.65, -100.13, 41.45],
       "crs": "EPSG:4326",
-      "credit_strip_px": 64,
-      "attribution_policy": "preserve-bottom-strip",
+      "protected_bottom_px": 64,
+      "attribution_policy": "preserve-in-place",
       "attribution": "Synthetic test artwork | Project MIT license | No real cartography"
     }
   }

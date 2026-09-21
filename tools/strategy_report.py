@@ -161,10 +161,8 @@ def georeferenced_image(base, extent, width, height):
     with Image.open(base['path']) as source:
         source.load()
         source = source.convert('RGBA')
-    strip = base.get('credit_strip_px', 0)
-    require(0 <= strip < source.height, 'credit_strip_px must leave a positive geographic image height')
-    if strip:
-        source = source.crop((0, 0, source.width, source.height-strip))
+    require('credit_strip_px' not in base and base.get('attribution_policy') != 'preserve-bottom-strip',
+            'detached credit strips are no longer supported; supply complete-image bounds and protected_bottom_px')
     sw, sh = source.size
     bw, bs, be, bn = base['bounds']
     w, s, e, n = extent
@@ -185,6 +183,34 @@ def georeferenced_image(base, extent, width, height):
     return source.transform((width, height), Image.Transform.MESH, mesh, Image.Resampling.BICUBIC)
 
 
+def basemap_viewport(base, requested, width, height):
+    """Embedded credits stay attached to a complete, uncropped basemap."""
+    require('credit_strip_px' not in base and base.get('attribution_policy') != 'preserve-bottom-strip',
+            'detached credit strips are no longer supported; supply complete-image bounds and protected_bottom_px')
+    if base['attribution_policy'] == 'preserve-in-place':
+        w,s,e,n = base['bounds']
+        rw,rs,re,rn = requested
+        require(w <= rw < re <= e and s <= rs < rn <= n,
+                'complete basemap must cover the requested view; supply wider imagery with room for markers and credits')
+        return list(base['bounds'])
+    return street_extent(requested, width, height)
+
+
+def protected_credit_box(base, source_size, projection, frame):
+    """Locate the existing bottom credit area in the same geographic transform."""
+    if base['attribution_policy'] != 'preserve-in-place':
+        return None
+    protected = base.get('protected_bottom_px', 0)
+    require(type(protected) is int and 0 < protected < source_size[1],
+            'protected_bottom_px must leave positive unprotected image height')
+    w,s,e,n = base['bounds']
+    fraction = (source_size[1]-protected)/source_size[1]
+    latitude = (n-(n-s)*fraction if base['crs'] == 'EPSG:4326' else
+                unmercator(mercator(n)-(mercator(n)-mercator(s))*fraction))
+    y = math.floor(projection.point(latitude,w)[1])
+    return [frame[0], max(frame[1],y-1), frame[2], frame[3]]
+
+
 def destination(lat, lng, km, bearing):
     distance = km / 6371.0088
     a, b, theta = math.radians(lat), math.radians(lng), math.radians(bearing)
@@ -200,25 +226,16 @@ def map_image(lane, business, path, fonts, full=False):
     height_pt = MAP_H if full else lane['map'].get('height_pt',452 if base else MAP_H)
     width, height = MAP_W * SCALE, height_pt * SCALE
     requested_extent = list(extent)
-    credit, source_pixels = None, None
+    source_pixels = None
     credit_box = None
+    credit_hash = None
     geo_height = height
     if base:
         with Image.open(base['path']) as original:
             original = original.convert('RGB')
         source_pixels = list(original.size)
-        strip = base.get('credit_strip_px', 0)
-        require(0 <= strip < original.height, 'credit_strip_px must leave geographic content')
-        if strip:
-            credit = original.crop((0, original.height-strip, original.width, original.height))
-            credit_width = width-16*SCALE
-            credit_height = round(strip * credit_width / original.width)
-            require(8*SCALE <= credit_height <= 60*SCALE, 'credit strip must fit at 8–60 pt height; provide an overlay-safe image with separate-caption policy instead')
-            credit = credit.resize((credit_width, credit_height), Image.Resampling.LANCZOS)
-            credit_box = [8*SCALE, height-credit_height-2*SCALE, width-8*SCALE, height-2*SCALE]
-            geo_height = credit_box[1]-4*SCALE
     if base:
-        extent = street_extent(extent, width, geo_height)
+        extent = basemap_viewport(base, extent, width, geo_height)
     projection = Projection(extent, width=width, height=geo_height, pad=0 if base else 26*SCALE)
     source_ppi = None
     if base:
@@ -226,7 +243,7 @@ def map_image(lane, business, path, fonts, full=False):
         sx0,sy0 = projection.point(bs,bw)
         sx1,sy1 = projection.point(bn,be)
         source_ppi = dict(x=source_pixels[0]/((sx1-sx0)/SCALE)*72,
-                          y_average=(source_pixels[1]-base.get('credit_strip_px',0))/((sy0-sy1)/SCALE)*72,
+                          y_average=source_pixels[1]/((sy0-sy1)/SCALE)*72,
                           note='Native geographic pixels per projected full-image span; vertical value is an average for EPSG:4326')
     canvas = Image.new('RGB', (width, height), BG)
     draw = ImageDraw.Draw(canvas)
@@ -235,6 +252,10 @@ def map_image(lane, business, path, fonts, full=False):
     if base:
         terrain = georeferenced_image(base, extent, rect[2] - rect[0], rect[3] - rect[1])
         canvas.paste(terrain, rect[:2], terrain)
+        credit_box = protected_credit_box(base, source_pixels, projection, rect)
+        if credit_box:
+            credit_hash = hashlib.sha256(canvas.crop(credit_box).tobytes()).hexdigest()
+    overlay_frame = [rect[0],rect[1],rect[2],credit_box[1] if credit_box else rect[3]]
     # Only complete neutral rings are drawn. Cropped bands are disclosed below
     # the map, not presented as seemingly complete service-area boundaries.
     overlay = Image.new('RGBA', canvas.size)
@@ -246,7 +267,7 @@ def map_image(lane, business, path, fonts, full=False):
             points.append(points[0])
             footprint = [min(p[0] for p in points)-1, min(p[1] for p in points)-1,
                          max(p[0] for p in points)+1, max(p[1] for p in points)+1]
-            if not contains_box(rect, footprint):
+            if not contains_box(overlay_frame, footprint):
                 omitted_bands.append(band)
                 continue
             drawn_bands.append(band)
@@ -256,7 +277,7 @@ def map_image(lane, business, path, fonts, full=False):
     shade_bands(overlay, ring_geometry)
     canvas.paste(overlay, (0, 0), overlay)
     distance_unit = lane['map'].get('distance_unit','km')
-    band_labels = paint_band_labels(canvas,ring_geometry,fonts,rect,distance_unit)
+    band_labels = paint_band_labels(canvas,ring_geometry,fonts,overlay_frame,distance_unit)
     draw = ImageDraw.Draw(canvas)
     font = ImageFont.truetype(fonts['bold'], 8 * SCALE)
     small = ImageFont.truetype(fonts['regular'], round(8.5 * SCALE))
@@ -270,6 +291,9 @@ def map_image(lane, business, path, fonts, full=False):
         color, ink = marker_style(state, rank)
         box = draw.textbbox((0, 0), label, font=font)
         radius = 4.25*SCALE if state == 'not_returned' else max(6.5 * SCALE, (box[2] - box[0]) / 2 + 2 * SCALE)
+        if credit_box:
+            require(contains_box(overlay_frame,[x-radius,y-radius,x+radius,y+radius]),
+                    'marker overlaps embedded credits or image edge; supply wider imagery with marker clearance')
         pins.append((x, y, radius))
         marker_geometry.append(dict(index=index, center_px=[x, y], radius_px=radius, label=label,
                                     state=state, rank=rank, footprint_px=[x-radius,y-radius,x+radius,y+radius]))
@@ -279,6 +303,9 @@ def map_image(lane, business, path, fonts, full=False):
     # Crosshair is an origin marker, not an additional observation.
     if inside(business, extent):
         x, y = projection.point(business['lat'], business['lng'])
+        if credit_box:
+            require(contains_box(overlay_frame,[x-14*SCALE,y-14*SCALE,x+14*SCALE,y+14*SCALE]),
+                    'origin marker overlaps embedded credits or image edge; supply wider imagery')
         for a, b, c, d in ((x-13*SCALE, y, x-9*SCALE, y), (x+9*SCALE, y, x+13*SCALE, y),
                            (x, y-13*SCALE, x, y-9*SCALE), (x, y+9*SCALE, x, y+13*SCALE)):
             draw.line((a, b, c, d), fill=ACCENT, width=3)
@@ -290,8 +317,9 @@ def map_image(lane, business, path, fonts, full=False):
     if not base:
         draw.text((8*SCALE, geo_height-14*SCALE), f'W {w:.5f} / S {s:.5f}', font=small, fill=MUTED)
         draw.text((width-8*SCALE, geo_height-14*SCALE), f'E {e:.5f} / N {n:.5f}', font=small, fill=MUTED, anchor='ra')
-    if credit is not None:
-        canvas.paste(credit, credit_box[:2])
+    if credit_box:
+        require(hashlib.sha256(canvas.crop(credit_box).tobytes()).hexdigest() == credit_hash,
+                'overlays changed embedded credit pixels; supply imagery with more clearance')
     collisions = sum(math.hypot(a[0]-b[0], a[1]-b[1]) < a[2]+b[2]
                      for i, a in enumerate(pins) for b in pins[i+1:])
     canvas.save(path)
@@ -302,7 +330,7 @@ def map_image(lane, business, path, fonts, full=False):
                                         width=(rect[2]-rect[0])/SCALE,height=(rect[3]-rect[1])/SCALE),
                 basemap_native_pixels=source_pixels, protected_credit_box_px=credit_box,
                 basemap_effective_ppi=source_ppi,
-                credit_pixels_sha256=hashlib.sha256(credit.tobytes()).hexdigest() if credit is not None else None,
+                credit_pixels_sha256=credit_hash,
                 attribution_policy=base['attribution_policy'] if base else 'schematic-caption',
                 marker_geometry=marker_geometry, ring_geometry=ring_geometry, band_labels=band_labels, distance_unit=distance_unit,
                 drawn_radius_bands_km=drawn_bands, omitted_radius_bands_km=omitted_bands,
@@ -318,13 +346,14 @@ def map_caption(lane, asset):
     msg = (f"{asset['attribution']}. Neutral bands: {bands} {unit}; origin: neutral crosshair. "
            f"{asset['plotted']} origins shown; {asset['outside']} outside view.")
     if asset['omitted_radius_bands_km']:
-        msg += ' Bands omitted outside view: '+', '.join(display_distance(x,unit) for x in asset['omitted_radius_bands_km'])+' '+unit+'.'
+        reason = 'Bands omitted to keep the view and credits clear' if asset['protected_credit_box_px'] else 'Bands omitted outside view'
+        msg += ' '+reason+': '+', '.join(display_distance(x,unit) for x in asset['omitted_radius_bands_km'])+' '+unit+'.'
     if asset['pin_collisions']:
         msg += f" {asset['pin_collisions']} pin overlaps; positions are unchanged. See the HTML ledger for every exact coordinate and rank."
     if lane['map'].get('basemap'):
         msg += ' Areas outside the supplied image retain a schematic background.'
-        if asset['attribution_policy'] == 'preserve-bottom-strip':
-            msg += ' Original bottom credit strip is retained below overlays at uniform scale.'
+        if asset['attribution_policy'] == 'preserve-in-place':
+            msg += ' Complete basemap retained; embedded credits remain in their original geographic position, clear of overlays.'
         else:
             msg += ' Overlay-safe image; credit is repeated here separately. Embedded credits are not protected.'
     return msg+' '+center_disclosure(asset) if asset.get('center_kind') == 'market' else msg
@@ -376,11 +405,10 @@ def map_qa(lane, business, asset, path, fonts):
     geo_height = asset['geographic_height_px']
     credit_box = asset['protected_credit_box_px']
     if credit_box:
-        require(contains_box([0,0,width,height], credit_box), 'credit strip is outside raster')
-        require(geo_height < credit_box[1], 'credit strip intersects geographic area')
+        require(contains_box(asset['geographic_frame_px'], credit_box), 'embedded credits are outside geographic frame')
         require(hashlib.sha256(raster.crop(credit_box).tobytes()).hexdigest() == asset['credit_pixels_sha256'], 'protected credit pixels were altered')
     base = lane['map'].get('basemap')
-    expected_bounds = street_extent(asset['requested_bounds'], width, geo_height) if base else asset['requested_bounds']
+    expected_bounds = basemap_viewport(base,asset['requested_bounds'],width,geo_height) if base else asset['requested_bounds']
     require(asset['bounds'] == expected_bounds, 'expanded viewport bounds mismatch')
     projection = Projection(asset['bounds'], width=width, height=geo_height, pad=0 if base else 26*SCALE)
     frame = [round(v) for v in (projection.left,projection.top,projection.right,projection.bottom)]
@@ -390,13 +418,15 @@ def map_qa(lane, business, asset, path, fonts):
         with Image.open(base['path']) as original:
             original = original.convert('RGB')
         require(list(original.size)==asset['basemap_native_pixels'], 'source native pixel dimensions mismatch')
-        if base.get('credit_strip_px'):
-            expected_credit = original.crop((0,original.height-base['credit_strip_px'],original.width,original.height))
-            expected_credit = expected_credit.resize((credit_box[2]-credit_box[0],credit_box[3]-credit_box[1]),Image.Resampling.LANCZOS)
-            require(expected_credit.tobytes()==raster.crop(credit_box).tobytes(), 'credit strip does not match source at uniform scale')
+        require(credit_box == protected_credit_box(base,original.size,projection,frame), 'embedded credit position mismatch')
+        if credit_box:
+            expected_terrain = georeferenced_image(base,asset['bounds'],frame[2]-frame[0],frame[3]-frame[1]).convert('RGB')
+            source_box = [credit_box[0]-frame[0],credit_box[1]-frame[1],credit_box[2]-frame[0],credit_box[3]-frame[1]]
+            require(expected_terrain.crop(source_box).tobytes()==raster.crop(credit_box).tobytes(),
+                    'embedded credits do not match the continuous source image')
     # 18pt outer inset reserves the axis caption area. Geographic padding
     # permits boundary-centered pins without clipping their circles.
-    safe = [0,0,width,geo_height-(0 if base else 18*SCALE)]
+    safe = [frame[0],frame[1],frame[2],credit_box[1] if credit_box else frame[3]] if base else [0,0,width,geo_height-18*SCALE]
     expected = {i:r for i,r in enumerate(lane['records']) if inside(r,asset['bounds'])}
     markers = asset['marker_geometry']
     require(len(markers) == len(expected) == asset['plotted'], 'marker count does not match visible observations')
@@ -450,7 +480,7 @@ def map_qa(lane, business, asset, path, fonts):
     expected_raster.paste(overlay,(0,0),overlay)
     unit = lane['map'].get('distance_unit','km')
     require(asset.get('distance_unit','km') == unit, 'map distance unit mismatch')
-    labels = paint_band_labels(expected_raster,rings,fonts,frame,unit)
+    labels = paint_band_labels(expected_raster,rings,fonts,safe if base else frame,unit)
     require(labels == asset['band_labels'], 'band label geometry mismatch')
     for label in labels:
         require(contains_box(safe,label['footprint_px']), 'band label clips geographic area')

@@ -217,15 +217,19 @@ def map_config(raw, root):
         require(base.get('crs') in ('EPSG:3857', 'EPSG:4326'), 'basemap needs EPSG:3857 or EPSG:4326 CRS')
         result['basemap'] = dict(path=str(local_path(root, base.get('path'))), bounds=bounds(base.get('bounds')),
                                  crs=base['crs'], attribution=text(base.get('attribution'), 'basemap attribution'))
-        strip = base.get('credit_strip_px', 0)
-        require(integer(strip), 'credit_strip_px must be a nonnegative integer')
-        if strip:
-            require(base.get('attribution_policy', 'preserve-bottom-strip') == 'preserve-bottom-strip',
-                    'credit_strip_px requires preserve-bottom-strip policy')
-            result['basemap'].update(credit_strip_px=strip, attribution_policy='preserve-bottom-strip')
+        require('credit_strip_px' not in base and base.get('attribution_policy') != 'preserve-bottom-strip',
+                'detached credit strips are no longer supported; use attribution_policy=preserve-in-place, '
+                'protected_bottom_px, and bounds for the COMPLETE image (including its bottom rows)')
+        protected = base.get('protected_bottom_px', 0)
+        require(integer(protected), 'protected_bottom_px must be a nonnegative integer')
+        if protected:
+            require(base.get('attribution_policy', 'preserve-in-place') == 'preserve-in-place',
+                    'protected_bottom_px requires attribution_policy=preserve-in-place')
+            result['basemap'].update(protected_bottom_px=protected, attribution_policy='preserve-in-place')
         else:
             require(base.get('attribution_policy') == 'separate-caption' and base.get('overlay_safe') is True,
-                    'basemap needs credit_strip_px, or attribution_policy=separate-caption with overlay_safe=true')
+                    'basemap needs protected_bottom_px with attribution_policy=preserve-in-place, '
+                    'or attribution_policy=separate-caption with overlay_safe=true')
             result['basemap'].update(attribution_policy='separate-caption', overlay_safe=True)
     return result
 

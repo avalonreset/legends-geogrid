@@ -262,8 +262,12 @@ def load_config(path):
     if 'fonts' in cfg:
         require(isinstance(cfg['fonts'], dict), 'fonts must be an object')
         result['fonts'] = {k: str(local_path(path.parent, cfg['fonts'].get(k))) for k in ('regular', 'bold')}
-        if 'title' in cfg['fonts']:
-            result['fonts']['title'] = str(local_path(path.parent, cfg['fonts']['title']))
+        for optional in ('title', 'mono'):
+            if optional in cfg['fonts']:
+                result['fonts'][optional] = str(local_path(path.parent, cfg['fonts'][optional]))
+    result['theme'] = cfg.get('theme', 'jev')
+    require(result['theme'] in ('geogrid', 'jev'), 'theme must be geogrid or jev')
+    result['verification_notes'] = text_list(cfg, 'verification_notes')
     lanes = cfg.get('lanes')
     require(isinstance(lanes, list) and lanes, 'lanes must be a nonempty list')
     ids = set()

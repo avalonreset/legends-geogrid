@@ -284,6 +284,34 @@ class RenderTests(unittest.TestCase):
                 if name=='rural-mobile':
                     self.assertEqual(0,result['maps'][0]['full']['outside'])
 
+    def test_jev_theme_renders_light_page_with_verification_notes(self):
+        import strategy_report
+        cfg=json.loads((ROOT/'examples/reports/urban-dentist.json').read_text(encoding='utf-8'))
+        cfg['lanes']=[dict(lane,records_path=str(ROOT/'examples/reports'/lane['records_path'])) for lane in cfg['lanes']]
+        cfg.update(theme='jev',verification_notes=['Synthetic check note.'])
+        try:
+            with tempfile.TemporaryDirectory() as folder:
+                result=self.render(cfg,Path(folder),require_pdf_qa=PDFIUM)
+                html=(Path(folder)/'output/report.html').read_text(encoding='utf-8')
+            if PDFIUM:
+                self.assertEqual('passed',result['pdf']['status'])
+            self.assertIn('class="holo"',html)
+            self.assertIn('How the findings were checked',html)
+        finally:
+            strategy_report.apply_theme(strategy_report.DEFAULT_THEME)
+        try:
+            with tempfile.TemporaryDirectory() as folder:
+                result=self.render(dict(cfg,theme='geogrid'),Path(folder),require_pdf_qa=PDFIUM)
+                html=(Path(folder)/'output/report.html').read_text(encoding='utf-8')
+            if PDFIUM:
+                self.assertEqual('passed',result['pdf']['status'])
+            self.assertNotIn('class="holo"',html)
+        finally:
+            strategy_report.apply_theme(strategy_report.DEFAULT_THEME)
+        with self.assertRaises(ValueError):
+            with tempfile.TemporaryDirectory() as folder:
+                self.render(dict(cfg,theme='neon'),Path(folder))
+
     @unittest.skipUnless((ROOT/'tools/adaptive_geogrid.py').is_file(),'collector not installed')
     def test_real_collector_replay_feeds_report_without_conversion(self):
         with tempfile.TemporaryDirectory() as folder:

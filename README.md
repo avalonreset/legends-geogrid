@@ -1,5 +1,5 @@
 <p align="left" id="banner">
-  <a href="https://cto-legends.com"><img src="assets/banner.webp" alt="legends-geogrid: local search rank grids" width="100%"></a>
+  <a href="https://cto-legends.com"><img src="assets/banner.webp" alt="legends-geogrid: local ranking maps and reports, without a tracking subscription" width="100%"></a>
 </p>
 
 # legends-geogrid

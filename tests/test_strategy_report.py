@@ -284,18 +284,35 @@ class RenderTests(unittest.TestCase):
                 if name=='rural-mobile':
                     self.assertEqual(0,result['maps'][0]['full']['outside'])
 
-    def test_jev_theme_renders_light_page_with_verification_notes(self):
+    def test_light_theme_renders_white_page_with_verification_notes(self):
         import strategy_report
         cfg=json.loads((ROOT/'examples/reports/urban-dentist.json').read_text(encoding='utf-8'))
         cfg['lanes']=[dict(lane,records_path=str(ROOT/'examples/reports'/lane['records_path'])) for lane in cfg['lanes']]
-        cfg.update(theme='jev',verification_notes=['Synthetic check note.'])
+        cfg.update(theme='light',verification_notes=['Synthetic check note.'])
         try:
             with tempfile.TemporaryDirectory() as folder:
                 result=self.render(cfg,Path(folder),require_pdf_qa=PDFIUM)
                 html=(Path(folder)/'output/report.html').read_text(encoding='utf-8')
+                self.assertIn('background:#FFFFFF', html)
+                for state in ('error','empty','unmeasured'):
+                    self.assertEqual('#FFFFFF',strategy_report.marker_style(state,None)[1])
+                self.assertNotIn('checked with jev', html.lower())
+                self.assertIn('legends-geogrid', html)
+                if PDFIUM:
+                    import pypdfium2
+                    pdf=pypdfium2.PdfDocument(str(Path(folder)/'output/report.pdf'))
+                    try:
+                        for page in pdf:
+                            bitmap=page.render(scale=.25)
+                            self.assertEqual((255,255,255),bitmap.to_pil().convert('RGB').getpixel((1,1)))
+                            bitmap.close()
+                            page.close()
+                    finally:
+                        pdf.close()
+
             if PDFIUM:
                 self.assertEqual('passed',result['pdf']['status'])
-            self.assertIn('class="holo"',html)
+            self.assertIn('class="brand-strip"',html)
             self.assertIn('How the findings were checked',html)
         finally:
             strategy_report.apply_theme(strategy_report.DEFAULT_THEME)
@@ -305,12 +322,23 @@ class RenderTests(unittest.TestCase):
                 html=(Path(folder)/'output/report.html').read_text(encoding='utf-8')
             if PDFIUM:
                 self.assertEqual('passed',result['pdf']['status'])
-            self.assertNotIn('class="holo"',html)
+            self.assertNotIn('class="brand-strip"',html)
         finally:
             strategy_report.apply_theme(strategy_report.DEFAULT_THEME)
         with self.assertRaises(ValueError):
             with tempfile.TemporaryDirectory() as folder:
                 self.render(dict(cfg,theme='neon'),Path(folder))
+
+    def test_default_dark_and_legacy_light_alias(self):
+        from report_model import load_config
+        cfg=config()
+        with tempfile.TemporaryDirectory() as folder:
+            path=Path(folder)/'config.json'
+            path.write_text(json.dumps(cfg),encoding='utf-8')
+            self.assertEqual('geogrid',load_config(path)['theme'])
+            cfg['theme']='jev'
+            path.write_text(json.dumps(cfg),encoding='utf-8')
+            self.assertEqual('light',load_config(path)['theme'])
 
     @unittest.skipUnless((ROOT/'tools/adaptive_geogrid.py').is_file(),'collector not installed')
     def test_real_collector_replay_feeds_report_without_conversion(self):

@@ -265,8 +265,11 @@ def load_config(path):
         for optional in ('title', 'mono'):
             if optional in cfg['fonts']:
                 result['fonts'][optional] = str(local_path(path.parent, cfg['fonts'][optional]))
-    result['theme'] = cfg.get('theme', 'jev')
-    require(result['theme'] in ('geogrid', 'jev'), 'theme must be geogrid or jev')
+    result['theme'] = cfg.get('theme', 'geogrid')
+    # Retain the unpublished Jev branch configuration as a light-theme alias.
+    if result['theme'] == 'jev':
+        result['theme'] = 'light'
+    require(result['theme'] in ('geogrid', 'light'), 'theme must be geogrid or light')
     result['verification_notes'] = text_list(cfg, 'verification_notes')
     lanes = cfg.get('lanes')
     require(isinstance(lanes, list) and lanes, 'lanes must be a nonempty list')

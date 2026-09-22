@@ -171,7 +171,16 @@ with `python examples/reports/make_basemap_fixture.py`. QA records source native
 pixels and effective PPI over its projected span (vertical average for
 EPSG:4326), as well as final raster pixels/PPI and the actual geographic plot.
 
-Reports use the Jev theme by default: paper background, ink text, blue accent, a holographic header bar, Inter body and title type, and uppercase JetBrains Mono labels. Both fonts ship in `tools/fonts/` under the SIL Open Font License. Set `"theme": "geogrid"` for the original dark theme, which uses ReportLab's bundled Bitstream Vera fonts. Optional `verification_notes` (a list of strings) adds a "How the findings were checked" section and, in the Jev theme, a CHECKED WITH JEV header label. Optional
+Reports retain the original dark theme by default (`"theme": "geogrid"`).
+Set `"theme": "light"` for the optional print-friendly theme: pure white page and
+map backgrounds, dark text, red accents, and a restrained red/black/white header
+strip. Rank colors remain unchanged. The light theme uses bundled Inter and
+JetBrains Mono under the SIL Open Font License; the dark theme retains Bitstream
+Vera. The earlier `"theme": "jev"` configuration is accepted as an alias for
+`"light"`. Both themes retain legends-geogrid branding.
+Optional `verification_notes` (a list of strings) adds operator-supplied notes
+under "How the findings were checked"; it does not certify or independently
+verify findings. No third-party verification badge is added. Optional
 `fonts: {"regular":"font.ttf","bold":"font-bold.ttf","title":"font-light.ttf","mono":"font-mono.ttf"}`
 supplies local Unicode TrueType fonts; `title` and `mono` are optional and otherwise use
 `regular`. Supply only fonts you have permission to use and embed; none are
@@ -198,7 +207,7 @@ Protected credit pixels are compared with the uniformly resized source strip.
 Clipping, missing/modified paint, counts, or credit mismatch fail the build.
 This is geometric/raster QA, not OCR or verification of the source geography.
 Layout boxes are also checked. If installed, pypdfium2 additionally
-checks rendered PDF text bounds, nonblank pages, Letter size, and dark corners;
+checks rendered PDF text bounds, nonblank pages, Letter size, and theme-appropriate corners;
 `--require-pdf-qa` makes its absence an error. `--proof` writes rendered page PNGs.
 QA includes hashes, page count, map extents, collision counts and denominator
 evidence. A passed bbox check is not a substitute for inspecting cartography.

@@ -24,10 +24,10 @@ THEME = 'geogrid'
 # Page palettes. Rank marker colors are part of the evidence contract and never change.
 THEMES = {
     'geogrid': dict(BG='#08131E', PANEL='#102434', INK='#F3F6F8', MUTED='#A9BDCA', ACCENT='#A9BDCA', LINE='#375061'),
-    'jev': dict(BG='#F3F3F1', PANEL='#FFFFFF', INK='#0F0F10', MUTED='#6D6D6A', ACCENT='#1F5BFF', LINE='#D8D8D4'),
+    'light': dict(BG='#FFFFFF', PANEL='#FFFFFF', INK='#0F0F10', MUTED='#6D6D6A', ACCENT='#C80000', LINE='#D8D8D4'),
 }
-HOLO = ('#FFC9E8', '#CDBDFF', '#A9E9FF', '#B9FFDC', '#FFF4AB', '#FFC9E8')
-DEFAULT_THEME = 'jev'
+HEADER_COLORS = ('#CC0000', '#8C0000', '#111111', '#777777', '#FFFFFF')
+DEFAULT_THEME = 'geogrid'
 THEME_FONTS = Path(__file__).parent / 'fonts'
 
 
@@ -58,7 +58,7 @@ def marker_style(state, rank):
     if state == 'not_returned':
         return None, MUTED
     if state != 'found':
-        return '#263745', MUTED
+        return '#263745', '#FFFFFF' if THEME == 'light' else MUTED
     return RANK_COLORS[0 if rank <= 3 else 1 if rank <= 10 else 2], '#000000' if rank <= 10 else '#FFFFFF'
 
 
@@ -154,8 +154,8 @@ def register_fonts(model):
     from reportlab.pdfbase import pdfmetrics
     from reportlab.pdfbase.ttfonts import TTFont
     root = Path(reportlab.__file__).parent / 'fonts'
-    if model.get('theme', DEFAULT_THEME) == 'jev' and (THEME_FONTS / 'Inter-Regular.ttf').is_file():
-        # Bundled OFL fonts for the Jev theme (see tools/fonts/*-OFL.txt).
+    if model.get('theme', DEFAULT_THEME) == 'light' and (THEME_FONTS / 'Inter-Regular.ttf').is_file():
+        # Bundled OFL fonts for the light theme (see tools/fonts/*-OFL.txt).
         default = {'regular': str(THEME_FONTS / 'Inter-Regular.ttf'), 'bold': str(THEME_FONTS / 'Inter-SemiBold.ttf'),
                    'title': str(THEME_FONTS / 'Inter-SemiBold.ttf'), 'mono': str(THEME_FONTS / 'JetBrainsMono-Medium.ttf')}
     else:
@@ -631,8 +631,8 @@ def render_pdf(model, assets, output):
         return TrackedParagraph(escape(value).replace('\n', '<br/>'), paragraph_style)
 
     def label(canv, x, y, value, right=False):
-        # Uppercase tracked mono labels (Jev theme); plain labels otherwise.
-        if THEME != 'jev':
+        # Uppercase tracked mono labels (light theme); plain labels otherwise.
+        if THEME != 'light':
             (canv.drawRightString if right else canv.drawString)(x, y, value)
             return
         spacing = .8
@@ -646,10 +646,10 @@ def render_pdf(model, assets, output):
         canv.drawText(text)
         canv.restoreState()
 
-    def holo_bar(canv, y, height):
+    def header_bar(canv, y, height):
         steps = 120
         width = (PAGE_W-2*MARGIN)/steps
-        stops = [HexColor(c) for c in HOLO]
+        stops = [HexColor(c) for c in HEADER_COLORS]
         for i in range(steps):
             t = i/(steps-1)*(len(stops)-1)
             a, b = stops[int(t)], stops[min(int(t)+1, len(stops)-1)]
@@ -660,21 +660,19 @@ def render_pdf(model, assets, output):
     def page(canv, doc):
         canv.setFillColor(HexColor(BG))
         canv.rect(0, 0, PAGE_W, PAGE_H, fill=1, stroke=0)
-        if THEME == 'jev':
-            holo_bar(canv, 739, 3)
+        if THEME == 'light':
+            header_bar(canv, 739, 3)
         canv.setStrokeColor(HexColor(LINE))
-        canv.line(MARGIN, 747 if THEME != 'jev' else 735, PAGE_W-MARGIN, 747 if THEME != 'jev' else 735)
+        canv.line(MARGIN, 747 if THEME != 'light' else 735, PAGE_W-MARGIN, 747 if THEME != 'light' else 735)
         canv.line(MARGIN, 43, PAGE_W-MARGIN, 43)
         canv.setFillColor(HexColor(MUTED))
         canv.setFont('ReportBody', 8.5)
-        label(canv, MARGIN, 752 if THEME == 'jev' else 761, 'GEOGRID / LOCAL SEARCH OBSERVATIONS')
-        if THEME == 'jev' and model.get('verification_notes'):
-            label(canv, PAGE_W-MARGIN, 752, 'CHECKED WITH JEV', right=True)
+        label(canv, MARGIN, 752 if THEME == 'light' else 761, 'legends-geogrid / local search observations')
         label(canv, MARGIN, 28, 'SYNTHETIC DEMONSTRATION' if model['synthetic'] else 'SUPPLIED OBSERVATIONAL EVIDENCE')
         label(canv, PAGE_W-MARGIN, 28, str(doc.page), right=True)
 
     doc = BaseDocTemplate(str(output / 'report.pdf'), pagesize=(PAGE_W, PAGE_H),
-                          title=display_text(model['business']['name'])+' | GeoGrid report', author='GeoGrid',
+                          title=display_text(model['business']['name'])+' | legends-geogrid report', author='legends-geogrid',
                           leftMargin=MARGIN, rightMargin=MARGIN, topMargin=65, bottomMargin=58,
                           allowSplitting=1)
     doc.addPageTemplates(PageTemplate(id='dark', frames=[Frame(MARGIN, 58, COLUMN, 669, leftPadding=0,
@@ -769,10 +767,10 @@ def render_html(model, assets, output):
             items += ['<br>E: error · Ø: empty · U: unmeasured (excluded from measured denominator)']
         return '<p style="font-size:13px;color:'+MUTED+'">'+''.join(items)+'</p>'
     parts = ['<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width">',
-             '<title>'+escape(model['business']['name'])+' | GeoGrid</title>',
-             '<style>'+('.holo{height:6px;background:linear-gradient(115deg,'+','.join(HOLO)+')}.mono{font-family:"JetBrains Mono",ui-monospace,monospace;text-transform:uppercase;letter-spacing:.09em;font-size:12px;color:'+MUTED+'}h1,h2,h3{font-weight:600;letter-spacing:-.02em}' if THEME == 'jev' else '')+'body{margin:0;background:'+BG+';color:'+INK+';font:16px/1.6 '+('Inter,' if THEME == 'jev' else '')+'system-ui,sans-serif}main{max-width:860px;margin:auto;padding:40px 24px}h1{font-size:36px;line-height:1.2}h2{color:'+ACCENT+'}p,h1,h2,td{overflow-wrap:anywhere}section{border-top:1px solid '+LINE+';padding:24px 0}img{width:100%;height:auto}table{border-collapse:collapse;font-size:13px;width:100%}th,td{padding:7px;text-align:left;border-bottom:1px solid '+LINE+'}.scroll{overflow:auto}small{color:'+MUTED+'}a{color:'+ACCENT+'}</style><main>',
-             *(['<div class="holo"></div>'] if THEME == 'jev' else []),
-             *(['<p class="mono">GeoGrid / local search observations'+(' · checked with Jev' if model.get('verification_notes') else '')+'</p>'] if THEME == 'jev' else []),
+             '<title>'+escape(model['business']['name'])+' | legends-geogrid</title>',
+             '<style>'+('.brand-strip{height:6px;background:linear-gradient(115deg,'+','.join(HEADER_COLORS)+')}.mono{font-family:"JetBrains Mono",ui-monospace,monospace;letter-spacing:.09em;font-size:12px;color:'+MUTED+'}h1,h2,h3{font-weight:600;letter-spacing:-.02em}' if THEME == 'light' else '')+'body{margin:0;background:'+BG+';color:'+INK+';font:16px/1.6 '+('Inter,' if THEME == 'light' else '')+'system-ui,sans-serif}main{max-width:860px;margin:auto;padding:40px 24px}h1{font-size:36px;line-height:1.2}h2{color:'+ACCENT+'}p,h1,h2,td{overflow-wrap:anywhere}section{border-top:1px solid '+LINE+';padding:24px 0}img{width:100%;height:auto}table{border-collapse:collapse;font-size:13px;width:100%}th,td{padding:7px;text-align:left;border-bottom:1px solid '+LINE+'}.scroll{overflow:auto}small{color:'+MUTED+'}a{color:'+ACCENT+'}</style><main>',
+             *(['<div class="brand-strip"></div>'] if THEME == 'light' else []),
+             '<p class="mono">legends-geogrid / local search observations</p>',
              h(model['business']['name'],1), p(model['business']['location'])]
     if model['synthetic']:
         parts += [h('Synthetic demonstration — no real business findings')]

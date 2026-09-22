@@ -115,7 +115,9 @@ python tools/local_heatmap_poc.py `
 
 Fresh scans depend on [legends-dataforseo-kit](https://github.com/avalonreset/legends-dataforseo-kit), an open-source Python API client and CLI. It handles provider access without an MCP server. GeoGrid handles the grid, evidence, caching, and reports.
 
-**Tested pairing:** legends-geogrid v0.3.1 with legends-dataforseo-kit v0.4.0.
+Reports default to the dark theme. For pure-white printable reports, set `"theme": "light"` in the report config; both themes preserve rank colors and legends-geogrid branding.
+
+**Tested pairing:** legends-geogrid v0.3.2 with legends-dataforseo-kit v0.4.0.
 The requirement below pins the kit's immutable public source ZIP, so installation
 does not require Git. The two projects are maintained and versioned separately.
 Offline reports remain usable without the provider dependency or credentials.

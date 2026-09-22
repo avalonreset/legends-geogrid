@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.3.2 - 2026-09-22
+
+- Incorporate Agrici Daniel's report theme and dense-grid HTML improvements.
+- Keep dark reports as the default; offer a pure-white light theme with red, black,
+  and white accents, unchanged rank colors, and legends-geogrid branding.
+- Support optional operator verification notes without an implied verification badge.
+- Improve dense HTML grids, adaptive pin sizing, and missing-evidence status display.
+- Preserve the pinned DataForSEO kit v0.4.0 and existing collection/cost controls.
+
 ## 0.3.1 - 2026-09-21
 
 - Pin the separately maintained legends-dataforseo-kit v0.4.0 for fresh scans.

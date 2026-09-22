@@ -147,4 +147,4 @@ Fresh scans use the separately installed [legends-dataforseo-kit](https://github
 
 ## Inter and JetBrains Mono
 
-`tools/fonts/` bundles static instances of Inter (Rasmus Andersson) and JetBrains Mono (JetBrains), both licensed under the SIL Open Font License 1.1. License texts: `tools/fonts/inter-OFL.txt` and `tools/fonts/jetbrainsmono-OFL.txt`. Used by the default Jev report theme and embedded in generated PDFs.
+`tools/fonts/` bundles static instances of Inter (Rasmus Andersson) and JetBrains Mono (JetBrains), both licensed under the SIL Open Font License 1.1. License texts: `tools/fonts/inter-OFL.txt` and `tools/fonts/jetbrainsmono-OFL.txt`. Used by the optional light report theme and embedded in generated PDFs.

@@ -26,11 +26,11 @@ Vite and PostCSS are build-time dependencies. Their licences and the licences of
 
 The June 2026 product exploration reviewed public pages from these products to understand existing geo-grid and citation workflows:
 
-- [Local Falcon](https://www.localfalcon.com/) ([GitHub](https://github.com/local-falcon)) — geo-grid credit and workflow conventions.
-- [Search Atlas Local SEO](https://searchatlas.com/local-seo-software/) ([GitHub](https://github.com/search-atlas-group)) — local heatmap, reporting, and agency workflow conventions.
-- [LeadSnap Local Citations](https://leadsnap.com/features/local-citations/) — citation monitoring and fulfillment context.
-- [BrightLocal Citation Builder](https://www.brightlocal.com/citation-builder/) ([GitHub](https://github.com/BrightLocal)) — citation ownership, reporting, and fulfillment context.
-- [Search Atlas Local Citations](https://searchatlas.com/local-citations/) ([GitHub](https://github.com/search-atlas-group)) — aggregator and citation-service context.
+- [Local Falcon](https://www.localfalcon.com/) ([GitHub](https://github.com/local-falcon)): geo-grid credit and workflow conventions.
+- [Search Atlas Local SEO](https://searchatlas.com/local-seo-software/) ([GitHub](https://github.com/search-atlas-group)): local heatmap, reporting, and agency workflow conventions.
+- [LeadSnap Local Citations](https://leadsnap.com/features/local-citations/): citation monitoring and fulfillment context.
+- [BrightLocal Citation Builder](https://www.brightlocal.com/citation-builder/) ([GitHub](https://github.com/BrightLocal)): citation ownership, reporting, and fulfillment context.
+- [Search Atlas Local Citations](https://searchatlas.com/local-citations/) ([GitHub](https://github.com/search-atlas-group)): aggregator and citation-service context.
 
 These sources informed product-category analysis only. legends-geogrid does not use their APIs, code, branding, screenshots, or proprietary data. Their names and trademarks belong to their respective owners, and no endorsement or affiliation is implied.
 

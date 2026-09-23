@@ -79,11 +79,11 @@ Google, Google Maps, DataForSEO, OpenStreetMap, Leaflet, Local Falcon, Search At
 [Claude SEO](https://github.com/AgriciDaniel/claude-seo) by Daniel Agrici
 ([agricidaniel.com](https://agricidaniel.com)), version 2.3.1:
 
-- `skills/seo-dataforseo` — live keyword volume, difficulty, intent, and SERP
+- `skills/seo-dataforseo`: live keyword volume, difficulty, intent, and SERP
   data procedures plus `references/cost-tiers.md`, `references/tool-catalog.md`.
-- `skills/seo-maps` — maps intelligence procedures plus the shared
+- `skills/seo-maps`: maps intelligence procedures plus the shared
   `skills/seo/references/` files it loads.
-- `scripts/dataforseo_costs.py` — API cost guardrail (run from
+- `scripts/dataforseo_costs.py`: API cost guardrail (run from
   `third_party/claude-seo/scripts/`; the skill text says `scripts/`, which
   means this directory in the vendored layout).
 - `LICENSE` (MIT, copyright 2026 agricidaniel) and `CITATION.cff`, kept intact.

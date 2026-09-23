@@ -13,7 +13,7 @@ Explore a saved real-world 17 × 17 pizza-shop scan in the browser, or generate 
 
 <p align="left">
   <a href="https://www.youtube.com/shorts/4RYY_gh6b70">
-    <img src="assets/why-have-we-never-met-before.png" alt="why have we never met before? — watch on YouTube" width="560" height="560">
+    <img src="assets/why-have-we-never-met-before.png" alt="why have we never met before?: watch on YouTube" width="560" height="560">
   </a>
 </p>
 <p align="left">

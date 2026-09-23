@@ -164,7 +164,7 @@ For real observations without a supplied image, the default is now **OpenFreeMap
 street imagery**, requiring the one-time browser setup in [BASEMAPS](../../docs/BASEMAPS.md)
 and an internet connection, but no API key. Acquisition failure stops the build.
 Synthetic examples remain offline. An explicit `--basemap schematic` diagnostic
-is labeled **Schematic coordinate map — no street basemap**. No roads are invented.
+is labeled **Schematic coordinate map: no street basemap**. No roads are invented.
 
 `georeferenced-mobile.json` uses a continuous 1280×704 synthetic EPSG:4326
 latitude/longitude graticule, with credits overlaid in the bottom 64 pixels. A

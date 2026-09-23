@@ -45,6 +45,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--reports', action='store_true', help='Require the optional PDF report engine and its dependencies')
     parser.add_argument('--dataforseo', action='store_true', help='Require the shared DataForSEO kit for fresh scans; no API calls')
+    parser.add_argument('--basemaps', action='store_true', help='Check local street-map browser setup; no network or paid requests')
     args = parser.parse_args()
     required = [
         "package.json",
@@ -63,6 +64,20 @@ def main() -> int:
         "vite.config.js",
     ]
     missing = []
+    if args.basemaps:
+        try:
+            from playwright.sync_api import sync_playwright
+            with sync_playwright() as pw:
+                browser = pw.chromium.launch(headless=True, args=['--enable-unsafe-swiftshader'])
+                browser.close()
+            ok('OpenFreeMap renderer', 'Chromium ready; no API key needed (internet required when rendering)')
+        except Exception:
+            missing.append('street-map browser')
+            fail('street-map browser', 'pip install -r requirements-basemaps.txt; python -m playwright install --with-deps chromium (Linux system libraries included)')
+        if os.environ.get('GOOGLE_MAPS_API_KEY'):
+            ok('Google Maps key', 'present; optional, not validated; explicit charge opt-in required')
+        else:
+            ok('Google Maps', 'optional; free maps work without it. See docs/BASEMAPS.md for setup')
     if args.dataforseo:
         try:
             from legends_dataforseo import api_request
@@ -73,7 +88,7 @@ def main() -> int:
             fail('legends-dataforseo-kit', 'install requirements-dataforseo.txt')
     if args.reports:
         required.extend(['tools/strategy_report.py', 'tools/report_model.py', 'tools/adaptive_geogrid.py', 'requirements-report.txt'])
-        for module in ('reportlab', 'PIL'):
+        for module in ('reportlab', 'PIL', 'pypdf', 'pypdfium2'):
             if importlib.util.find_spec(module) is None:
                 missing.append(module)
                 fail('report dependency', f'{module}; install requirements-report.txt')

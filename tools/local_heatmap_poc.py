@@ -60,6 +60,20 @@ class PointResult:
     returned_items_count: int = 0
     organic_items_count: int = 0
     observed_ranks: tuple[int, ...] = ()
+    sampled_at: str | None = None
+
+
+def provider_sampled_at(task):
+    """Provider observation time only; export time is not measurement time."""
+    results = task.get('result') or []
+    value = results[0].get('datetime') if results and isinstance(results[0], dict) else None
+    if not isinstance(value, str):
+        return None
+    try:
+        stamp = dt.datetime.fromisoformat(value.strip().replace('Z', '+00:00').replace(' +', '+'))
+        return stamp.astimezone(dt.timezone.utc).isoformat() if stamp.tzinfo else None
+    except ValueError:
+        return None
 
 
 def measurement_settings(args: argparse.Namespace) -> dict[str, Any]:
@@ -464,6 +478,7 @@ def parse_results(payload: dict[str, Any], points: list[GridPoint], args: argpar
             returned_items_count=len(raw_items),
             organic_items_count=len(items),
             observed_ranks=observed_ranks,
+            sampled_at=provider_sampled_at(task),
         )
 
     return [
@@ -760,7 +775,9 @@ def render_html(args: argparse.Namespace, results: list[PointResult], markdown_p
     metrics = calculate_metrics(results)
     verdict, verdict_reason = prospecting_verdict(metrics)
     weak_summary = weak_zone_summary(results, args.grid_size)
-    title = f"Local SEO Heatmap - {args.target_name}"
+    from report_street_html import street_map_panel
+    street_panel = street_map_panel(args, results)
+    title = f"legends-geogrid - {args.target_name}"
     grid_size = args.grid_size
     compact = grid_size > 7
     wide = grid_size > 9
@@ -909,7 +926,9 @@ def render_html(args: argparse.Namespace, results: list[PointResult], markdown_p
     </section>
     <section class="{layout_class}">
       <div class="panel">
-        <h2>Rank origins (schematic)</h2>
+        {street_panel}
+        <details><summary>Coordinate-only diagnostic (no street map)</summary>
+        <h2>Rank origins (schematic diagnostic)</h2>
         <div class="map-shell">
           {map_surface}
           <div class="pin-layer">{''.join(pins)}</div>
@@ -925,6 +944,7 @@ def render_html(args: argparse.Namespace, results: list[PointResult], markdown_p
           <span><i class="legend-ring"></i>business center</span>
         </div>
         <div class="notes">{html.escape(map_layer_note)} Hover a point for its tag, coordinates and status.</div>
+        </details>
       </div>
       <div class="side">
         <aside class="panel">
@@ -989,6 +1009,7 @@ def write_outputs(args: argparse.Namespace, tasks: list[dict[str, Any]], payload
                         "returned_items_count": result.returned_items_count,
                         "organic_items_count": result.organic_items_count,
                         "observed_ranks": list(result.observed_ranks),
+                        "sampled_at": result.sampled_at,
                     }
                     for result in results
                 ],
@@ -999,6 +1020,18 @@ def write_outputs(args: argparse.Namespace, tasks: list[dict[str, Any]], payload
     )
     markdown_path.write_text(render_markdown(args, results, payload, started_at), encoding="utf-8")
     html_path.write_text(render_html(args, results, markdown_path), encoding="utf-8")
+    report_config = output_dir / "report-config.json"
+    report_config.write_text(json.dumps({
+        "schema_version": 1,
+        "business": {"name": args.target_name, "location": args.location_label,
+                     "lat": args.center_lat, "lng": args.center_lng},
+        "thesis": "Visibility may vary across the sampled search origins.",
+        "objectives": ["Review recorded visibility at the sampled origins."],
+        "map": {"provider": "auto"},
+        "lanes": [{"query_id": "scan", "label": args.keyword, "query": args.keyword,
+                   "records_path": parsed_json.name}],
+    }, indent=2), encoding="utf-8")
+
 
     return {
         "output_dir": str(output_dir),
@@ -1007,6 +1040,7 @@ def write_outputs(args: argparse.Namespace, tasks: list[dict[str, Any]], payload
         "parsed_json": str(parsed_json),
         "markdown": str(markdown_path),
         "html": str(html_path),
+        "report_config": str(report_config),
     }
 
 
@@ -1038,6 +1072,7 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--timeout", type=int, default=90)
     parser.add_argument("--poll-seconds", type=int, default=360)
     parser.add_argument("--poll-interval", type=int, default=15)
+    parser.add_argument("--diagnostic", action="store_true", help="Explicit raw-query scan, not a researched study; normally use tools/study.py")
     parser.add_argument("--execute", action="store_true", help="Spend DataForSEO credits; omitted means estimate only")
     parser.add_argument("--confirm-cost-usd", type=float, default=0.0, help="Required maximum estimated spend when --execute is used")
     parser.add_argument("--estimate-only", action="store_true", help="Deprecated compatibility flag; estimates are already the default")
@@ -1047,6 +1082,8 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
 def main(argv: list[str]) -> int:
     args = parse_args(argv)
     validate_run_args(args)
+    if args.execute and not args.diagnostic:
+        raise ValueError("Use tools/study.py with a validated research plan, or explicitly select --diagnostic for a raw-query scan")
     points = generate_grid(args.center_lat, args.center_lng, args.grid_size, args.radius_km)
     tasks = build_tasks(args, points)
     live_estimate = estimate_scan_cost(len(tasks), args.depth, "live")

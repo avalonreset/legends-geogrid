@@ -1,0 +1,2 @@
+# Optional street-map acquisition; no API key required for OpenFreeMap.
+playwright>=1.51,<2

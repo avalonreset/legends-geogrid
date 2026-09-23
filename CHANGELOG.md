@@ -1,5 +1,27 @@
 # Changelog
 
+## 0.4.0 - 2026-09-22
+
+- Add `study.py enhance`: result-driven same-extent refinement, dated observation
+  reuse, incremental cost estimates, point-level acquisition/recovery, linked
+  vault history, and regenerated HTML/PDF editions.
+- Preserve provider observation timestamps through the single-grid collector.
+- Unify light/dark editorial layouts; light uses pure-white printing surfaces
+  and black ink without the former separate theme sequence.
+
+- Add an explicitly disclosed GBP-supported study path for independently recorded website retrieval failures; identity and offering evidence remain mandatory.
+- Default to 3-5 distinct search themes with cited selection rationale; label supported smaller studies as focused.
+- Add agent-neutral business research recipe and source-backed study validation.
+- Add bounded DataForSEO research, website capture, cost reservation ledger and evidence snapshots.
+- Require explicit diagnostic mode for unresearched low-level paid scans.
+- Keep market-fit interpretation distinct from automated evidence checks.
+
+
+- Real PDF reports default to OpenFreeMap street imagery without a Google key; failed acquisition stops report generation. Synthetic examples remain offline.
+- Saved scan HTML includes an interactive street map and writes a reusable PDF config.
+- Added basemap setup doctor, optional Google Static Maps with explicit paid opt-in, and complete-image attribution protection.
+
+
 ## 0.3.2 - 2026-09-22
 
 - Incorporate Agrici Daniel's report theme and dense-grid HTML improvements.

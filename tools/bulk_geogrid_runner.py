@@ -415,6 +415,7 @@ def local_runner_command(scan: ProspectScan, method: str, output_dir: Path, args
         scan.se_domain,
         "--output-dir",
         str(output_dir),
+        "--diagnostic",
         "--execute",
         "--confirm-cost-usd",
         str(estimate_scan_cost(scan.grid_size * scan.grid_size, scan.depth, method)),
@@ -546,6 +547,7 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--method", choices=["standard", "priority", "live"], default="standard")
     parser.add_argument("--output-root", default=str(default_root / "bulk-runs"))
     parser.add_argument("--vault-data-dir", default="", help="Optional directory for an Obsidian-style Markdown run note")
+    parser.add_argument("--diagnostic", action="store_true", help="Explicit raw-query bulk scan; researched studies use tools/study.py")
     parser.add_argument("--execute", action="store_true", help="Spend DataForSEO credits for uncached scans")
     parser.add_argument("--confirm-cost-usd", type=float, default=0.0, help="Required spending ceiling when --execute is used")
     parser.add_argument("--max-prospects", type=int, default=0, help="Optional row cap for tests")
@@ -573,6 +575,8 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
 
 def main(argv: list[str]) -> int:
     args = parse_args(argv)
+    if args.execute and not args.diagnostic:
+        raise ValueError("Bulk raw-query execution requires --diagnostic; use tools/study.py for researched studies")
     validate_run_id(args.run_id)
     validate_cost_ceiling(args.confirm_cost_usd)
     output_root = Path(args.output_root).resolve()

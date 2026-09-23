@@ -1,5 +1,12 @@
 # Start a useful GeoGrid study
 
+Start with the [agent recipe](../SKILL.md) and [study contract](STUDY_CONTRACT.md).
+For business-only requests, the agent researches website, public GBP and DataForSEO
+evidence and selects queries. Do not ask the user to design the SEO study.
+
+Choose [3-5 distinct evidenced search themes](QUERY_SELECTION_POLICY.md), not
+arbitrary keywords. Fewer themes require a supported explanation and focused scope.
+
 ## 1. State the decision
 
 Write one sentence: which service, which market, and what decision will change after measurement? Do not promise a website recovery diagnosis from Maps ranks.
@@ -29,4 +36,5 @@ Estimate cost before execution. Use fixed sampling for repeat comparisons and ad
 
 Inspect every PDF page at reading size. Check map registration, readable labels, intact rings and attribution, text fit, and no em dashes. Verify counts against evidence. Close with what was learned, one supported next action, and the missing evidence that could change it. Never manufacture a confident prescription from ranks alone.
 
-These steps are operator guidance, not automated market-fit enforcement. See [report acceptance](REPORT_ACCEPTANCE.md) and [product limitations](PRODUCT_STATUS.md).
+The study entry point validates required evidence lineage and collection controls.
+Market fit and interpretation still require agent review; validation cannot certify them. See [report acceptance](REPORT_ACCEPTANCE.md) and [product limitations](PRODUCT_STATUS.md).

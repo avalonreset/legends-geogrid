@@ -13,7 +13,7 @@ The sample is synthetic. Replace its identity, center and query lanes with your 
 Live collection uses the existing runner's `DATAFORSEO_USERNAME` and `DATAFORSEO_PASSWORD` environment authentication. Both flags are mandatory; choose your own reviewed ceiling:
 
 ```sh
-python tools/adaptive_geogrid.py --config runs/my-config.json --output-dir runs/my-acquisition --execute --confirm-cost-usd 1.00
+python tools/adaptive_geogrid.py --config runs/my-config.json --output-dir runs/my-acquisition --diagnostic --execute --confirm-cost-usd 1.00
 ```
 
 The first adapter supports the **Live** Maps endpoint, one request per origin/query, using `local_heatmap_poc.call_dataforseo_live_task`. It does not use external kits or queue submissions. Live estimates include the shared runner's depth multiplier. Search Places is fixed false. Provider prices may change: the estimate is not a provider-enforced billing limit. Each request reserves its estimate before submission; a higher reported charge counts immediately and stops further calls if it exhausts the ceiling.

@@ -312,8 +312,12 @@ class RenderTests(unittest.TestCase):
 
             if PDFIUM:
                 self.assertEqual('passed',result['pdf']['status'])
-            self.assertIn('class="brand-strip"',html)
+            self.assertNotIn('class="brand-strip"',html)
             self.assertIn('How the findings were checked',html)
+            self.assertIn('class="visibility-table"',html)
+            self.assertIn('class="banner"',html)
+            self.assertIn('SEARCH KEYWORD',html)
+            self.assertIn('color:#000000',html)
         finally:
             strategy_report.apply_theme(strategy_report.DEFAULT_THEME)
         try:
@@ -323,6 +327,14 @@ class RenderTests(unittest.TestCase):
             if PDFIUM:
                 self.assertEqual('passed',result['pdf']['status'])
             self.assertNotIn('class="brand-strip"',html)
+            self.assertIn('background:#000000',html)
+            self.assertIn('data-design="legends-editorial-v5"',html)
+            self.assertIn('class="report-nav"',html)
+            self.assertEqual(len(cfg['lanes']),html.count('class="report-lane"'))
+            self.assertEqual(len(cfg['lanes']),html.count('<summary>Exact observation ledger</summary>'))
+            self.assertLess(html.index('class="report-cover"'),html.index('class="report-lane"'))
+            self.assertLess(html.index('class="report-lane"'),html.index('id="next-steps"'))
+
         finally:
             strategy_report.apply_theme(strategy_report.DEFAULT_THEME)
         with self.assertRaises(ValueError):
@@ -448,7 +460,7 @@ class RenderTests(unittest.TestCase):
                         page=doc[page_index];tp=page.get_textpage()
                         content=' '.join(tp.get_text_range().split())
                         all_text.append(content)
-                        if page_index in (0,1):
+                        if page_index == 0 or 'Rings:' in content:
                             self.assertIn('Market scan center: Synthetic town square - market reference',content)
                             self.assertIn('not a verified physical business location',content)
                         self.assertNotIn('Business origin:',content)
@@ -482,7 +494,8 @@ class RenderTests(unittest.TestCase):
             if PDFIUM:
                 import pypdfium2
                 with pypdfium2.PdfDocument(str(root/'output/report.pdf')) as doc:
-                    page=doc[1];tp=page.get_textpage();text=' '.join(tp.get_text_range().split())
+                    map_page=next(box['page'] for box in result['layout_boxes'] if box['kind']=='map')
+                    page=doc[map_page-1];tp=page.get_textpage();text=' '.join(tp.get_text_range().split())
                     self.assertIn('Rings: mi',text);self.assertIn('Rings: 1, 3, 5 mi',text)
                     self.assertNotIn(' km',text)
                     tp.close();page.close()
@@ -508,7 +521,7 @@ class RenderTests(unittest.TestCase):
             pdf=' '.join(pages)
             for content in (html,pdf):
                 for heading in ('Working assessment','Objectives','Recommended next steps','What remains unverified'):
-                    self.assertIn(heading,content)
+                    self.assertIn(heading.lower(),content.lower())
                 self.assertIn('Hypothesis, not an established finding:',content)
                 self.assertNotIn('Objectives - user supplied',content)
                 self.assertNotIn('User-supplied interpretation',content)
@@ -517,7 +530,7 @@ class RenderTests(unittest.TestCase):
             self.assertGreater(len(appendix),1)
             self.assertEqual(4,sum(text.count('Observed top 10 share:') for text in appendix))
             for text in appendix:
-                heading_count=sum(text.count(lane['label']) for lane in cfg['lanes'])
+                heading_count=text.count('SEARCH KEYWORD')
                 self.assertEqual(heading_count,text.count('Sources:'))
                 self.assertEqual(heading_count,text.count('Evidence bounds ['))
                 self.assertEqual(heading_count,text.count('Observed top 10 share:'))
@@ -648,7 +661,7 @@ class RenderTests(unittest.TestCase):
                     self.assertNotIn('0/0',html)
 
     def test_supplied_unknown_source_disclosure_survives_pdf_and_html(self):
-        cfg=config([dict(observation(),source='user spreadsheet')]);cfg['synthetic']=False
+        cfg=config([dict(observation(),source='user spreadsheet')]);cfg['synthetic']=False;cfg['map']['provider']='schematic'
         with tempfile.TemporaryDirectory() as folder:
             root=Path(folder);self.render(cfg,root,require_pdf_qa=PDFIUM)
             self.assertIn('this renderer does not independently authenticate source labels or origin records',
@@ -706,11 +719,13 @@ class RenderTests(unittest.TestCase):
             self.assertEqual(516,asset['geographic_plot_pt']['width'])
             self.assertTrue(result['map_validation'][0]['main']['protected_credit_pixels_checked'])
             self.assertEqual(17,result['map_validation'][0]['main']['markers_checked'])
-            self.assertEqual([2],[b['page'] for b in result['layout_boxes'] if b['kind']=='map'])
+            map_pages=[b['page'] for b in result['layout_boxes'] if b['kind']=='map']
+            self.assertEqual(1,len(map_pages))
+            self.assertGreaterEqual(map_pages[0],2) # custom fonts can extend the introduction
             if PDFIUM:
                 import pypdfium2
                 with pypdfium2.PdfDocument(str(root/'output/report.pdf')) as doc:
-                    page=doc[1];tp=page.get_textpage()
+                    page=doc[map_pages[0]-1];tp=page.get_textpage()
                     self.assertIn('Measured:',tp.get_text_range())
                     tp.close();page.close()
 
@@ -801,3 +816,4 @@ class RenderTests(unittest.TestCase):
 
 if __name__=='__main__':
     unittest.main()
+

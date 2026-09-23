@@ -20,12 +20,14 @@ Explore a saved real-world 17 × 17 pizza-shop scan in the browser, or generate 
   <a href="https://www.youtube.com/shorts/4RYY_gh6b70"><em>why have we never met before?</em></a>
 </p>
 
-## Why 0.3.0 is useful
+## What 0.4.0 adds
 
-A ranking grid should help answer a decision: where does a business appear, which services are weaker, and what should be investigated or changed next? Version 0.3.0 adds a reusable reporting and sampling workflow to the earlier scanner.
+A ranking grid should help answer a decision: where does a business appear, which services are weaker, and what should be investigated or changed next? Version 0.4.0 connects business research, justified search themes, comparable measurements, readable recommendations, and a persistent study library.
 
 | Improvement | What it gives you |
 | --- | --- |
+| Research and study library | Website/public-profile evidence, 3-5 justified themes, proposals and hashed Markdown/JSON study history. |
+| Enhance a saved study | Estimate and execute finer sampling within the same area, reusing eligible observations; outward expansion remains a separate recommendation. |
 | Multi-query PDF and HTML reports | Compare services using one shared study, with supplied hypotheses and actions kept separate from measured findings. |
 | Map-first layout and copy-fit checks | Large maps, consistent margins, compact legends, neutral distance bands, and readable service commentary. Report copy excludes em dashes. |
 | Adaptive exploration | Expand in directions that need more evidence, with explicit stopping rules and unresolved boundaries. |
@@ -34,9 +36,16 @@ A ranking grid should help answer a decision: where does a business appear, whic
 
 The software calculates and renders evidence. The operator supplies business context, evaluates hypotheses, and writes supported recommendations. It does not automatically choose profitable territories or diagnose a Google penalty.
 
+**Business-only request?** Give your agent the [study recipe](SKILL.md). It researches the website, public Google Business Profile and DataForSEO evidence, then recommends [3-5 distinct search themes](docs/QUERY_SELECTION_POLICY.md). A narrower study needs an evidence-backed explanation. The [study command](docs/STUDY_CONTRACT.md) validates that evidence before collection.
+
 **Start here:** [Study recipe](docs/START_A_STUDY.md) · [Report configuration](examples/reports/README.md) · [Adaptive collection](examples/adaptive/README.md) · [Latest release](https://github.com/avalonreset/legends-geogrid/releases/latest)
 
 ## Try a report first
+
+**Want more detail after a study?** Tell your agent **enhance**. It assesses the
+saved results, estimates incremental collection, reuses eligible observations,
+and produces a new HTML/PDF edition within the approved budget. Original reports
+and evidence stay banked. See [enhance a study](docs/ENHANCE.md).
 
 Download and extract the source ZIP, or clone this repository. From its `legends-geogrid` folder, use Python 3.10+:
 
@@ -47,7 +56,15 @@ python tools/strategy_report.py --config examples/reports/urban-dentist.json --o
 
 Open `runs/first-report/report.pdf`. This synthetic example makes no network requests and needs no API credentials. Use a fresh output directory when repeating it; existing reports are protected against overwrites. Outputs also include HTML, map images, normalized evidence, and QA results.
 
-Street geography requires a supplied georeferenced image with attribution. Default examples use explicitly labeled coordinate diagrams. See the [basemap contract](examples/reports/README.md) before adding imagery.
+**Real reports default to free street maps**, using OpenFreeMap and OpenStreetMap data. No Google API key is required. Install the map renderer once:
+
+```sh
+python -m pip install -r requirements-basemaps.txt
+python -m playwright install --with-deps chromium
+python tools/geogrid_doctor.py --reports --basemaps
+```
+
+Internet access is required when acquiring maps. If imagery cannot load, report generation stops with setup guidance instead of silently substituting a bare grid. Synthetic examples remain offline coordinate diagrams. For optional Google Maps imagery, supplied maps, and troubleshooting, see [street-map setup](docs/BASEMAPS.md).
 
 ## A local rank tracker at data cost
 
@@ -150,7 +167,7 @@ python tools/local_heatmap_poc.py `
   --radius-km 2 `
   --depth 20 `
   --method standard `
-  --execute `
+  --diagnostic --execute `
   --confirm-cost-usd 0.18
 ```
 
@@ -192,7 +209,7 @@ python tools/bulk_geogrid_runner.py `
   --grid-size 5 `
   --radius-km 2 `
   --depth 20 `
-  --execute `
+  --diagnostic --execute `
   --confirm-cost-usd 15
 ```
 
@@ -230,7 +247,7 @@ python tools/strategy_report.py --config examples/reports/urban-dentist.json --o
 
 Outputs include `report.pdf`, `report.html`, `report-model.json`, and map PNGs. Pass `--proof` to render PDF page proofs or `--require-pdf-qa` for automated validation.
 
-The CLI outputs schematic coordinate maps (coordinate axes, distance rings, and rank pins without requiring external tile basemaps). An optional georeferenced local image can be provided via `map.basemap` in the config.
+Real observations use OpenFreeMap street imagery by default; synthetic examples use offline coordinate diagrams. Optional Google Maps imagery and supplied georeferenced images are supported. See [street-map setup](docs/BASEMAPS.md).
 
 ### Adaptive collector
 
@@ -249,7 +266,7 @@ python tools/adaptive_geogrid.py --config examples/adaptive/sample.json --replay
 For live collection, first create a private configuration with the real identity, study center, and queries. Do not execute the synthetic sample against the provider. Both spend gates are required:
 
 ```sh
-python tools/adaptive_geogrid.py --config runs/my-config.json --output-dir runs/my-acquisition --execute --confirm-cost-usd 5.00
+python tools/adaptive_geogrid.py --config runs/my-config.json --output-dir runs/my-acquisition --diagnostic --execute --confirm-cost-usd 5.00
 ```
 
 ### Offline release verification
@@ -264,10 +281,11 @@ pnpm check:reports
 
 Artifacts are written to `runs/release-smoke/` (ignored by Git). CI executes `pnpm check` (which runs `doctor:reports` and `check:reports`) across the Windows and Linux matrix (Python 3.10 and 3.12) and uploads proof artifacts.
 
-Optional keyword-demand research instructions are available in the vendored
-`third_party/claude-seo/skills/seo-dataforseo` skill (MIT, AgriciDaniel);
-optional GBP and review research instructions are available in `third_party/claude-seo/skills/seo-maps`.
-These reference skills are not an automatic research pipeline. Fresh provider calls require your own DataForSEO account.
+Website, public GBP and DataForSEO demand/pilot evidence are required by the
+[researched-study workflow](docs/STUDY_CONTRACT.md). Supplementary historical
+references remain in `third_party/claude-seo/skills/seo-dataforseo` and `seo-maps`
+(MIT, AgriciDaniel); they do not replace the current agent recipe or shared kit.
+Fresh provider calls require your own DataForSEO account.
 
 ## Limits to understand
 
@@ -302,7 +320,7 @@ Cache protection reduces accidental duplicate work; it is not a transactional bi
 ## Repository map
 
 - `src/` :  local Vite studio and saved parsed proof datasets.
-- `tools/local_heatmap_poc.py` :  estimate-first single scan runner (outputs schematic HTML; `--map-image` is accepted for compatibility but unregistered imagery is ignored; use `tools/strategy_report.py` with `map.basemap` for registered basemaps).
+- `tools/local_heatmap_poc.py` :  estimate-first single scan runner (outputs interactive street-map HTML and a reusable PDF report config; `--map-image` is accepted for compatibility but unregistered imagery is ignored).
 - `tools/bulk_geogrid_runner.py` :  cache-aware CSV runner (schema 4 with SHA-256 verification and atomic run-directory allocation).
 - `tools/geogrid_doctor.py` :  local readiness check.
 - `tools/pollution_gate.py` :  legacy query-mix diagnostic; its rejection labels do not supersede the current study methodology.
@@ -344,3 +362,11 @@ The original product research compared public workflow and pricing information f
 legends-geogrid is MIT licensed. See [LICENSE](LICENSE). Third-party components, services, trademarks, and data remain subject to their own licences and terms; see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
 legends-geogrid is independent software. It is not affiliated with or endorsed by DataForSEO, Google, OpenStreetMap, Leaflet, Local Falcon, Search Atlas, LeadSnap, or BrightLocal.
+
+### Persistent study library
+
+The researched study workflow automatically banks evidence and readable Markdown
+checkpoints in an Obsidian-compatible local library. No Obsidian installation or
+MCP is required. Configure an existing vault once with `python tools/study.py
+library-init --vault-dir PATH`, or use the Documents default. See
+[study banking, history and recovery](docs/STUDY_LIBRARY.md).

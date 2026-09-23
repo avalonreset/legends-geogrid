@@ -19,6 +19,13 @@ lowercase positioning and the approved Legends banner style.
 
 ## Research and collection
 
+Read root `SKILL.md`, `docs/START_A_STUDY.md` and `docs/STUDY_CONTRACT.md` before collection.
+Default to 3-5 distinct evidence-backed search themes, one representative query
+per theme, following `docs/QUERY_SELECTION_POLICY.md`. Fewer requires a cited
+explanation and focused scope; never pad with synonyms.
+Given only a business, research and select queries from website, public GBP and
+DataForSEO evidence; do not ask users to supply keywords by default. Use
+`tools/study.py` for researched studies. Raw runners require explicit `--diagnostic`.
 Read `docs/START_A_STUDY.md` before paid collection. Establish business identity,
 query, location, language and the decision being studied. Estimate first. Paid
 scans require both `--execute` and `--confirm-cost-usd`; retain these gates.
@@ -32,3 +39,12 @@ shared transport with fixtures; no paid call is necessary for ordinary tests.
 Preserve full basemaps and attribution. Inspect every final report page.
 Keep user run folders and private reports out of commits. Maintain the distinction
 between measured ranks, missing evidence, business hypotheses and recommendations.
+
+## Street maps
+
+Real report observations default to OpenFreeMap street maps (no API key).
+Install `requirements-basemaps.txt` and run `python -m playwright install chromium`;
+check `python tools/geogrid_doctor.py --reports --basemaps` before rendering.
+See `docs/BASEMAPS.md`. Do not silently switch a failed real map to a schematic.
+Synthetic examples remain offline. Google imagery is optional and requires
+`GOOGLE_MAPS_API_KEY` plus explicit `--allow-google-maps-charge`; never expose the key.

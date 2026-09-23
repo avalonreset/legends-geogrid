@@ -4,6 +4,9 @@ A release must preserve its approved visual contract across businesses. Passing 
 
 ## Editorial and visual contract
 
+Follow [the versioned design contract](REPORT_DESIGN.md) for both report stages
+and HTML/PDF output modes. Dark page backgrounds are pure black `#000000`.
+
 - Use restrained dark backgrounds, white primary copy and muted secondary copy. Reserve green, yellow and red for rank categories. Do not color every heading or statistic.
 - Align titles, captions, prose and maps to the same editorial column. Keep service findings and their map on one page when readable; shorten redundant explanation before shrinking type.
 - Prioritize a large, geographically registered street map. A schematic fixture proves layout mechanics, not real-client cartographic acceptance.

@@ -155,7 +155,7 @@ The September 2026 documented DataForSEO base rates used by 0.1.x are:
 
 The estimator multiplies those rates by the number of grid coordinates and by `ceil(depth / 100)`. Other paid request parameters may add multipliers that this release does not model.
 
-The direct runner estimates by default. Paid execution requires both `--execute` and a sufficient `--confirm-cost-usd` value. The bulk runner checks the total pending cost first, and every child scan also receives its own calculated ceiling.
+The direct runner estimates by default. Raw-query execution requires `--diagnostic`; use `tools/study.py` for researched studies. Paid execution requires both `--execute` and a sufficient `--confirm-cost-usd` value. The bulk runner checks the total pending cost first, and every child scan also receives its own calculated ceiling.
 
 ## Coordinates
 

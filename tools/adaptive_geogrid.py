@@ -627,8 +627,11 @@ def main(argv: list[str] | None = None) -> int:
     mode.add_argument("--execute", action="store_true", help="explicit paid Live acquisition")
     parser.add_argument("--confirm-cost-usd", type=float, help="cumulative run ceiling; required for Live")
     parser.add_argument("--output-dir", type=Path, default=Path("runs/adaptive"))
+    parser.add_argument("--diagnostic", action="store_true", help="Explicit expert-directed adaptive experiment, not an automatically researched study")
     args = parser.parse_args(argv)
     try:
+        if args.execute and not args.diagnostic:
+            raise ValueError("Adaptive expert execution requires --diagnostic; default researched baselines use tools/study.py")
         config = validate_config(json.loads(args.config.read_text(encoding="utf-8-sig")))
         if args.confirm_cost_usd is not None:
             number(args.confirm_cost_usd, "confirm-cost-usd", 0, 1_000_000)

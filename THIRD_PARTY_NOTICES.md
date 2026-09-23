@@ -148,3 +148,16 @@ Fresh scans use the separately installed [legends-dataforseo-kit](https://github
 ## Inter and JetBrains Mono
 
 `tools/fonts/` bundles static instances of Inter (Rasmus Andersson) and JetBrains Mono (JetBrains), both licensed under the SIL Open Font License 1.1. License texts: `tools/fonts/inter-OFL.txt` and `tools/fonts/jetbrainsmono-OFL.txt`. Used by the optional light report theme and embedded in generated PDFs.
+
+## Optional report street maps
+
+- [MapLibre GL JS](https://github.com/maplibre/maplibre-gl-js), BSD 3-Clause, is loaded from a version-pinned CDN for street-map rendering.
+- [Playwright](https://github.com/microsoft/playwright-python), Apache-2.0, controls Chromium for optional PDF basemap acquisition; browser distributions retain their own notices.
+- [OpenFreeMap](https://openfreemap.org/) supplies hosted vector maps. Rendered images preserve OpenFreeMap, OpenMapTiles, and OpenStreetMap contributor attribution and the OpenStreetMap copyright URL.
+- Google Static Maps is optional and subject to Google's separate service terms and billing. Its images and embedded credits remain intact.
+
+### pypdf
+
+- Source: https://github.com/py-pdf/pypdf
+- License: BSD-3-Clause; the installed distribution includes its complete license.
+- Used with ReportLab for first/last-page credits and clickable PDF annotations.

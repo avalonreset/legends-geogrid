@@ -13,19 +13,9 @@ import sys
 import tempfile
 
 from report_model import finding, inside, load_config, require
+from report_design import BRAND_TOP, BRAND_BOTTOM, add_pdf_brand_links, DESIGN_VERSION, THEMES, PAGE_W, PAGE_H, MARGIN, COLUMN, html_styles, legends_font, prepare_html_font
 
-BG = '#08131E'
-PANEL = '#102434'
-INK = '#F3F6F8'
-MUTED = '#A9BDCA'
-ACCENT = '#A9BDCA'
-LINE = '#375061'
 THEME = 'geogrid'
-# Page palettes. Rank marker colors are part of the evidence contract and never change.
-THEMES = {
-    'geogrid': dict(BG='#08131E', PANEL='#102434', INK='#F3F6F8', MUTED='#A9BDCA', ACCENT='#A9BDCA', LINE='#375061'),
-    'light': dict(BG='#FFFFFF', PANEL='#FFFFFF', INK='#0F0F10', MUTED='#6D6D6A', ACCENT='#C80000', LINE='#D8D8D4'),
-}
 HEADER_COLORS = ('#CC0000', '#8C0000', '#111111', '#777777', '#FFFFFF')
 DEFAULT_THEME = 'geogrid'
 THEME_FONTS = Path(__file__).parent / 'fonts'
@@ -38,7 +28,6 @@ def apply_theme(name):
 
 
 apply_theme(DEFAULT_THEME)
-PAGE_W, PAGE_H, MARGIN, COLUMN = 612, 792, 48, 516
 MAP_W, MAP_H, SCALE = 516, 410, 3
 LEGEND = 'Ranks 1–3: green | Ranks 4–10: yellow | Ranks 11+: red | Hollow: not returned | E: error | Ø: empty | U: unmeasured'
 RANK_COLORS = ('#00FF00', '#FFFF00', '#FF0000')
@@ -154,13 +143,10 @@ def register_fonts(model):
     from reportlab.pdfbase import pdfmetrics
     from reportlab.pdfbase.ttfonts import TTFont
     root = Path(reportlab.__file__).parent / 'fonts'
-    if model.get('theme', DEFAULT_THEME) == 'light' and (THEME_FONTS / 'Inter-Regular.ttf').is_file():
-        # Bundled OFL fonts for the light theme (see tools/fonts/*-OFL.txt).
-        default = {'regular': str(THEME_FONTS / 'Inter-Regular.ttf'), 'bold': str(THEME_FONTS / 'Inter-SemiBold.ttf'),
-                   'title': str(THEME_FONTS / 'Inter-SemiBold.ttf'), 'mono': str(THEME_FONTS / 'JetBrainsMono-Medium.ttf')}
-    else:
-        default = {'regular': str(root / 'Vera.ttf'), 'bold': str(root / 'VeraBd.ttf')}
+    default = {'regular': str(root / 'Vera.ttf'), 'bold': str(root / 'VeraBd.ttf')}
     paths = model.get('fonts', default)
+    if legends_font():
+        paths = {key:str(legends_font()) for key in ('regular','bold','title','mono')}
     paths = dict(paths, title=paths.get('title', paths['regular']))
     paths = dict(paths, mono=paths.get('mono', paths['regular']))
     for key, name in (('regular', 'ReportBody'), ('bold', 'ReportBold'), ('title', 'ReportTitle'), ('mono', 'ReportMono')):
@@ -247,7 +233,7 @@ def destination(lat, lng, km, bearing):
 def map_image(lane, business, path, fonts, full=False):
     from PIL import Image, ImageDraw, ImageFont
     extent = lane['full_bounds'] if full else lane['map']['bounds']
-    base = lane['map'].get('basemap')
+    base = lane['map'].get('full_basemap', lane['map'].get('basemap')) if full else lane['map'].get('basemap')
     height_pt = MAP_H if full else lane['map'].get('height_pt',452 if base else MAP_H)
     width, height = MAP_W * SCALE, height_pt * SCALE
     requested_extent = list(extent)
@@ -348,7 +334,7 @@ def map_image(lane, business, path, fonts, full=False):
     collisions = sum(math.hypot(a[0]-b[0], a[1]-b[1]) < a[2]+b[2]
                      for i, a in enumerate(pins) for b in pins[i+1:])
     canvas.save(path)
-    return dict(file=path.name, bounds=extent, requested_bounds=requested_extent, plotted=len(pins), outside=len(lane['records'])-len(pins),
+    return dict(file=path.name, full_extent=full, bounds=extent, requested_bounds=requested_extent, plotted=len(pins), outside=len(lane['records'])-len(pins),
                 native_pixels=[width,height], effective_ppi=[width/MAP_W*72,height/height_pt*72],
                 geographic_height_px=geo_height, geographic_frame_px=list(rect),
                 geographic_plot_pt=dict(x=rect[0]/SCALE,y=rect[1]/SCALE,
@@ -432,13 +418,13 @@ def map_qa(lane, business, asset, path, fonts):
     if credit_box:
         require(contains_box(asset['geographic_frame_px'], credit_box), 'embedded credits are outside geographic frame')
         require(hashlib.sha256(raster.crop(credit_box).tobytes()).hexdigest() == asset['credit_pixels_sha256'], 'protected credit pixels were altered')
-    base = lane['map'].get('basemap')
+    base = lane['map'].get('full_basemap', lane['map'].get('basemap')) if asset.get('full_extent') else lane['map'].get('basemap')
     expected_bounds = basemap_viewport(base,asset['requested_bounds'],width,geo_height) if base else asset['requested_bounds']
     require(asset['bounds'] == expected_bounds, 'expanded viewport bounds mismatch')
     projection = Projection(asset['bounds'], width=width, height=geo_height, pad=0 if base else 26*SCALE)
     frame = [round(v) for v in (projection.left,projection.top,projection.right,projection.bottom)]
     require(frame == asset['geographic_frame_px'], 'geographic frame mismatch')
-    base = lane['map'].get('basemap')
+    base = lane['map'].get('full_basemap', lane['map'].get('basemap')) if asset.get('full_extent') else lane['map'].get('basemap')
     if base:
         with Image.open(base['path']) as original:
             original = original.convert('RGB')
@@ -588,6 +574,21 @@ def render_pdf(model, assets, output):
         'finding': ParagraphStyle('finding', fontName='ReportBody', fontSize=10.5, leading=14, textColor=HexColor(INK), spaceAfter=8),
         'small': ParagraphStyle('small', fontName='ReportBody', fontSize=8.5, leading=12, textColor=HexColor(MUTED), spaceAfter=10),
     }
+    styles['category'] = ParagraphStyle('category', parent=styles['heading'])
+    styles['heading'].fontSize = 16
+    styles['heading'].leading = 21
+    styles['heading'].spaceBefore = 18
+    styles['heading'].spaceAfter = 10
+    styles['body'].textColor = HexColor('#000000' if THEME == 'light' else '#E0E0E0')
+    styles['small'].textColor = HexColor('#555555' if THEME == 'light' else '#A3A3A3')
+    styles['category'].fontSize = 14
+    styles['category'].leading = 19
+    styles['category'].backColor = HexColor('#FFFFFF' if THEME == 'light' else '#181818')
+    styles['category'].borderColor = HexColor(LINE)
+    styles['category'].borderWidth = 0.5
+    styles['category'].borderPadding = 6
+    styles['category'].spaceBefore = 18
+    styles['category'].spaceAfter = 14
     ink_fonts, ink_metrics = {}, {}
 
     def guarded_style(value, style):
@@ -630,46 +631,27 @@ def render_pdf(model, assets, output):
                     value = min(candidates)[1]
         return TrackedParagraph(escape(value).replace('\n', '<br/>'), paragraph_style)
 
-    def label(canv, x, y, value, right=False):
-        # Uppercase tracked mono labels (light theme); plain labels otherwise.
-        if THEME != 'light':
-            (canv.drawRightString if right else canv.drawString)(x, y, value)
-            return
-        spacing = .8
-        width = pdfmetrics.stringWidth(value, 'ReportMono', 8.5) + spacing*(len(value)-1)
-        canv.saveState()  # character spacing is PDF text state; keep it out of body copy
-        text = canv.beginText(x-width if right else x, y)
-        text.setFont('ReportMono', 8.5)
-        text.setCharSpace(spacing)
-        text.textOut(value)
-        text.setCharSpace(0)
-        canv.drawText(text)
-        canv.restoreState()
+    def keyword(value):
+        style = ParagraphStyle('keyword', parent=styles['category'], fontSize=15,
+                               leading=17, borderPadding=6, backColor=HexColor('#FFFFFF' if THEME == 'light' else '#211414'),
+                               borderColor=HexColor(LINE), spaceBefore=12, spaceAfter=10)
+        return TrackedParagraph('<font size="8" color="'+('#555555' if THEME == 'light' else '#BDBDBD')+'">SEARCH KEYWORD</font><br/>'+
+                                escape(display_text(value)), guarded_style(value, style))
 
-    def header_bar(canv, y, height):
-        steps = 120
-        width = (PAGE_W-2*MARGIN)/steps
-        stops = [HexColor(c) for c in HEADER_COLORS]
-        for i in range(steps):
-            t = i/(steps-1)*(len(stops)-1)
-            a, b = stops[int(t)], stops[min(int(t)+1, len(stops)-1)]
-            f = t-int(t)
-            canv.setFillColorRGB(a.red+(b.red-a.red)*f, a.green+(b.green-a.green)*f, a.blue+(b.blue-a.blue)*f)
-            canv.rect(MARGIN+i*width, y, width+.3, height, fill=1, stroke=0)
+    def label(canv, x, y, value, right=False):
+        (canv.drawRightString if right else canv.drawString)(x, y, value)
 
     def page(canv, doc):
         canv.setFillColor(HexColor(BG))
         canv.rect(0, 0, PAGE_W, PAGE_H, fill=1, stroke=0)
-        if THEME == 'light':
-            header_bar(canv, 739, 3)
         canv.setStrokeColor(HexColor(LINE))
-        canv.line(MARGIN, 747 if THEME != 'light' else 735, PAGE_W-MARGIN, 747 if THEME != 'light' else 735)
+        canv.line(MARGIN, 747, PAGE_W-MARGIN, 747)
         canv.line(MARGIN, 43, PAGE_W-MARGIN, 43)
         canv.setFillColor(HexColor(MUTED))
         canv.setFont('ReportBody', 8.5)
-        label(canv, MARGIN, 752 if THEME == 'light' else 761, 'legends-geogrid / local search observations')
+        label(canv, MARGIN, 761, 'legends-geogrid / local search observations')
         label(canv, MARGIN, 28, 'SYNTHETIC DEMONSTRATION' if model['synthetic'] else 'SUPPLIED OBSERVATIONAL EVIDENCE')
-        label(canv, PAGE_W-MARGIN, 28, str(doc.page), right=True)
+        label(canv, PAGE_W/2, 28, str(doc.page), right=True)
 
     doc = BaseDocTemplate(str(output / 'report.pdf'), pagesize=(PAGE_W, PAGE_H),
                           title=display_text(model['business']['name'])+' | legends-geogrid report', author='legends-geogrid',
@@ -677,15 +659,37 @@ def render_pdf(model, assets, output):
                           allowSplitting=1)
     doc.addPageTemplates(PageTemplate(id='dark', frames=[Frame(MARGIN, 58, COLUMN, 669, leftPadding=0,
                           rightPadding=0, topPadding=0, bottomPadding=0)], onPage=page))
+    brief = model['decision_brief']
     story = [p(model['business']['name'], 'title'), p(model['business']['location'], 'small')]
+    website = model['business'].get('website')
+    if website:
+        story += [TrackedParagraph('<a href="'+escape(website, quote=True)+'" color="'+ACCENT+'">'+escape(website)+'</a>', styles['body'])]
+    if brief.get('headline'):
+        story += [p(brief['headline'], 'heading'), p(brief['explanation'])]
+        story += [p(str(a['priority'])+'. '+a['title']) for a in brief['actions'][:3]]
     if model['synthetic']:
         story += [p('Synthetic demonstration — no real business findings', 'heading')]
-    story += [p(model['evidence_disclosure'], 'small'), p('Working assessment', 'heading'),
-              p('Hypothesis, not an established finding: '+model['thesis']), p('Objectives', 'heading')]
-    story += [p(item) for item in model['objectives']]
-    story += [p('Evidence boundaries', 'heading'), p(LIMITS)]
-    story += [p(center_disclosure(model)+f" Coordinates: {model['business']['lat']:.7f}, {model['business']['lng']:.7f}. "
-                f"{len(model['lanes'])} independent query lanes; denominators remain separate.", 'small')]
+    story += [p('visibility at a glance','heading')]
+    for lane in model['lanes']:
+        m=lane['metrics']
+        story += [p(f"{lane['query']}: top 3 {m['top3']}/{m['measured']}; top 10 {m['top10']}/{m['measured']}; measured {m['measured']}/{m['sampled']}.")]
+    story += [p('Counts describe sampled locations, not customers or market share. Unmeasured origins are excluded; no measured origins means no rank conclusion.','small')]
+    story += ([] if brief.get('headline') else [p('working assessment','heading'),p('Hypothesis, not an established finding: '+model['thesis'])])+[p(model['evidence_disclosure'],'small'),p(center_disclosure(model),'small')]
+    brief = model['decision_brief']
+    story += [PageBreak(), p('Reading the findings', 'title')]
+    story += [p('How to read the evidence', 'heading'), p(brief['reading_guide'])]
+    story += [p(x['text']) for x in brief['findings']]
+    story += [p(brief['boundary'], 'small')]
+    profile = model.get('profile_review')
+    if profile:
+        from profile_review import readable
+        story += [PageBreak(), p('The business behind the listing', 'title'), p(profile['access'],'small'), p(profile['identity_assessment'])]
+        for fact in profile['facts']:
+            if fact['field'] in ('category','address','phone','rating','local_business_links'):
+                story += [p(fact['label'], 'heading'), p(readable(fact))]
+        story += [p(profile['limitation'],'small'), PageBreak(), p('Why these searches matter','title')]
+        for theme in profile['themes']:
+            story += [keyword(theme['query']),p(theme['customer_need']),p(theme['why']),p(theme['limitations'],'small')]
     for i, lane in enumerate(model['lanes']):
         asset = assets[i]['main']
         story += [PageBreak(), p(lane['label'], 'title'), p('Query: '+lane['query'], 'small')]
@@ -697,22 +701,32 @@ def render_pdf(model, assets, output):
         if lane['narrative']:
             story += [p('Working assessment', 'heading'), p('Hypothesis, not an established finding: '+lane['narrative'])]
     story += [PageBreak(), p('Recommended next steps', 'title')]
-    if model['next_actions']:
+    if brief['actions']:
+        for action in brief['actions']:
+            story += [p(str(action['priority']).zfill(2)+' / '+action['title'], 'category')]
+            story += [p(label+action[key]) for label,key in [('Why: ', 'why'), ('Do next: ', 'next_step'), ('Check success: ', 'success_check'), ('Still uncertain: ', 'uncertainty')]]
+            story += [p('Suggested owner: '+action['owner']+'. Evidence: '+', '.join(x['pointer'] for x in action['evidence']), 'small')]
+    elif model['next_actions']:
         story += [p(t) for t in model['next_actions']]
     else:
         story += [p('No business recommendations were supplied. Observations alone do not establish causes, demand, or likely returns.')]
+    if not model['synthetic']:
+        from sampling_review import summary as sampling_summary
+        story += [p('Where additional measurement would help','heading')]+[p(t) for t in sampling_summary(model)]
     if model.get('verification_notes'):
         story += [p('How the findings were checked', 'heading')] + [p(t) for t in model['verification_notes']]
     story += [p('What remains unverified', 'heading')]
     for lane in model['lanes']:
-        story += [p(lane['label'], 'heading')]
+        story += [keyword(lane['query'])]
         story += [p(t) for t in lane['missing_evidence']] or [p('No missing timestamp, depth, count, or cutoff sequence detected. Causal evidence and market representativeness remain unestablished.')]
     if model['missing_evidence']:
         story += [p('Additional open questions', 'heading')] + [p(t) for t in model['missing_evidence']]
     story += [PageBreak(), p('Evidence & denominator appendix', 'title')]
+    story += [p(model['evidence_disclosure'],'small'),p('Objectives','heading')]+[p(x) for x in model['objectives']]
+    story += [p('Evidence boundaries','heading'),p(LIMITS),p(center_disclosure(model),'small')]
     for lane_index, lane in enumerate(model['lanes']):
         m = lane['metrics']
-        lane_block = [p(lane['label'], 'heading'), p(finding(lane)),
+        lane_block = [keyword(lane['query']), p(finding(lane)),
                       p(map_caption(lane, assets[lane_index]['main']), 'small'),
                       p('States: '+', '.join(f'{k} {v}' for k, v in m['states'].items())+'.', 'small')]
         sources = sorted({r['source'] for r in lane['records']})
@@ -737,6 +751,7 @@ def render_pdf(model, assets, output):
                       KeepTogether([TrackedImage(str(output / asset['file']), width=MAP_W, height=asset['height_pt']), Spacer(1, 9),
                                     MapLegend(lane,asset), p(map_caption(lane, asset), 'small')])]
     doc.build(story)
+    add_pdf_brand_links(output / 'report.pdf')
     for box in log:
         require(box['x'] >= MARGIN-.1 and box['x']+box['width'] <= PAGE_W-MARGIN+.1 and
                 box['y'] >= 57.9 and box['y']+box['height'] <= 727.1, f'PDF layout overflow: {box}')
@@ -753,10 +768,11 @@ def render_pdf(model, assets, output):
 
 
 def render_html(model, assets, output):
+    prepare_html_font(output,THEME)
     def p(s):
         return '<p>'+escape(s).replace('\n', '<br>')+'</p>'
     def h(s, level=2):
-        return f'<h{level}>'+escape(s)+f'</h{level}>'
+        return f'<h{level}>'+escape(s.lower() if level!=1 else s)+f'</h{level}>'
     def legend(lane):
         items = ['<span style="display:inline-block;margin-right:20px"><span aria-hidden="true" '
                  'style="display:inline-block;width:8px;height:8px;box-sizing:border-box;border-radius:50%;margin-right:6px;'+
@@ -765,30 +781,70 @@ def render_html(model, assets, output):
         items += ['<span>Rings: '+lane['map'].get('distance_unit','km')+'</span>']
         if any(lane['metrics']['states'].get(k,0) for k in ('error','empty','unmeasured')):
             items += ['<br>E: error · Ø: empty · U: unmeasured (excluded from measured denominator)']
-        return '<p style="font-size:13px;color:'+MUTED+'">'+''.join(items)+'</p>'
+        return '<p class="report-legend" style="color:'+(INK)+'">'+''.join(items)+'</p>'
+    import shutil
+    from report_design import prepare_banner
+    prepare_banner(output, THEME)
     parts = ['<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width">',
              '<title>'+escape(model['business']['name'])+' | legends-geogrid</title>',
-             '<style>'+('.brand-strip{height:6px;background:linear-gradient(115deg,'+','.join(HEADER_COLORS)+')}.mono{font-family:"JetBrains Mono",ui-monospace,monospace;letter-spacing:.09em;font-size:12px;color:'+MUTED+'}h1,h2,h3{font-weight:600;letter-spacing:-.02em}' if THEME == 'light' else '')+'body{margin:0;background:'+BG+';color:'+INK+';font:16px/1.6 '+('Inter,' if THEME == 'light' else '')+'system-ui,sans-serif}main{max-width:860px;margin:auto;padding:40px 24px}h1{font-size:36px;line-height:1.2}h2{color:'+ACCENT+'}p,h1,h2,td{overflow-wrap:anywhere}section{border-top:1px solid '+LINE+';padding:24px 0}img{width:100%;height:auto}table{border-collapse:collapse;font-size:13px;width:100%}th,td{padding:7px;text-align:left;border-bottom:1px solid '+LINE+'}.scroll{overflow:auto}small{color:'+MUTED+'}a{color:'+ACCENT+'}</style><main>',
-             *(['<div class="brand-strip"></div>'] if THEME == 'light' else []),
-             '<p class="mono">legends-geogrid / local search observations</p>',
+             '<style>'+html_styles(THEME)+'</style><main data-design="'+DESIGN_VERSION+'" data-stage="findings">'+BRAND_TOP+'<header class="report-cover">',
+             ('<img class="banner" src="banner.png" alt="legends-geogrid"><p class="eyebrow">study findings</p>'),
              h(model['business']['name'],1), p(model['business']['location'])]
+    if model['business'].get('website'):
+        website = escape(model['business']['website'], quote=True)
+        parts += ['<p class="business-domain"><a href="'+website+'">'+website+'</a></p>']
+    brief = model['decision_brief']
+    if brief.get('headline'):
+        parts += [h(brief['headline']), p(brief['explanation']), h('Start here',3)]
+        parts += [p(str(a['priority'])+'. '+a['title']) for a in brief['actions'][:3]]
     if model['synthetic']:
         parts += [h('Synthetic demonstration — no real business findings')]
-    parts += [p(model['evidence_disclosure']), h('Working assessment'),
-              p('Hypothesis, not an established finding: '+model['thesis']), h('Objectives')]
-    parts += [p(x) for x in model['objectives']]
-    parts += [h('Evidence boundaries'), p(LIMITS), p(center_disclosure(model)+
-              f" Coordinates: {model['business']['lat']:.7f}, {model['business']['lng']:.7f}.")]
+    parts += [h('visibility at a glance'), '<table class="visibility-table"><thead><tr><th>search</th><th>top 3</th><th>top 10</th><th>measured</th></tr></thead><tbody>']
+    for lane in model['lanes']:
+        m=lane['metrics']
+        parts += ['<tr><td>'+escape(lane['query'])+'</td><td>'+(str(m['top3'])+'/'+str(m['measured'])+'<span class="metric-rail" aria-hidden="true"><span style="width:'+str(100*m['top3']/m['measured'])+'%"></span></span>' if m['measured'] else 'not measured')+'</td><td>'+(str(m['top10'])+'/'+str(m['measured']) if m['measured'] else 'not measured')+'</td><td>'+str(m['measured'])+'/'+str(m['sampled'])+'</td></tr>']
+    parts += ['</tbody></table><p class="summary-note">Counts describe sampled locations, not customers or market share. Unmeasured origins are excluded from rank denominators; no measured origins means no rank conclusion.</p>']
+    if not brief.get('headline'):
+        parts += [h('working assessment'),p('Hypothesis, not an established finding: '+model['thesis'])]
+    parts += [h('important limitations')]+[p(x) for x in model['missing_evidence']]
+    parts += ['<details><summary>study objectives and measurement boundaries</summary>']
+    parts += [h('Objectives')]+[p(x) for x in model['objectives']]
+    parts += [h('Evidence boundaries'), p(LIMITS), p(center_disclosure(model)+f" Coordinates: {model['business']['lat']:.7f}, {model['business']['lng']:.7f}.")]
+    parts += [p(model['evidence_disclosure']), '</details>']
+    brief = model['decision_brief']
+    parts += ['</header><section class="report-section" aria-label="Reading the findings">', h('Reading the findings')]
+    parts += [p(brief['reading_guide'])]+[p(x['text']) for x in brief['findings']]+[p(brief['boundary'])]
+    profile = model.get('profile_review')
+    if profile:
+        from profile_review import readable
+        parts += [h('The business behind the listing'), p(profile['access']), p(profile['identity_assessment'])]
+        parts += ['<p><a href="'+escape(profile['profile_url'],quote=True)+'">Open the named Google Business Profile</a></p>']
+        for fact in profile['facts']:
+            if fact['field'] in ('category','address','phone','rating','local_business_links'):
+                parts += [h(fact['label'],3),p(readable(fact))]
+        parts += ['<details><summary>Additional profile fields and observation date</summary>',p(profile['observed_at'])]
+        for fact in profile['facts']:
+            if fact['field'] not in ('category','address','phone','rating','local_business_links'):
+                parts += [h(fact['label'],3),p(readable(fact))]
+        parts += ['</details>']
+        parts += [p(profile['website_assessment']),p(profile['limitation']),h('Why these searches matter')]
+        parts += ['<div class="query-deck">']
+        for index, theme in enumerate(profile['themes'],1):
+            parts += ['<article class="query-ticket"><span class="query-index">SEARCH '+str(index).zfill(2)+'</span>',h(theme['query'],3),p(theme['customer_need']),p(theme['why']),'<details><summary>Evidence boundaries</summary>'+p(theme['limitations'])+'</details></article>']
+        parts += ['</div>']
+    parts += ['</section><nav class="report-nav" aria-label="Report sections">']
+    parts += [f'<a href="#query-{i+1}">'+escape(lane['label'])+'</a>' for i,lane in enumerate(model['lanes'])]
+    parts += ['<a href="#next-steps">Next steps</a></nav>']
     for i, lane in enumerate(model['lanes']):
-        parts += ['<section>', h(lane['label']), p('Query: '+lane['query'])]
+        parts += [f'<section class="report-lane" id="query-{i+1}">', '<p class="eyebrow">SEARCH '+str(i+1)+'</p>', h(lane['label']), '<p><span class="query-token">'+escape(lane['query'])+'</span></p>']
         for kind in ('main', 'full'):
             if kind not in assets[i]:
                 continue
             asset = assets[i][kind]
             if kind == 'full':
                 parts += [h('Full extent appendix',3)]
-            parts += [f'<img src="{asset["file"]}" alt="{escape(lane["label"], quote=True)}: {asset["plotted"]} exact-coordinate observations">',
-                      legend(lane), p(map_caption(lane, asset))]
+            parts += ['<figure class="report-map">', f'<img src="{asset["file"]}" alt="{escape(lane["label"], quote=True)}: {asset["plotted"]} exact-coordinate observations">',
+                      legend(lane), ('<figcaption><details><summary>map extent, attribution and method</summary>'+escape(map_caption(lane, asset))+'</details></figcaption>')+'</figure>']
         parts += [h('Computed finding',3), p(finding(lane))]
         if lane['narrative']:
             parts += [h('Working assessment',3), p('Hypothesis, not an established finding: '+lane['narrative'])]
@@ -800,11 +856,24 @@ def render_html(model, assets, output):
         for row in lane['records']:
             parts += ['<tr>'] + ['<td>'+escape(str(row[x]) if row[x] is not None else 'unknown')+'</td>' for x in columns] + ['</tr>']
         parts += ['</tbody></table></div></details></section>']
-    parts += [h('Recommended next steps')]+[p(x) for x in model['next_actions'] or ['No business recommendations supplied.']]
+    parts += ['<section class="report-section" id="next-steps">', h('Recommended next steps')]
+    parts += [h('What to do next',3)]
+    if brief['actions']:
+        for action in brief['actions']:
+            parts += ['<article class="decision-card"><span class="decision-class">'+escape(action.get('category','investigation').replace('_',' '))+'</span>', h(str(action['priority']).zfill(2)+' / '+action['title'],3)]
+            parts += ['<p><strong class="decision-label">'+escape(label)+'</strong>'+escape(action[key])+'</p>' for label,key in [('why it matters', 'why'), ('do next', 'next_step'), ('check success', 'success_check'), ('still uncertain', 'uncertainty')]]
+            parts += [p('Suggested owner: '+action['owner']), '<details><summary>Supporting evidence</summary>']
+            parts += [p(x['pointer']+': '+json.dumps(x['value'],ensure_ascii=False)) for x in action['evidence']]
+            parts += ['</details></article>']
+    else:
+        parts += [p(x) for x in model['next_actions'] or ['No business recommendations supplied.']]
+    if not model['synthetic']:
+        from sampling_review import summary as sampling_summary
+        parts += [h('Where additional measurement would help',3)]+[p(t) for t in sampling_summary(model)]
     if model.get('verification_notes'):
-        parts += [h('How the findings were checked')]+[p(x) for x in model['verification_notes']]
+        parts += ['<details><summary>How the findings were checked</summary>']+[p(x) for x in model['verification_notes']]+['</details>']
     parts += [h('What remains unverified')]+[p(x) for x in model['missing_evidence']]
-    parts += ['<p><a href="report.pdf">PDF report</a> · <a href="report-model.json">Normalized evidence and metrics</a> · <a href="report-qa.json">QA receipt</a></p></main></html>']
+    parts += ['</section><footer class="report-downloads"><p><a href="report.pdf">PDF report</a> · <a href="report-model.json">Normalized evidence and metrics</a> · <a href="report-qa.json">QA receipt</a></p>'+BRAND_BOTTOM+'</footer></main></html>']
     html = display_text('\n'.join(parts))
     require('\u2014' not in html, 'HTML contains forbidden em dash')
     (output/'report.html').write_text(html, encoding='utf-8')
@@ -859,8 +928,10 @@ def write_json(path, value):
     path.write_text(json.dumps(value, indent=2, ensure_ascii=False, allow_nan=False)+'\n', encoding='utf-8')
 
 
-def build(config, output_dir, require_pdf_qa=False, proof=False):
+def build(config, output_dir, require_pdf_qa=False, proof=False, basemap_provider=None, allow_google_maps=False):
+    from report_basemaps import BasemapSession, provider_for
     model = load_config(config)
+    providers = [provider_for(model,lane,basemap_provider) for lane in model['lanes']]
     apply_theme(model.get('theme', DEFAULT_THEME))
     output = Path(output_dir).resolve()
     require(not output.exists() or not any(output.iterdir()), 'output directory must be new or empty; existing files are preserved')
@@ -870,8 +941,17 @@ def build(config, output_dir, require_pdf_qa=False, proof=False):
     # partial published report. Move only verified, newly generated artifacts.
     with tempfile.TemporaryDirectory(prefix='.geogrid-report-', dir=output.parent) as folder:
         stage = Path(folder)
+        basemaps = BasemapSession(stage/'basemaps',model['theme'],allow_google_maps)
         assets = []
         for i, lane in enumerate(model['lanes'], 1):
+            provider = providers[i-1]
+            lane['map']['provider'] = provider
+            if provider == 'schematic':
+                lane['map'].pop('basemap',None)
+            elif provider in ('openfreemap','google'):
+                lane['map']['basemap'] = basemaps.acquire(provider,lane['map']['bounds'],lane['map'].get('height_pt',452))
+                if lane['needs_appendix']:
+                    lane['map']['full_basemap'] = basemaps.acquire(provider,lane['full_bounds'],MAP_H)
             asset = {'main':map_image(lane, model['business'], stage/f'map-{i:03d}.png', fonts)}
             if lane['needs_appendix']:
                 asset['full'] = map_image(lane, model['business'], stage/f'map-{i:03d}-full.png', fonts, full=True)
@@ -887,12 +967,16 @@ def build(config, output_dir, require_pdf_qa=False, proof=False):
         public_model = json.loads(json.dumps(model))
         public_model.pop('fonts', None)
         for lane in public_model['lanes']:
-            lane['map'].get('basemap', {}).pop('path', None)
+            for key in ('basemap','full_basemap'):
+                base = lane['map'].get(key,{})
+                base.pop('path',None)
         write_json(stage/'report-model.json', public_model)
+        from sampling_review import review as review_sampling
+        write_json(stage/'sampling-review.json', review_sampling(public_model))
         validation = pdf_qa(stage/'report.pdf', proof, require_pdf_qa)
         require(validation['status'] != 'failed', f"PDF QA failed: {validation.get('issues')}")
-        receipt = dict(status='passed' if validation['status']=='passed' else 'layout-passed-pdf-qa-skipped',
-                       network_calls=0, pdf=validation, map_validation=map_validation, layout_boxes=layout, maps=assets,
+        receipt = dict(design_version=DESIGN_VERSION, status='passed' if validation['status']=='passed' else 'layout-passed-pdf-qa-skipped',
+                       network_calls=basemaps.network_calls, basemap_providers=providers, pdf=validation, map_validation=map_validation, layout_boxes=layout, maps=assets,
                        metrics={lane['query_id']:lane['metrics'] for lane in model['lanes']},
                        sha256={p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in stage.iterdir() if p.is_file()})
         write_json(stage/'report-qa.json', receipt)
@@ -907,14 +991,24 @@ def main(argv=None):
     parser.add_argument('--config', required=True, type=Path)
     parser.add_argument('--output-dir', required=True, type=Path)
     parser.add_argument('--require-pdf-qa', action='store_true')
+    parser.add_argument('--basemap', choices=('auto','openfreemap','google','supplied','schematic'), help='Street maps default for real reports; synthetic fixtures remain offline')
+    parser.add_argument('--allow-google-maps-charge', action='store_true', help='Explicitly permit Google Static Maps requests; billed separately from ranking data')
     parser.add_argument('--proof', action='store_true', help='render PDF pages to local proof PNGs')
+    parser.add_argument('--study-plan',type=Path,help='Research plan to bank with the completed report; auto-detected beside standard report configs')
+    parser.add_argument('--vault-dir',type=Path,help='Study library vault root')
+    parser.add_argument('--study-run-dir',type=Path,help='Exact original collection folder for banking; otherwise inferred only from plan in evidence/')
     args = parser.parse_args(argv)
     try:
-        receipt = build(args.config, args.output_dir, args.require_pdf_qa, args.proof)
+        receipt = build(args.config, args.output_dir, args.require_pdf_qa, args.proof, args.basemap, args.allow_google_maps_charge)
+        plan=args.study_plan or args.config.resolve().parent/'evidence/study-plan.json'
+        if plan.is_file():
+            from study_library import bank_study
+            run_dir=args.study_run_dir or (plan.resolve().parent.parent if plan.resolve().parent.name=='evidence' else None)
+            receipt['library']=bank_study(plan,run_dir,args.output_dir,vault=args.vault_dir,stage='report-complete')
     except (ValueError, KeyError, TypeError, OSError) as exc:
         print(f'Report failed: {exc}', file=sys.stderr)
         return 2
-    print(json.dumps({'status':receipt['status'], 'output_dir':str(args.output_dir)}))
+    print(json.dumps({'status':receipt['status'], 'output_dir':str(args.output_dir),'library':receipt.get('library')}))
     return 0
 
 

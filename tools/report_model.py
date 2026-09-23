@@ -4,6 +4,7 @@ from __future__ import annotations
 from datetime import datetime
 import json
 import math
+from decision_brief import build as build_decision_brief, website_url
 from pathlib import Path
 
 STATES = ('found', 'not_returned', 'error', 'empty', 'unmeasured')
@@ -199,6 +200,9 @@ def map_config(raw, root):
     require(isinstance(raw, dict), 'map must be an object')
     # Export only validated map fields, never arbitrary operator metadata.
     result = {}
+    result['provider'] = raw.get('provider', 'auto')
+    require(result['provider'] in ('auto', 'openfreemap', 'google', 'supplied', 'schematic'),
+            'map.provider must be auto, openfreemap, google, supplied, or schematic')
     result['distance_unit'] = raw.get('distance_unit', 'km')
     require(result['distance_unit'] in ('km', 'mi'), 'map.distance_unit must be km or mi')
     if 'height_pt' in raw:
@@ -248,7 +252,8 @@ def load_config(path):
     business = cfg.get('business')
     require(isinstance(business, dict), 'business must be an object')
     business = dict(name=text(business.get('name'), 'business.name'), location=text(business.get('location'), 'business.location'),
-                    lat=business.get('lat'), lng=business.get('lng'))
+                    lat=business.get('lat'), lng=business.get('lng'),
+                    website=website_url(business.get('website', business.get('domain'))))
     coordinates(business['lat'], business['lng'])
     center_kind = cfg.get('center_kind', 'business')
     require(center_kind in ('business', 'market'), 'center_kind must be business or market')
@@ -315,7 +320,13 @@ def load_config(path):
         for key in ('sampled_at', 'depth', 'returned_count'):
             missing = sum(r[key] is None for r in records)
             if missing:
-                current['missing_evidence'].append(f'{missing} origins have no {key}.')
+                description = {'sampled_at': 'an individual collection timestamp',
+                               'depth': 'the requested result depth',
+                               'returned_count': 'the number of results returned'}[key]
+                current['missing_evidence'].append(
+                    f'Individual collection times are missing for {missing} sampled locations.'
+                    if key == 'sampled_at' else
+                    f'The saved records do not include {description} for {missing} sampled locations.')
         m = current['metrics']
         if m['excluded']:
             current['missing_evidence'].append(f"{m['excluded']} origins are empty, errored, or unmeasured; resolve these before comparing results.")
@@ -335,6 +346,11 @@ def load_config(path):
         'Synthetic observations only; these are not real business findings.' if result['synthetic'] else
         'User-supplied evidence; this renderer does not independently authenticate source labels or origin records. '
         'Acquisition verification requires a separate review of the underlying evidence.')
+    if 'profile_review' in cfg:
+        from profile_review import validate as validate_profile
+        result['profile_review'] = validate_profile(cfg['profile_review'])
+        require({t['query'] for t in result['profile_review']['themes']} == {lane['query'] for lane in result['lanes']}, 'profile themes differ from report queries')
+    result['decision_brief'] = build_decision_brief(result, cfg.get('decision_brief'))
     return result
 
 

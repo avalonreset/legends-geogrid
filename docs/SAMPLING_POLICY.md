@@ -47,3 +47,35 @@ not prove a particular baseline is reusable. The enhance command verifies source
 integrity, settings and freshness, then estimates only new/refreshed observations.
 It executes nested same-extent refinement up to 25x25. Outward directional probes
 remain agent-reviewed proposals; this command does not execute territorial growth.
+
+## Multi-perspective sampling doctrine
+
+Local search visibility cannot be understood through a single static lens. The
+standard study workflow follows a deliberate two-stage progression:
+
+1. **Dip the toe in the water (high-resolution core baseline):** Always start
+   zoomed in. The default baseline uses a tight 1.0 to 1.5 km radius with dense
+   spacing (<= 0.5 km, e.g. 5x5 across 1.2 km). This keeps initial provider spend
+   minimal (~$0.15 for 3 queries), prevents wasted calls into unpopulated empty
+   space, and captures the exact micro-contours of the business's immediate local
+   ranking boundary.
+2. **Do not be cheap with DataForSEO tokens (expansion is the product):** A single
+   baseline is step one, not the final report. Almost every business should run
+   an outward enhancement, a regional zoom-out, or both to reveal the complete
+   commercial picture. Tokens cost pennies; the resulting competitive intelligence
+   is worth thousands in market clarity.
+3. **Path A: Regional zoom-out for dominant cores:** If the baseline reveals
+   solid green prominence (ranks 1-3 across the neighborhood), the business has
+   already won its immediate doorstep. The next useful question is regional
+   service-area authority. Zoom out the provider viewport (switch to 11z-12z and
+   an 8-12 mile footprint) to discover where regional competitors begin to contest
+   market share.
+4. **Path B: Same-resolution expansion for near-miss perimeters:** If ranks 4-10
+   or competitive near-misses touch the outer perimeter of the core, the active
+   frontier is right on the edge of the neighborhood. Use `study.py enhance` to
+   step outward at the same high spatial resolution along those directional
+   corridors to map adjacent neighborhood conversion opportunities.
+5. **The dual-perspective standard:** For service businesses, the complete
+   strategic deliverable synthesizes both perspectives: the micro-street
+   neighborhood baseline and the macro-metro regional overview.
+

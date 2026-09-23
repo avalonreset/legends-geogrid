@@ -21,12 +21,12 @@ Check branded identity and representative service queries. Where relevant, check
 
 ## 4. Choose the useful route
 
-- Relevant local results and a defined coverage question: select comparable origins and run a grid.
-- Sparse, irrelevant, or strongly setting-sensitive results: calibrate and disclose limitations before scaling.
-- Organic visibility with weak Maps evidence: consider a website and enquiry review first.
-- Unknown practical territory: request the missing business facts or deliver a provisional discovery brief. Do not infer profitable travel from ranking positions.
-
-A discovery brief can be one page: question, verified facts, bounded observations, unknowns, recommended next action. It is a valid outcome without a dense scan.
+- High-resolution baseline core (default): Start zoomed in. Run a tight 1.0 to 1.5 km radius with dense spacing (<= 0.5 km) around the verified address to dip the toe in the water. This establishes immediate local rank contours and verifies the core authority boundary with minimal spend (~$0.15).
+- Do not stop at the first run: Do not be cheap with DataForSEO tokens. Almost every business requires an expansion, a regional zoom-out, or both to reveal the complete commercial picture.
+- Path A (Zoom Out): If the core is solid green (ranks 1-3 across the neighborhood), zoom out the provider viewport (switch to 11z-12z, 8-12 mile footprint) to discover where regional competitors contest your service boundary.
+- Path B (Expand Outward): If ranks 4-10 or competitive positions reach the boundary edges, expand outward at the same high spatial resolution in those active directions using enhance.
+- Sparse or irrelevant results: If even the core is missing within 500m, calibrate categories and address verification before buying outer samples.
+- Unknown practical territory: Request missing business facts or deliver a provisional discovery brief. Do not infer profitable travel from ranking positions alone.
 
 ## 5. Collect and report
 

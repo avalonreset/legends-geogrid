@@ -134,7 +134,7 @@ Fresh scans depend on [legends-dataforseo-kit](https://github.com/avalonreset/le
 
 Reports default to the dark theme. For pure-white printable reports, set `"theme": "light"` in the report config; both themes preserve rank colors and legends-geogrid branding.
 
-**Tested pairing:** legends-geogrid v0.4.0 with legends-dataforseo-kit v0.4.0.
+**Tested pairing:** legends-geogrid v0.4.1 with legends-dataforseo-kit v0.4.0.
 The requirement below pins the kit's immutable public source ZIP, so installation
 does not require Git. The two projects are maintained and versioned separately.
 Offline reports remain usable without the provider dependency or credentials.

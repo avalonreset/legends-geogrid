@@ -1052,8 +1052,8 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--center-lat", type=float, required=True)
     parser.add_argument("--center-lng", type=float, required=True)
     parser.add_argument("--location-label", default="Unspecified location")
-    parser.add_argument("--radius-km", type=float, default=2.0)
-    parser.add_argument("--grid-size", type=int, default=3)
+    parser.add_argument("--radius-km", type=float, default=1.2)
+    parser.add_argument("--grid-size", type=int, default=5)
     parser.add_argument("--depth", type=int, default=100)
     parser.add_argument("--zoom", type=int, default=15)
     parser.add_argument("--device", choices=["desktop", "mobile"], default="desktop")
@@ -1113,7 +1113,7 @@ def main(argv: list[str]) -> int:
         "priority": priority_estimate,
         "standard": standard_estimate,
     }[args.method]
-    if expected > args.confirm_cost_usd:
+    if expected > args.confirm_cost_usd + 1e-6:
         raise RuntimeError(
             f"Refusing to execute: estimated cost ${expected:.4f} exceeds "
             f"--confirm-cost-usd ${args.confirm_cost_usd:.4f}"

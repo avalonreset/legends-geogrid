@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.4.1 - 2026-09-23
+
+- Introduce the Multi-Perspective Sampling Doctrine: default to a high-resolution
+  neighborhood core baseline (1.0 to 1.5 km radius, <= 0.5 km point spacing) to
+  dip the toe in the water with minimal initial spend (~$0.15 for 3 queries).
+- Add actionable multi-perspective expansion guidance in sampling review:
+  encourage users not to be cheap with DataForSEO tokens and reveal the full
+  picture across multiple zoom levels.
+- Add Path A (Dominant Core): recommend zooming out to a regional 8-12 mile
+  footprint at provider zoom 11z-12z to locate where regional competitors contest
+  service area territory when the neighborhood core is saturated.
+- Add Path B (Active Edge Frontier): recommend same-resolution outward expansion
+  via study enhancement along directional corridors when near-miss ranks touch
+  the core perimeter.
+- Fix study lane execution cost check underflow by applying floating-point tolerance
+  to per-query cost confirmations in single-grid collection.
+
 ## 0.4.0 - 2026-09-22
 
 - Add `study.py enhance`: result-driven same-extent refinement, dated observation

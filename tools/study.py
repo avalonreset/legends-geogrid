@@ -112,7 +112,7 @@ def run(plan_path,output,execute=False,ceiling=0,checkpoint=None):
         require(latest['plan_sha256']==receipt['plan_sha256'],'plan changed during collection')
         lane=output/f'lane-{i}'
         argv=[sys.executable,str(ROOT/'local_heatmap_poc.py'),'--diagnostic','--execute',
-              '--confirm-cost-usd',str(receipt['estimated_grid_cost_usd']/len(selected)),
+              '--confirm-cost-usd',f"{receipt['estimated_grid_cost_usd']/len(selected) + 0.0001:.4f}",
               '--keyword',q['query'],'--target-name',b['name'],'--target-cid',b['cid'],
               '--center-lat',str(b['lat']),'--center-lng',str(b['lng']),
               '--location-label',b['location_label'],'--output-dir',str(lane)]

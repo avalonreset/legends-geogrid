@@ -90,6 +90,9 @@ def review(model, target_spacing_km=0.75):
             if needed%2==0:needed+=1
             result.update(max_neighbor_spacing_km=round(gap,3),edge_origins=len(edge),top3_edge_origins=strong,sharp_rank_transitions=transitions,suggested_same_extent_grid_size=needed)
             interior_signal=any(valid(r) for r in rows)
+            top3_count=sum(valid(r) and r['rank']<=3 for r in rows)
+            result['top3_share']=round(top3_count/len(rows),3) if rows else 0
+            result['dominant_core']=bool(result['top3_share']>=0.50)
             if gap>target_spacing_km*1.05 and interior_signal:reasons.append('Densify: neighboring origins exceed the declared spatial resolution and measured visibility gives interior refinement a question to answer.')
             if transitions:reasons.append('Inspect/refine rank transitions: adjacent observed ranks cross a rank band with a gap of at least four positions.')
             reasons.append('Boundary decision: '+boundary['reason'])
@@ -104,6 +107,13 @@ def review(model, target_spacing_km=0.75):
 def summary(model):
     result=review(model)
     lines=['Planning review uses a 0.75 km spacing preference, not a universal SEO threshold. These are recommendations, not additional measurements.']
+    lines.append('Multi-perspective strategy: The initial run dips a toe in the water with a high-resolution neighborhood baseline. Do not be cheap with DataForSEO tokens. A single baseline is step one; almost every business needs an outward enhancement, a regional zoom-out, or both to see the complete competitive picture across multiple zoom levels.')
+    dominant_lanes=[l['query'] for l in result['lanes'] if l.get('dominant_core')]
+    if dominant_lanes:
+        lines.append(f"Regional zoom-out opportunity: {', '.join(dominant_lanes)} show dominant top-3 core visibility. When a business saturates its immediate neighborhood, the next strategic move is zooming out the provider viewport to a regional footprint (8-12 miles, provider zoom 11z-12z) to identify where county-wide competitors contest your service boundary.")
+    active_edge_lanes=[l['query'] for l in result['lanes'] if l.get('boundary',{}).get('action')=='consider_directional_probe']
+    if active_edge_lanes:
+        lines.append(f"Directional expansion opportunity: {', '.join(active_edge_lanes)} show competitive near-miss positions reaching the boundary. The next strategic move is expanding outward at the same high spatial resolution in those active directions using enhance to map adjacent neighborhood conversion opportunities.")
     for lane in result['lanes']:
         if not lane['regular_rectangular_grid']:
             lines.append(lane['query']+': review the irregular sampling geometry before expanding.')

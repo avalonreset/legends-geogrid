@@ -1,64 +1,46 @@
-# Research-first release readiness
+# 0.4.0 release verification
 
-Review date: 2026-09-22. Candidate only; publication requires owner approval.
-Recommended version: 0.4.0, reflecting the new study workflow and installation
-requirements. Candidate version files now target 0.4.0; published releases remain unchanged.
+The packaged scope is business-first research, justified search themes, comparable
+collection, proposals, decision-oriented reports, automatic street maps, and an
+Obsidian-readable Markdown/JSON study library. Dark and white-print reports use
+the same editorial template.
 
-## Freeze this scope
+## Verified locally
 
-- Business-first agent recipe; website, public GBP, demand and pilot evidence.
-- Three to five justified themes, with disclosed focused/profile-supported paths.
-- Comparable collection, bounded costs, report-only recovery without recollection.
-- Automatic free street maps, optional Google imagery, explicit imagery failures.
-- Shared proposal/report design, domain, profile context and decision brief.
-- Dark default; white print palette of the same editorial template. No separate
-  Jev layout, omitted summaries or additional decorative strip.
-- Sampling recommendations and persistent Markdown/JSON study library.
+- 271 tests and all four offline report workflows pass.
+- The source ZIP installs in an empty Windows Python environment using only
+  declared dependencies; the full pipeline passes without a private font.
+- Free street-map acquisition works with Chromium and preserved attribution.
+- Both PDF palettes, clickable credits and desktop/mobile HTML were reviewed.
+- The archive excludes private configuration, customer runs and private fonts.
+- PDF credit processing uses declared pypdf and ReportLab dependencies.
+- Timestamp propagation uses provider observation dates, never export dates.
 
-The enhance command now plans and executes bounded same-extent refinement,
-with eligible observation reuse, incremental estimates and linked report editions.
-Automatic extension into new territory remains deferred; it needs geographic
-relevance evidence rather than a rank-boundary trigger alone.
-Private owner GBP access, conversion attribution, and guaranteed ranking causes
-are not claimed. An agent must review semantic evidence and recommendations.
+The release receipt and linked Actions run record the exact candidate SHA and
+Windows/Linux Python 3.10/3.12 results. CI installs and launches Chromium before
+testing, rather than relying on a preconfigured browser.
 
-## Verified in this review
+## Supported limits
 
-- Public latest release is v0.3.2; development is in a separate working checkout.
-- Full pnpm check passed: 270 tests (before final packaging checks), build, production dependency audit, report
-  doctor, dry-run collector and four offline PDF workflows.
-- Light report generated from saved Madness observations with the licensed local
-  Legends font: 15 pages, automated PDF QA passed; all-page contact sheet inspected.
-- Proposal and report tests now require the shared summary/content treatments in
-  both themes. White page backgrounds remain checked on every light PDF page.
-- Removed an internal vault path from portable report design documentation after
-  the hygiene test correctly rejected it.
-- No new paid calls. Historical raw observations and frozen proposal unchanged.
+Enhancement executes bounded same-extent refinement with eligible point reuse,
+per-point accounting and preserved history. Geographic extension remains a
+recommendation. Saved report configurations can render historical observations
+without a fresh paid scan; expired acquisition plans require replanning.
 
-## Release gates still open
+The vault preserves inspectable evidence but is not yet a relocatable execution
+environment. Source paths must remain available when resuming acquisition.
 
-1. Timestamp propagation is implemented in the collector using provider dates;
-   the enhancement reader also recovers those dates from retained raw responses.
-   Final acceptance must confirm timestamp coverage in a new customer report.
-   Records without trustworthy acquisition dates remain explicitly unknown;
-   export time is never relabeled as measurement time.
-2. Build an isolated distributable containing all new modules/docs and no runs,
-   private configuration, licensed local font or customer evidence. Verify clean
-   install, fonts without private assets, browser setup and missing-library errors.
-3. Run the exact release candidate through Windows/Linux CI and a fresh-agent
-   offline acceptance case outside the restaurant scenario. Madness completed
-   with documented product interventions; do not call it an untouched first pass.
-4. Review final HTML at desktop/mobile sizes and every final PDF page, including
-   both palettes, then obtain publication approval.
+The real-business trial completed with documented interventions. The package
+rehearsal is credential-free; it does not claim a new untouched live-agent trial.
+A second independent live business acceptance remains follow-up work.
 
-## Follow-up, not a reason for endless feature additions
+Research and advisory interpretation still require the agent's judgment. No
+private owner GBP access, conversion attribution or guaranteed ranking causes
+are claimed. Unknown observations remain unknown.
 
-Automatic territorial expansion and broader competitor/monitoring analysis can follow.
-The separate Alpha historical evidence audit is not certified by this release.
-New fonts, illustration systems and additional aesthetic redesign are out of scope.
+## Publication
 
-## Final packaging pass
-
-- Replace the undeclared PDF postprocessor with declared pypdf and existing ReportLab.
-- CI installs and launches Chromium on Windows/Linux before offline report tests.
-- Exact-package isolated installation and CI receipts are required before publication.
+Package and validate the exact commit before publication. Draft assets are not a
+public release. Keep earlier releases available; do not include customer reports
+or credentials in release assets. Automatic territorial expansion and further
+competitive analysis can follow without extending this release's scope.

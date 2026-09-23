@@ -135,3 +135,7 @@ Before delivery, prioritize business_information, measurement, investigation or
 maintain actions explicitly. Lead with three decisions, not technical caveats.
 Keep material scope limitations visible; put long acquisition receipts in the
 appendix. Preserve source timestamps and do not imply access to private GBP data.
+
+## Editorial punctuation
+
+Do not use em dashes in generated reports, release titles, documentation or user-facing copy. Use a period, comma, colon or parentheses as grammar requires. Preserve original provider evidence verbatim.

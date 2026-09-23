@@ -1,1 +1,4 @@
 Vendored from https://github.com/AgriciDaniel/claude-seo (MIT, (c) 2026 agricidaniel). See LICENSE and CITATION.cff in this directory.
+
+Verified upstream: tag v2.3.1, commit 55c7914a3ed2869b217b5d5f360a4e7ba28b4848.
+All 15 vendored files match that public revision after normalizing line endings.

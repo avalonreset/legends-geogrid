@@ -1,3 +1,22 @@
+# Current release: 0.4.0
+
+The current release connects business-first research, public GBP and website
+evidence, 3-5 justified search themes, validated proposals, comparable scans,
+decision-oriented reports and a persistent Markdown/JSON study library.
+Real reports default to free street maps. Dark and white print modes share the
+same template. `study.py enhance` executes finer sampling within the existing
+footprint with eligible point reuse and incremental estimates; outward expansion
+remains advisory.
+
+271 tests and four offline report workflows passed, including a clean source-ZIP
+installation and Windows/Linux Python 3.10/3.12 CI. macOS is not yet verified.
+Agents remain responsible for semantic research and recommendation quality.
+See [release readiness](RELEASE_READINESS.md) for supported limits and
+[GitHub Releases](https://github.com/avalonreset/legends-geogrid/releases) for
+exact-commit verification receipts and downloads.
+
+## Historical 0.3.0 record
+
 # Product Status
 
 ## Release state

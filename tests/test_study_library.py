@@ -72,4 +72,4 @@ class LibraryTests(unittest.TestCase):
         evidence=self.root/'collection/evidence';evidence.mkdir(parents=True);plan=evidence/'study-plan.json';plan.write_text('{}')
         with patch('strategy_report.build',return_value={'status':'passed'}),patch('study_library.bank_study',return_value={'status':'banked'}) as bank:
             code=main(['--config',str(self.root/'elsewhere/config.json'),'--output-dir',str(self.root/'report'),'--study-plan',str(plan)])
-        self.assertEqual(code,0);self.assertEqual(bank.call_args.args[1],evidence.parent)
+        self.assertEqual(code,0);self.assertEqual(bank.call_args.args[1].resolve(),evidence.parent.resolve())

@@ -11,7 +11,7 @@ lowercase positioning and the approved Legends banner style.
 - Fresh scans: install `requirements-dataforseo.txt`. This installs the public
   [legends-dataforseo-kit](https://github.com/avalonreset/legends-dataforseo-kit)
   dependency. Run `python tools/geogrid_doctor.py --dataforseo` before collection.
-  Release 0.4.0 pins kit v0.4.0 by immutable commit. Install the declared
+  Release 0.1.0 pins kit v0.1.0 by immutable commit. Install the declared
   requirement rather than choosing an untested latest version independently.
   Do not install an MCP server or copy a second HTTP/authentication client.
 - Credentials: `DATAFORSEO_LOGIN` (or `DATAFORSEO_USERNAME`) and
@@ -19,7 +19,7 @@ lowercase positioning and the approved Legends banner style.
 
 ## Research and collection
 
-Read root `SKILL.md`, `docs/START_A_STUDY.md` and `docs/STUDY_CONTRACT.md` before collection.
+Read `docs/STUDY-RECIPE.md`, `docs/START_A_STUDY.md` and `docs/STUDY_CONTRACT.md` before collection.
 Default to 3-5 distinct evidence-backed search themes, one representative query
 per theme, following `docs/QUERY_SELECTION_POLICY.md`. Fewer requires a cited
 explanation and focused scope; never pad with synonyms.

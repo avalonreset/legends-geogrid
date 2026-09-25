@@ -1,6 +1,6 @@
 # Evidence-backed study contract (local candidate)
 
-The root [agent recipe](../SKILL.md) selects and interprets. `tools/study.py`
+The [study recipe](STUDY-RECIPE.md) selects and interprets. `tools/study.py`
 provides credential-free validation, bounded research and collection orchestration.
 This is a candidate interface, not a declaration that the live acceptance test passed.
 

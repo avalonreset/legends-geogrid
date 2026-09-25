@@ -1,0 +1,162 @@
+# Contract CI template for Legends module repos.
+#
+# Copy to .github/workflows/contract.yml in each module repo, replacing
+# <module> with the module id (for example legends-geogrid).
+#
+# What it checks (inline Python, no external deps):
+#   forbidden-file scan, skills/ allowlist (only cto-legends),
+#   .legends-module validity, README agent block marker,
+#   version-vs-changelog match, and on tag pushes version-vs-tag match.
+# Byte-exact vendor verification is the fleet audit's job, not CI's:
+# CI only asserts the vendored copy EXISTS (byte equality needs the gh API
+# and the pinned router commit, which the fleet audit resolves live).
+#
+# Law refs: sops/Legends-Ecosystem-Module-Contract,
+# sops/Legends-Ecosystem-Version-Policy, sops/Legends-Ecosystem-Release-Train.
+
+name: contract
+
+on:
+  push:
+    tags:
+      - "v*"
+  pull_request:
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Contract checks (no external deps)
+        env:
+          MODULE_ID: "legends-geogrid"
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          python3 - <<'EOF'
+          import json
+          import os
+          import re
+          import sys
+          from pathlib import Path
+
+          root = Path(".")
+          module = os.environ["MODULE_ID"]
+          assert module != "<module>", "MODULE_ID not filled in for this repo"
+          errors: list[str] = []
+
+          def fail(msg: str) -> None:
+              errors.append(msg)
+              print(f"FAIL: {msg}")
+
+          # 1. Forbidden files.
+          forbidden = [
+              f"skills/{module}",
+              "CLAUDE.md", "GEMINI.md", "CODEX.md", "GROK.md",
+              "gemini-extension.json", "skill-package.json",
+              "SKILL.md", "github/SKILL.md", ".claude-plugin",
+              "bin/setup-multi-agent.ps1", "bin/setup-multi-agent.sh",
+              "bin/setup-multi-agent", "bin/install-spine.ps1",
+              "bin/install-spine.sh",
+              "install.ps1", "install.sh",
+              "install-codex.ps1", "install-codex.sh",
+          ]
+          hits = [f for f in forbidden if (root / f).exists()]
+          for mirror in (".agents/skills", ".claude/skills"):
+              mp = root / mirror
+              if mp.is_dir() and any(mp.iterdir()):
+                  hits.append(mirror + "/")
+          if hits:
+              fail(f"forbidden files present: {', '.join(hits)}")
+          if (root / "LEGENDS.md").is_file():
+              print("WARN: LEGENDS.md present, needs manual review "
+                    "(must not be a skill shim)")
+          agents = root / "AGENTS.md"
+          if agents.is_file():
+              text = agents.read_text(encoding="utf-8", errors="replace")
+              if (re.search(r"^name:\s*\S+", text, re.MULTILINE)
+                      and re.search(r"^description:\s*\S+", text, re.MULTILINE)):
+                  fail("AGENTS.md carries skill frontmatter (build notes only)")
+
+          # 2. skills/ allowlist: exactly skills/cto-legends/SKILL.md.
+          skills = root / "skills"
+          if not skills.is_dir():
+              fail("skills/ missing (want skills/cto-legends/SKILL.md)")
+          else:
+              entries = sorted(p.name for p in skills.iterdir())
+              if entries != ["cto-legends"]:
+                  fail(f"skills/ must hold only cto-legends, found: {entries}")
+              elif not (skills / "cto-legends" / "SKILL.md").is_file():
+                  fail("skills/cto-legends/SKILL.md missing")
+              # Byte-exactness is the fleet audit's job; CI asserts presence.
+
+          # 3. .legends-module identity file.
+          ident = root / ".legends-module"
+          if not ident.is_file():
+              fail(".legends-module missing")
+          elif ident.read_text(encoding="utf-8", errors="replace").strip() != module:
+              fail(".legends-module does not hold the module id")
+
+          # 4. README agent block marker.
+          marker = "Agent setup (via `cto-legends`)"
+          readme = root / "README.md"
+          if not readme.is_file():
+              fail("README.md missing")
+          elif marker not in readme.read_text(encoding="utf-8", errors="replace"):
+              fail(f"README agent block marker {marker!r} not found")
+
+          # 5. Version vs changelog (exactly one version source).
+          versions: dict[str, str] = {}
+          pp = root / "pyproject.toml"
+          if pp.is_file():
+              m = re.search(r'^version\s*=\s*["\'](\d+\.\d+\.\d+)["\']',
+                            pp.read_text(encoding="utf-8", errors="replace"),
+                            re.MULTILINE)
+              if m:
+                  versions["pyproject.toml"] = m.group(1)
+          pj = root / "package.json"
+          if pj.is_file():
+              try:
+                  v = json.loads(pj.read_text(encoding="utf-8",
+                                              errors="replace")).get("version")
+              except (json.JSONDecodeError, AttributeError):
+                  v = None
+              if isinstance(v, str) and re.match(r"^\d+\.\d+\.\d+$", v):
+                  versions["package.json"] = v
+          vf = root / "VERSION"
+          if vf.is_file():
+              first = vf.read_text(encoding="utf-8",
+                                   errors="replace").strip().splitlines()
+              if first and re.match(r"^\d+\.\d+\.\d+$", first[0].strip()):
+                  versions["VERSION"] = first[0].strip()
+          if len(versions) != 1:
+              fail(f"want exactly one version source, found: {versions or 'none'}")
+              tree_ver = None
+          else:
+              (src, tree_ver), = versions.items()
+              print(f"version: {tree_ver} (from {src})")
+
+          cl = root / "CHANGELOG.md"
+          head = None
+          if cl.is_file():
+              m = re.search(r"^#{1,3}\s*\[?\s*v?(\d+\.\d+\.\d+)\b",
+                            cl.read_text(encoding="utf-8", errors="replace"),
+                            re.MULTILINE)
+              if m:
+                  head = m.group(1)
+          if head is None:
+              fail("CHANGELOG.md head has no version entry")
+          elif tree_ver is not None and head != tree_ver:
+              fail(f"CHANGELOG head {head} != version {tree_ver}")
+
+          # 6. On tag pushes, version must equal the tag.
+          ref = os.environ.get("REF_NAME", "")
+          if ref.startswith("v") and re.match(r"^v?\d+\.\d+\.\d+$", ref):
+              tag_ver = ref.lstrip("v")
+              if tree_ver is not None and tree_ver != tag_ver:
+                  fail(f"tag {ref} != version {tree_ver}")
+
+          if errors:
+              sys.exit(1)
+          print("contract: all checks green")
+          EOF

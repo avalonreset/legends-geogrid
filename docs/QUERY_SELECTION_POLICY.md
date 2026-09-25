@@ -101,7 +101,7 @@ supported by the evidence.
 
 ## Implementation and limits
 
-The root SKILL.md applies this policy. The study contract requires theme id/label,
+The study recipe (docs/STUDY-RECIPE.md) applies this policy. The study contract requires theme id/label,
 customer_need, distinct_value, selection coverage_summary, citations to both website
 and GBP, and a cited explanation for fewer than three themes. Every lane retains its
 existing demand/pilot/source requirements. The receipt and report handoff expose the

@@ -91,7 +91,7 @@ Definition of done: business input -> traceable required research -> justified q
 
 Local candidate only, in E:\legends-geogrid-jev-demo. No publication.
 
-- Root SKILL.md now defines business-first research and interpretation without a
+- The study recipe (docs/STUDY-RECIPE.md) now defines business-first research and interpretation without a
   default keyword/grid interview. README and AGENTS route to it.
 - tools/study.py implements website capture, bounded shared-kit research,
   cumulative reservation ledger, no ambiguous POST retry, plan validation,

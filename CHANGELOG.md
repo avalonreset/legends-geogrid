@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.0 - 2026-09-25
+
+- Router-native generation reset: study recipe moves from root SKILL.md to docs/STUDY-RECIPE.md (no skill frontmatter); pinned cto-legends router skill vendored at skills/cto-legends/SKILL.md (router commit 6975dcbf073e5eec7a30ce6a04a6975238c61158); DataForSEO kit re-pinned to kit 0.1.0 (dd00fb030393f300226ca18db3644bb141f96fb0); version reset to 0.1.0 with history preserved.
+
 ## 0.4.1 - 2026-09-23
 
 - Introduce the Multi-Perspective Sampling Doctrine: default to a high-resolution

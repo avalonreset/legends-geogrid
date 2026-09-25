@@ -1,4 +1,4 @@
-# Current release: 0.4.1
+# Current release: 0.1.0
 
 The current release connects business-first research, public GBP and website
 evidence, 3-5 justified search themes, validated proposals, comparable scans,

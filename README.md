@@ -11,6 +11,12 @@ legends-geogrid is an **open-source google maps rank checker** for local SEO. Se
 
 Explore a saved real-world 17 × 17 pizza-shop scan in the browser, or generate a sample strategy report without credentials or API spend. Fresh scans use [legends-dataforseo-kit](https://github.com/avalonreset/legends-dataforseo-kit), with explicit execution, cost estimates, and reusable cached results.
 
+## Agent setup (via `cto-legends`)
+
+Part of the [CTO Legends](https://github.com/avalonreset/cto-legends) ecosystem. `cto-legends` is the only registered skill; this repo vendors a pinned copy at `skills/cto-legends/SKILL.md`.
+
+Install with `cto-legends install legends-geogrid`, then follow the module recipe the router loads. Do not register this module as its own skill.
+
 <p align="left">
   <a href="https://www.youtube.com/shorts/4RYY_gh6b70">
     <img src="assets/why-have-we-never-met-before.png" alt="why have we never met before?: watch on YouTube" width="560" height="560">
@@ -20,9 +26,9 @@ Explore a saved real-world 17 × 17 pizza-shop scan in the browser, or generate 
   <a href="https://www.youtube.com/shorts/4RYY_gh6b70"><em>why have we never met before?</em></a>
 </p>
 
-## What 0.4.0 adds
+## What 0.1.0 adds
 
-A ranking grid should help answer a decision: where does a business appear, which services are weaker, and what should be investigated or changed next? Version 0.4.0 connects business research, justified search themes, comparable measurements, readable recommendations, and a persistent study library.
+A ranking grid should help answer a decision: where does a business appear, which services are weaker, and what should be investigated or changed next? Version 0.1.0 connects business research, justified search themes, comparable measurements, readable recommendations, and a persistent study library.
 
 | Improvement | What it gives you |
 | --- | --- |
@@ -36,7 +42,7 @@ A ranking grid should help answer a decision: where does a business appear, whic
 
 The software calculates and renders evidence. The operator supplies business context, evaluates hypotheses, and writes supported recommendations. It does not automatically choose profitable territories or diagnose a Google penalty.
 
-**Business-only request?** Give your agent the [study recipe](SKILL.md). It researches the website, public Google Business Profile and DataForSEO evidence, then recommends [3-5 distinct search themes](docs/QUERY_SELECTION_POLICY.md). A narrower study needs an evidence-backed explanation. The [study command](docs/STUDY_CONTRACT.md) validates that evidence before collection.
+**Business-only request?** Give your agent the [study recipe](docs/STUDY-RECIPE.md). It researches the website, public Google Business Profile and DataForSEO evidence, then recommends [3-5 distinct search themes](docs/QUERY_SELECTION_POLICY.md). A narrower study needs an evidence-backed explanation. The [study command](docs/STUDY_CONTRACT.md) validates that evidence before collection.
 
 **Start here:** [Study recipe](docs/START_A_STUDY.md) · [Report configuration](examples/reports/README.md) · [Adaptive collection](examples/adaptive/README.md) · [Latest release](https://github.com/avalonreset/legends-geogrid/releases/latest)
 
@@ -134,7 +140,7 @@ Fresh scans depend on [legends-dataforseo-kit](https://github.com/avalonreset/le
 
 Reports default to the dark theme. For pure-white printable reports, set `"theme": "light"` in the report config; both themes preserve rank colors and legends-geogrid branding.
 
-**Tested pairing:** legends-geogrid v0.4.1 with legends-dataforseo-kit v0.4.0.
+**Tested pairing:** legends-geogrid v0.1.0 with legends-dataforseo-kit v0.1.0.
 The requirement below pins the kit's immutable public source ZIP, so installation
 does not require Git. The two projects are maintained and versioned separately.
 Offline reports remain usable without the provider dependency or credentials.

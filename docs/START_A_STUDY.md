@@ -1,6 +1,6 @@
 # Start a useful GeoGrid study
 
-Start with the [agent recipe](../SKILL.md) and [study contract](STUDY_CONTRACT.md).
+Start with the [study recipe](STUDY-RECIPE.md) and [study contract](STUDY_CONTRACT.md).
 For business-only requests, the agent researches website, public GBP and DataForSEO
 evidence and selects queries. Do not ask the user to design the SEO study.
 

@@ -16,7 +16,7 @@ Required research means required evidence, not mandatory purchase of every possi
 - docs/keyword-formula.md already says offered services, customer language, site content and owner priorities should nominate queries. It also hardcodes a consumer repair query, an HVAC-specific assumption that must go.
 - docs/START_A_STUDY.md requires bounded discovery in prose, then explicitly says this is operator guidance rather than enforced behavior.
 - README labels GBP and keyword research references optional and says they are not an automatic pipeline.
-- Vendored reference instructions mention MCP access; the current product transport uses legends-dataforseo-kit. Reconcile first-party routing; retain upstream attribution and do not casually rewrite vendor files.
+- Vendored reference instructions mention MCP access; the current product transport uses legends-dataforseo. Reconcile first-party routing; retain upstream attribution and do not casually rewrite vendor files.
 - tools/pollution_gate.py contains a legacy direct authenticated HTTP client and rigid category rejection. Retire it from the default path; do not use it as query validation or a second provider transport.
 - The fresh Gemini run installed reporting/provider packages and generated an offline sample. It did not research and select restaurant queries before asking the user. Linux shared-drive executable/symlink restrictions and missing libnspr4.so independently blocked browser setup.
 
@@ -49,7 +49,7 @@ States: needs_identity -> researching -> needs_evidence / pilot_ready -> pilot_c
 
 Inspected Library local-domination workflow routes local/maps research, Local SEO Brain and Marketing Brain. It currently accepts <primary-keyword> and makes live DataForSEO optional. Reusing it unchanged would reproduce this gap. The inspected Marketing Brain keyword-workbook prompt assumes raw keyword JSON already exists; it is not a discovery engine.
 
-- DataForSEO Kit: required shared provider transport and cost/status envelopes.
+- DataForSEO: required shared provider transport and cost/status envelopes.
 - Codex SEO local/maps/DataForSEO capabilities: reuse focused research methods, adapt through the current agent-neutral provider contract. Respect Codex routing; do not require a Claude installation.
 - Website capture: reuse available evidence capture capability, with a portable ordinary HTTP/browser path. A specific paid crawling service must not be required merely to read a public menu.
 - Marketing Brain: reuse query/source/intent organization and competitor reasoning where verified; do not treat a workbook generator as proof of research.

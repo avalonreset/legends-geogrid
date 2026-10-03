@@ -9,9 +9,9 @@ lowercase positioning and the approved Legends banner style.
   synthetic report example. No provider credentials or API spending are needed.
 - Browser demo: `pnpm install --frozen-lockfile`, then `pnpm dev`.
 - Fresh scans: install `requirements-dataforseo.txt`. This installs the public
-  [legends-dataforseo-kit](https://github.com/avalonreset/legends-dataforseo-kit)
+  [legends-dataforseo](https://github.com/avalonreset/legends-dataforseo)
   dependency. Run `python tools/geogrid_doctor.py --dataforseo` before collection.
-  Release 0.1.0 pins kit v0.1.0 by immutable commit. Install the declared
+  Release 0.1.0 pins DataForSEO v0.1.0 by immutable commit. Install the declared
   requirement rather than choosing an untested latest version independently.
   Do not install an MCP server or copy a second HTTP/authentication client.
 - Credentials: `DATAFORSEO_LOGIN` (or `DATAFORSEO_USERNAME`) and
@@ -29,7 +29,7 @@ DataForSEO evidence; do not ask users to supply keywords by default. Use
 Read `docs/START_A_STUDY.md` before paid collection. Establish business identity,
 query, location, language and the decision being studied. Estimate first. Paid
 scans require both `--execute` and `--confirm-cost-usd`; retain these gates.
-Use the kit for provider access and the GeoGrid runners for sampling/caching.
+Use DataForSEO for provider access and the GeoGrid runners for sampling/caching.
 Never describe advisory estimates as a provider-enforced billing limit.
 
 ## Verification and publishing

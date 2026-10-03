@@ -9,7 +9,7 @@
 
 legends-geogrid is an **open-source google maps rank checker** for local SEO. See where a business ranks across a geographic grid, compare visibility across services, and turn the evidence into readable PDF reports. Run it locally with your own DataForSEO account, without a rank-tracking subscription.
 
-Explore a saved real-world 17 × 17 pizza-shop scan in the browser, or generate a sample strategy report without credentials or API spend. Fresh scans use [legends-dataforseo-kit](https://github.com/avalonreset/legends-dataforseo-kit), with explicit execution, cost estimates, and reusable cached results.
+Explore a saved real-world 17 × 17 pizza-shop scan in the browser, or generate a sample strategy report without credentials or API spend. Fresh scans use [legends-dataforseo](https://github.com/avalonreset/legends-dataforseo), with explicit execution, cost estimates, and reusable cached results.
 
 ## Agent setup (via `cto-legends`)
 
@@ -136,11 +136,11 @@ python tools/local_heatmap_poc.py `
 
 ## Install the shared DataForSEO engine
 
-Fresh scans depend on [legends-dataforseo-kit](https://github.com/avalonreset/legends-dataforseo-kit), an open-source Python API client and CLI. It handles provider access without an MCP server. GeoGrid handles the grid, evidence, caching, and reports.
+Fresh scans depend on [legends-dataforseo](https://github.com/avalonreset/legends-dataforseo), an open-source Python API client and CLI. It handles provider access without an MCP server. GeoGrid handles the grid, evidence, caching, and reports.
 
 Reports default to the dark theme. For pure-white printable reports, set `"theme": "light"` in the report config; both themes preserve rank colors and legends-geogrid branding.
 
-**Tested pairing:** legends-geogrid v0.1.0 with legends-dataforseo-kit v0.1.0.
+**Tested pairing:** legends-geogrid v0.1.0 with legends-dataforseo v0.1.0.
 The requirement below pins the kit's immutable public source ZIP, so installation
 does not require Git. The two projects are maintained and versioned separately.
 Offline reports remain usable without the provider dependency or credentials.

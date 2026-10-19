@@ -14,7 +14,7 @@ theme purple or blue. Evidence colors remain distinct from brand decoration.
 - Fresh scans: install `requirements-dataforseo.txt`. This installs the public
   [legends-dataforseo](https://github.com/avalonreset/legends-dataforseo)
   dependency. Run `python tools/geogrid_doctor.py --dataforseo` before collection.
-  Release 0.1.0 pins DataForSEO v0.1.0 by immutable commit. Install the declared
+  Release 0.2.0 pins DataForSEO v0.1.0 by immutable commit. Install the declared
   requirement rather than choosing an untested latest version independently.
   Do not install an MCP server or copy a second HTTP/authentication client.
 - Credentials: `DATAFORSEO_LOGIN` (or `DATAFORSEO_USERNAME`) and

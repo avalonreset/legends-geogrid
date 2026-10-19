@@ -31,10 +31,18 @@ example, not a price quotation. Kinds: `gbp`, `demand`, `maps_probe`, `organic_p
 The shared kit handles authentication. Never put credentials in request files.
 
 ```sh
+# Preview estimate (always allowed without --allow-live):
 python tools/study.py research --request request.json --output-dir runs/business/evidence
-python tools/study.py research --request request.json --output-dir runs/business/evidence --execute --confirm-cost-usd 0.50
+# Paid Live execution requires explicit user choice and --allow-live:
+python tools/study.py research --request request.json --output-dir runs/business/evidence --execute --confirm-cost-usd 0.50 --allow-live
 ```
 
+By default, studies use Standard queue collection (`task_post`/`task_get` for Google Ads
+demand/ideas, GBP `my_business_info`, and Maps/Organic SERP pilots) and ingest the saved
+Standard evidence files into `sources` in `study-plan.json` (or inspect them via
+`query-review --refresh-dir`). All four `study.py research` routes (`gbp`, `demand`,
+`maps_probe`, `organic_probe`) target Live endpoints, so preview estimates (`--execute`
+omitted) remain allowed while paid execution requires explicit user choice and `--allow-live`.
 The ceiling covers cumulative reserved research in that folder, including known
 actual overages. Reservations survive network failure: inspect task IDs/results
 instead of resubmitting an ambiguous paid POST. A folder lock prevents concurrent
@@ -62,13 +70,23 @@ Required fields:
 - `selection`: coverage_summary and evidence citations covering both website and
   GBP. If fewer than three themes are selected, include fewer_themes with reason
   and supporting evidence citations. See [selection policy](QUERY_SELECTION_POLICY.md).
-- `queries`: query, boolean selected, reason. Selected entries also need role
+- `queries`: query, boolean selected, reason, and optional `disposition` (`rejected` or
+  `deferred` for non-selected candidates). Selected entries also need role
   (category/service/product/user_requested), offering_evidence citations,
   demand_source, demand_scope, pilot_sources, intent_evidence citations,
   intent_assessment and limitations. Each selected query also requires a `theme`
   object with id, label, customer_need and distinct_value. One query per theme;
   select 3-5 themes normally, or 1-2 with the cited scope exception above.
   user_requested also requires user_instruction.
+- `business_inputs` (optional): object declaring whether optional private inputs
+  (`gsc_query_performance`, `gbp_owner_performance`, `crm_job_history`,
+  `service_economics`, `travel_constraints`) were observed (`{"status": "observed", "source_id": "..."}`)
+  or remain unmeasured private inputs.
+- `external_evidence` (optional): list of hash-verified local evidence records from
+  `study_library`, `aimh_home`, or `local_evidence` (`id`, `adapter`, relative `file`,
+  `sha256`, `observed_at`, `contract`). `legends-geogrid` runs standalone without
+  AI Marketing Hub Home; external records are consumed only via local source links
+  and hashes, never via runtime coupling.
 
 A citation is `{ "source_id": "site", "pointer": "/text", "quote": "Pizza delivery" }`.
 It must match source text. Provider pointers typically use
@@ -76,7 +94,7 @@ It must match source text. Provider pointers typically use
 selected lane needs three distinct pilot origins, shared across lanes, with
 matching collection controls and returned-result evidence for intent. Pilot
 queries with no results require a discovery brief or more calibration, not a
-fabricated intent citation. Retain rejected queries and their reasons.
+fabricated intent citation. Retain rejected and deferred queries and their reasons.
 
 The validator is deliberately narrow: it checks cited lineage and settings. It
 does not authenticate locally edited evidence or certify semantic conclusions.
@@ -109,6 +127,32 @@ Example theme and narrower-scope declaration (citations must match actual files)
 This is a structural example, not evidence that a particular business offers delivery.
 Old unpublished plans need these fields added before validation; no paid requests
 are made by migration/validation. Selection remains an agent judgment.
+
+## Pre-scan evidence freshness and query review
+
+Before spending on a grid or refreshing an existing study, run the credential-free
+query and freshness review (`geogrid-query-review/v1`):
+
+```sh
+python tools/study.py query-review --plan runs/business/evidence/study-plan.json --output runs/business/evidence/query-review.json --markdown runs/business/evidence/query-review.md
+# Optionally verify query ID/text alignment against a competitive sampling plan:
+python tools/study.py query-review --plan runs/business/evidence/study-plan.json --competitive-plan runs/business/study/plan.json
+```
+
+`validate` also embeds `query_review` in its receipt. `query-review` is strictly
+an advisory review (`advisory_scope: "review_not_collection_authorization"`,
+`collection_readiness: "not_assessed"` everywhere); full `study_contract.validate()`
+and `visibility_policy` checks run separately before paid collection. Unlike `validate`, which
+enforces a hard 30-day cutoff for new collection, `query-review` inspects plans of
+any age without failing on older timestamps: sources older than 30 days are marked
+`expired_for_new_paid_scan` with plan status `historical_frozen` (`source_age_within_window: false`),
+preserving historical studies as frozen while flagging that new paid scans need
+fresh evidence and separate contract validation. It also flags aging sources (default >= 14 days), mixed-vintage
+source spreads, GBP category coverage (direct, indirect via synonym, or unselected),
+synonym/concept overlap among selected queries, accepted/rejected/deferred
+candidate reasons, `unknown` private business inputs (never required for first use), and measurement posture (`method`
+and `search_this_area`). It never fabricates numerical opportunity scores, local
+demand figures, or automatic historical query substitutions.
 
 ## Validate, collect and render
 

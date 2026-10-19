@@ -11,6 +11,11 @@ legends-geogrid is an **open-source google maps rank checker** for local SEO. Se
 
 Explore a saved real-world 17 × 17 pizza-shop scan in the browser, or generate a sample strategy report without credentials or API spend. Fresh scans use [legends-dataforseo](https://github.com/avalonreset/legends-dataforseo), with explicit execution, cost estimates, and reusable cached results.
 
+The new [competitive map companion](docs/COMPANION.md) opens saved battlefield
+studies beside your agent conversation. Switch queries and businesses, inspect
+rankings at a location, and copy the evidence back into the conversation. The
+original studio remains available at `/legacy.html`.
+
 ## Agent setup (via `cto-legends`)
 
 Part of the [CTO Legends](https://github.com/avalonreset/cto-legends) ecosystem. `cto-legends` is the only registered skill; this repo vendors a pinned copy at `skills/cto-legends/SKILL.md`.
@@ -28,23 +33,23 @@ Install with `cto-legends install legends-geogrid`, then follow the module recip
 
 ## What 0.1.0 adds
 
-A ranking grid should help answer a decision: where does a business appear, which services are weaker, and what should be investigated or changed next? Version 0.1.0 connects business research, justified search themes, comparable measurements, readable recommendations, and a persistent study library.
+A ranking grid should help answer a decision: where does a business appear, which services are weaker, who actually wins each neighborhood, and what should be investigated or changed next? Version 0.1.0 pairs a full-field competitive map companion with researched study planning, multi-query PDF/HTML reports, and a persistent study library.
 
-| Improvement | What it gives you |
+| Capability | What it gives you |
 | --- | --- |
-| Research and study library | Website/public-profile evidence, 3-5 justified themes, proposals and hashed Markdown/JSON study history. |
-| Enhance a saved study | Estimate and execute finer sampling within the same area, reusing eligible observations; outward expansion remains a separate recommendation. |
-| Multi-query PDF and HTML reports | Compare services using one shared study, with supplied hypotheses and actions kept separate from measured findings. |
-| Map-first layout and copy-fit checks | Large maps, consistent margins, compact legends, neutral distance bands, and readable service commentary. Report copy excludes em dashes. |
-| Adaptive exploration | Expand in directions that need more evidence, with explicit stopping rules and unresolved boundaries. |
-| Evidence and missing-data checks | Distinguish observed absence from short lists, empty responses, errors, and unmeasured points. |
-| Discovery-first study recipe | Establish identity, geography, relevant queries, and the decision before buying hundreds of measurements. |
+| [Competitive map companion](docs/COMPANION.md) | Interactive circular-lattice explorer for top-30 organic Maps rankings across queries, with equal-sided stop-sign pins, four-corner gradient diamonds, and full-field search across all observed profiles. |
+| [Local leaders & neighbor coloring](docs/COMPANION.md) | Recurring (`3+` wins) and all-winner views with neighbor-aware contrasting colors, stable study-wide `L`-number IDs across queries, and outside-circle competitor base connectors. |
+| [Strategy room & head-to-head matchups](docs/BATTLEFIELD_INTELLIGENCE.md) | Split-screen regional and service comparison matrix plus direct two-profile head-to-head (`matchup`) map overlays. |
+| [Territory campaigns](docs/BATTLEFIELD_INTELLIGENCE.md) | Measured footholds, advance zones (ranks 4-10), defended areas, and study-bound `campaign-research.json` action briefs. |
+| [Keyword stuffing & title review](docs/BUSINESS_NAME_REVIEW.md) | Read-only agent-owned dossier for Google Business Profile name discrepancies, combining Standard-queue exact-CID profile refreshes, website branding captures, historical report reconciliation, counterevidence, and an explained `0-5` `title-evidence-v1` concern confidence scale. |
+| [Search-window & lattice discipline](docs/SEARCH_WINDOW_POLICY.md) | Unbiased regional sampling (`search_this_area=false`), nested radius composition, and explicit distinction between evidenced top-30 absence and incomplete responses. |
+| Research, reports & study library | Website/public-profile evidence, [3-5 justified search themes](docs/QUERY_SELECTION_POLICY.md), Letter PDF/HTML strategy reports, [incremental study enhancement](docs/ENHANCE.md), and hashed Markdown/JSON study banking. |
 
-The software calculates and renders evidence. The operator supplies business context, evaluates hypotheses, and writes supported recommendations. It does not automatically choose profitable territories or diagnose a Google penalty.
+The software calculates and renders evidence. The operator and agent supply business context, evaluate hypotheses, and write supported recommendations. It does not automatically choose profitable territories, diagnose a Google penalty, or auto-submit Google edits or redressal complaints.
 
 **Business-only request?** Give your agent the [study recipe](docs/STUDY-RECIPE.md). It researches the website, public Google Business Profile and DataForSEO evidence, then recommends [3-5 distinct search themes](docs/QUERY_SELECTION_POLICY.md). A narrower study needs an evidence-backed explanation. The [study command](docs/STUDY_CONTRACT.md) validates that evidence before collection.
 
-**Start here:** [Study recipe](docs/START_A_STUDY.md) · [Report configuration](examples/reports/README.md) · [Adaptive collection](examples/adaptive/README.md) · [Latest release](https://github.com/avalonreset/legends-geogrid/releases/latest)
+**Start here:** [Start a study](docs/START_A_STUDY.md) · [Companion guide](docs/COMPANION.md) · [Battlefield intelligence](docs/BATTLEFIELD_INTELLIGENCE.md) · [Business-name review](docs/BUSINESS_NAME_REVIEW.md) · [Search-window policy](docs/SEARCH_WINDOW_POLICY.md) · [Street-map setup](docs/BASEMAPS.md) · [Latest release](https://github.com/avalonreset/legends-geogrid/releases/latest)
 
 ## Try a report first
 
@@ -70,7 +75,7 @@ python -m playwright install --with-deps chromium
 python tools/geogrid_doctor.py --reports --basemaps
 ```
 
-Internet access is required when acquiring maps. If imagery cannot load, report generation stops with setup guidance instead of silently substituting a bare grid. Synthetic examples remain offline coordinate diagrams. For optional Google Maps imagery, supplied maps, and troubleshooting, see [street-map setup](docs/BASEMAPS.md).
+Internet access is required when acquiring maps. If imagery cannot load, report generation stops with setup guidance instead of silently substituting a bare grid. Synthetic examples remain offline coordinate diagrams. For optional Google Maps imagery, interactive Google Map Tiles API setup, supplied maps, and troubleshooting, see [street-map setup](docs/BASEMAPS.md).
 
 ## A local rank tracker at data cost
 
@@ -80,17 +85,16 @@ Review the generated estimate and [current provider pricing](https://dataforseo.
 
 ## What works
 
-- Interactive Leaflet/OpenStreetMap studio with rank pins, heat view, evidence view, and cost planning (visualizes bundled demonstration datasets; arbitrary run import is on the roadmap).
-- Saved 17 x 17 and 5 x 5 proof datasets that do not trigger API calls.
-- Strategy report engine (`tools/strategy_report.py`) producing screen-reading Letter PDFs and HTML from normalized multi-lane observations under a strict map-first copy-fit contract.
-- Adaptive sampling collector (`tools/adaptive_geogrid.py`) supporting sector-based expansion, offline planning, and synthetic replay.
-- Single-business DataForSEO google maps SERP runner.
-- CSV-driven bulk runner with estimates, fingerprints, freshness-aware caching, and resumable artifacts.
-- Standard, Priority, and Live DataForSEO methods.
-- Explicit `--execute` and `--confirm-cost-usd` spend gates.
-- Evidence-gate pin verifier (`tools/verify_pins.py`) tracing every rendered pin to raw JSON.
-- Markdown, HTML, JSON, JSONL, and CSV artifacts.
-- No database, hosted backend, analytics, or telemetry.
+- **Competitive map companion (`src/companion.js`)**: Interactive circular-lattice workspace with five lenses (**Rankings**, **Local leaders**, **Campaigns**, **Keyword stuffing**, and **Head-to-head**), docked/modal **Strategy room**, full observed competitor directory (preserving distinct physical branches by CID), and study-bound sidecar attachments (`*.attachments.json`). The original studio remains available at `/legacy.html`.
+- **Business-name review workbench (`tools/business_name_review.py`, `tools/compose_name_reviews.py`)**: Standard-queue exact-CID profile verification, website branding capture, multi-run evidence composition, historical report lead matching, and an explained `0-5` `title-evidence-v1` concern confidence rubric.
+- **Circular lattice & radius composition (`tools/lattice_sampling.py`, `tools/radius_sampling.py`, `tools/radius_compose.py`, `tools/competitive_collect.py`)**: Regular lattice planning clipped to a true geographic radius, reusing inner-radius observations when expanding outward under matched controls.
+- **Saved 17 x 17 and 5 x 5 proof datasets** that do not trigger API calls.
+- **Strategy report engine (`tools/strategy_report.py`)** producing screen-reading Letter PDFs and HTML from normalized multi-lane observations under a strict map-first copy-fit contract.
+- **Adaptive sampling collector (`tools/adaptive_geogrid.py`)** supporting sector-based expansion, offline planning, and synthetic replay.
+- **Single-business and CSV-driven bulk DataForSEO runners** with estimates, fingerprints, freshness-aware caching, and resumable artifacts.
+- **Standard, Priority, and Live DataForSEO methods** with explicit `--execute` and `--confirm-cost-usd` spend gates.
+- **Evidence-gate pin verifier (`tools/verify_pins.py`)** tracing every rendered pin to raw JSON.
+- **No database, hosted backend, analytics, or telemetry.**
 
 This is a practical local tool and reference implementation, not feature-for-feature parity with a mature hosted platform.
 
@@ -117,6 +121,43 @@ Run the full local verification after installing the report dependencies:
 python -m pip install -r requirements-report.txt
 pnpm check
 ```
+
+## Competitive map companion and battlefield workflows
+
+Opening `/` in `pnpm dev` launches the **Competitive map companion** (`index.html`), while `/legacy.html` preserves the original grid studio. The companion provides five coordinated lenses and a split-screen **Strategy room**:
+
+- **Rankings**: Equal-sided stop-sign pins scaled to 30% of grid spacing, four-corner continuous gradient diamonds, animated rank-1 cyan sparkles, and explicit coverage dots distinguishing top-30 absence from incomplete responses.
+- **Local leaders**: First-place winners across the grid with deterministic neighbor-aware contrasting colors, stable study-wide `L`-number badges, recurring (`3+` wins) vs. all-winner modes, and dashed connectors to competitor bases more than two miles outside the study circle.
+- **Campaigns**: Agent-researched territory campaign options (`campaign-research.json`) paired with spatial footholds, advance zones (ranks 4-10), and defended areas.
+- **Keyword stuffing**: Read-only business-name review dossier (`name-review.json`) for recurring Local leaders and matched historical leads, displaying highlighted disputed title words, captured website branding, counterevidence, and an explained `0-5` `title-evidence-v1` concern confidence scale.
+- **Head-to-head (`Matchup`) & Strategy room**: Direct two-profile comparison overlays and a resizable split-screen regional/service matrix.
+
+### Circular-lattice collection & radius expansion
+
+Plan a regular circular lattice with `search_this_area=false`, collect or compose nested radii without re-buying inner-radius points, and export a companion study:
+
+```powershell
+python tools/competitive_collect.py plan --config runs/my-study/config.json --output-dir runs/my-study/r10
+python tools/competitive_export.py --run-dir runs/my-study/r10 --output runs/my-study/r10/companion-study.json
+```
+
+See [competitive sampling](docs/COMPETITIVE_SAMPLING.md) and [search-window policy](docs/SEARCH_WINDOW_POLICY.md).
+
+### Business-name review (`Keyword stuffing` workbench)
+
+Plan an offline audit from a saved `companion-study.json` (with optional `--include-cid` or `--only-cid` for targeted refreshes of historical report leads), submit Standard-queue exact-CID profile tasks, capture websites, compose multi-run evidence, and attach the resulting dossier via a study-bound sidecar (`companion-study.attachments.json`):
+
+```powershell
+python tools/business_name_review.py plan --study runs/my-study/companion-study.json --output-dir runs/my-study/name-review
+python tools/business_name_review.py submit --output-dir runs/my-study/name-review --execute --confirm-cost-usd 0.25
+python tools/business_name_review.py retrieve --output-dir runs/my-study/name-review
+python tools/business_name_review.py websites --output-dir runs/my-study/name-review
+python tools/business_name_review.py export --output-dir runs/my-study/name-review
+python tools/business_name_review.py attach --output-dir runs/my-study/name-review
+```
+
+See [business-name review](docs/BUSINESS_NAME_REVIEW.md) and [battlefield intelligence](docs/BATTLEFIELD_INTELLIGENCE.md).
+
 
 ## Estimate a fresh scan
 
@@ -325,7 +366,12 @@ Cache protection reduces accidental duplicate work; it is not a transactional bi
 
 ## Repository map
 
-- `src/` :  local Vite studio and saved parsed proof datasets.
+- `src/companion.js`, `src/study-model.js`, `src/rank-canvas.js`, `src/local-leaders.js`, `src/strategy-room.js`, `src/campaign-panel.js`, `src/name-review.js`, `src/title-confidence.js` :  interactive competitive map companion, neighbor-aware leader coloring, strategy room, campaign lenses, and read-only business-name review workbench (`index.html`).
+- `src/main.js` :  original grid studio and cost planner (`legacy.html`) with saved parsed proof datasets (`src/data/`).
+- `tools/study.py` and `tools/study_contract.py` :  researched study workflow, website/GBP/demand evidence validator, incremental enhancement, and local study library banking.
+- `tools/lattice_sampling.py`, `tools/radius_sampling.py`, `tools/radius_compose.py`, `tools/competitive_collect.py`, `tools/competitive_export.py` :  regular circular-lattice planning, nested radius composition, Standard-queue collection, and `companion-study.json` export.
+- `tools/business_name_review.py` and `tools/compose_name_reviews.py` :  Standard-queue exact-CID profile retrieval, website branding capture, analyst source-review validation, `title-evidence-v1` confidence enrichment, and multi-run review composition.
+- `tools/battlefield.py` and `tools/battlefield_intelligence.py` :  offline regional and territory intelligence analyzers.
 - `tools/local_heatmap_poc.py` :  estimate-first single scan runner (outputs interactive street-map HTML and a reusable PDF report config; `--map-image` is accepted for compatibility but unregistered imagery is ignored).
 - `tools/bulk_geogrid_runner.py` :  cache-aware CSV runner (schema 4 with SHA-256 verification and atomic run-directory allocation).
 - `tools/geogrid_doctor.py` :  local readiness check.
@@ -335,13 +381,15 @@ Cache protection reduces accidental duplicate work; it is not a transactional bi
 - `tools/adaptive_geogrid.py` :  adaptive sampling planner and collector (revision v2, incompatible with v1 run dirs; stores response SHA-256 digests in ledger rather than raw responses).
 - `tools/release_smoke.py` :  offline release smoke runner exercising report fixtures and collector handoff.
 - `tools/verify_pins.py` :  evidence gate: every pin traced to raw JSON.
+- `docs/COMPANION.md`, `docs/BATTLEFIELD_INTELLIGENCE.md`, `docs/BUSINESS_NAME_REVIEW.md`, `docs/COMPETITIVE_SAMPLING.md`, `docs/SEARCH_WINDOW_POLICY.md`, `docs/BASEMAPS.md` :  companion architecture, leader coloring, strategy/campaign lenses, business-title review rubric, sampling rules, and basemap configuration.
+- `docs/STUDY-RECIPE.md`, `docs/START_A_STUDY.md`, `docs/STUDY_CONTRACT.md`, `docs/QUERY_SELECTION_POLICY.md`, `docs/ENHANCE.md`, `docs/STUDY_LIBRARY.md` :  discovery-first study workflow, theme selection, incremental enhancement, and local vault banking.
 - `docs/keyword-formula.md` :  hypothesis, identity, query controls, viewport calibration, separate search-surface measurements, and map-first report policy.
 - `docs/PRODUCT_STATUS.md` :  current capabilities, honest limitations, and proof records.
 - `docs/TECHNICAL_NOTES.md` :  measurement contract, point states, denominators, and cost model.
 - `docs/ROADMAP.md` :  delivered milestones and future directions.
 - `docs/PROVENANCE.md` :  code, data, and research provenance.
 - `third_party/claude-seo/` :  vendored MIT skills (DataForSEO data, Maps intel).
-- `tests/` :  cost, grid, cache, hygiene, and no-spend safety tests.
+- `tests/` :  viewer, companion, name-review, confidence-rubric, sampling, cost, cache, hygiene, and no-spend safety tests.
 - `examples/` :  sample CSV, synthetic report configs (`examples/reports/`), sample adaptive collector configs (`examples/adaptive/`), and sanitized proof artifacts.
 - `requirements-report.txt` :  Python dependencies for strategy report rendering (ReportLab, Pillow, optional pypdfium2).
 - `THIRD_PARTY_NOTICES.md` :  software licences, service/data terms, and attribution details.

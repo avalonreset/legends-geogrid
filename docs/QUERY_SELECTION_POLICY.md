@@ -87,8 +87,38 @@ listing measurement, never a falsely verified current-business study.
 
 ## 5. Present and execute
 
+Run `python tools/study.py query-review --plan <study-plan.json>` before proposing or
+buying a grid scan. Review its machine-readable output (`geogrid-query-review/v1`)
+and Markdown summary for:
+
+- **Source observation ages and mixed vintage:** Check individual source timestamps
+  and age spread (for example, older website/GBP captures paired with fresh SERP
+  pilots). Elapsed time since capture warns when a pre-scan refresh is advisable
+  (default warning at 14 days, hard contract cutoff at 30 days for new paid scans),
+  without claiming that age proves external business facts changed. Historical
+  completed studies remain frozen and valid; never rewrite or auto-substitute their
+  historical query IDs.
+- **Service-theme coverage and synonym overlap:** Verify how observed GBP categories
+  and website service pages map to selected themes (direct match, indirect synonym
+  coverage, or unselected categories). When two selected queries share core service
+  or equipment concepts (such as cooling repair vs. cooling contractor), verify and
+  document why their local SERP intent or business decision differs, or mark them
+  as explicit `user_requested` comparisons.
+- **Accepted, rejected, and deferred candidates:** Record non-selected candidate
+  queries in `queries` with `selected: false`, `reason`, and optional
+  `disposition: "rejected"` or `"deferred"` so future study iterations do not
+  re-spend on already evaluated candidates.
+- **Known missing business inputs:** Keep unmeasured private inputs (Search Console,
+  private GBP owner call/click metrics, CRM job mix, service margins, dispatch
+  travel constraints) explicit so reports do not fabricate local demand or ROI.
+- **Standalone and optional Library/Home evidence boundary:** `legends-geogrid`
+  operates standalone without AI Marketing Hub Home. When prior Study Library
+  checkpoints or Home evidence files are available, attach them via local
+  hash-verified `external_evidence` links in `study-plan.json` rather than runtime
+  dependencies or copied private logic.
+
 Show a concise study preview: business/location, selected theme -> representative
-query -> evidence -> decision, omitted candidates, geography, limitations and total
+query -> evidence -> decision, omitted/deferred candidates, geography, limitations and total
 research/grid cost estimate. If the user has already authorized the scope and budget,
 proceed within them; do not add another routine approval conversation. Preserve the
 CLI spending gates. If spending is not authorized, request the concrete estimate.
@@ -105,8 +135,8 @@ The study recipe (docs/STUDY-RECIPE.md) applies this policy. The study contract 
 customer_need, distinct_value, selection coverage_summary, citations to both website
 and GBP, and a cited explanation for fewer than three themes. Every lane retains its
 existing demand/pilot/source requirements. The receipt and report handoff expose the
-themes and scope rationale. Duplicate theme IDs are rejected; semantic duplication
-and relevance still require agent review. Renaming an ID is not proof of distinctness.
+themes, `query_review`, and scope rationale. Duplicate theme IDs are rejected; semantic duplication
+and relevance are surfaced by `tools/query_review.py` and still require agent review. Renaming an ID is not proof of distinctness.
 
 Google describes relevance, distance and prominence as local-ranking considerations;
 this supports researching business fit and geographic context but does not justify

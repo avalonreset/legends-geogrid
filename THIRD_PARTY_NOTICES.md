@@ -161,3 +161,13 @@ Fresh scans use the separately installed [legends-dataforseo](https://github.com
 - Source: https://github.com/py-pdf/pypdf
 - License: BSD-3-Clause; the installed distribution includes its complete license.
 - Used with ReportLab for first/last-page credits and clickable PDF annotations.
+# Google Maps attribution asset
+
+`public/google-maps-attribution.svg` is the unmodified Google Maps white logo
+from Google's official attribution assets, downloaded October 19, 2026:
+https://developers.google.com/static/maps/documentation/images/Google_Maps_Attribution_Assets.zip
+
+Used solely for Google Maps attribution under the provider's brand guidelines:
+https://developers.google.com/maps/documentation/tile/policies
+Google trademarks and map imagery are not licensed under this project's MIT license.
+

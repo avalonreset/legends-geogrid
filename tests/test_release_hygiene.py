@@ -12,6 +12,7 @@ SKIP_PARTS = {
     ".git",
     ".codex-tmp",
     ".private",
+    ".pytest_cache",
     "bulk-runs",
     "runs",
     "dist",
@@ -29,6 +30,13 @@ PRIVATE_MARKERS = (
     "daniel " + "agrishi",
     "glit" + "chy",
     "omni" + "gent",
+    "alpha " + "mechanical",
+    "alpha_" + "mechanical",
+    "alpha-" + "mechanical",
+    "alpha" + "mechanicals",
+    "bell " + "brothers",
+    "bellbros" + "hvac",
+    "7375192447" + "881678500",
 )
 
 

@@ -18,6 +18,7 @@ import os
 from pathlib import Path
 import re
 import sys
+import time
 from types import SimpleNamespace
 from typing import Any
 
@@ -335,6 +336,18 @@ def plan_summary(config: dict) -> dict:
             "cost_note": "Base Live estimate from existing runner; actual provider charges may differ."}
 
 
+def replace_checkpoint(temp: Path, path: Path) -> None:
+    """Allow brief Windows file-reader locks without losing an atomic checkpoint."""
+    for attempt in range(6):
+        try:
+            os.replace(temp, path)
+            return
+        except PermissionError as exc:
+            if getattr(exc, "winerror", None) not in (5, 32, 33) or attempt == 5:
+                raise
+            time.sleep(.02 * 2 ** attempt)
+
+
 def atomic_json(path: Path, payload: Any) -> None:
     temp = path.with_suffix(path.suffix + ".tmp")
     with temp.open("w", encoding="utf-8", newline="\n") as stream:
@@ -342,7 +355,7 @@ def atomic_json(path: Path, payload: Any) -> None:
         stream.write("\n")
         stream.flush()
         os.fsync(stream.fileno())
-    os.replace(temp, path)
+    replace_checkpoint(temp, path)
 
 
 class RunLock:
@@ -594,7 +607,7 @@ class Collector:
                 stream.write(json.dumps(row, sort_keys=True, allow_nan=False) + "\n")
             stream.flush()
             os.fsync(stream.fileno())
-        os.replace(temp, jsonl)
+        replace_checkpoint(temp, jsonl)
         atomic_json(self.directory / "manifest.json", manifest)
         return manifest
 

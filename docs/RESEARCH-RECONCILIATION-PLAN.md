@@ -58,9 +58,9 @@ Inspected Library local-domination workflow routes local/maps research, Local SE
 
 First implementation must inventory exact versions, available commands, licenses and input/output contracts before claiming these integrations exist. Preserve GeoGrid's standalone install and no-MCP requirement. Do not make users install the entire Hub or several vaults for a restaurant baseline.
 
-## Alpha Mechanical retrospective: observations, not a completed audit
+## HVAC reference study retrospective: observations, not a completed audit
 
-Reviewed all 21 pages of alpha-mechanical-local-search-20260919-v7.pdf as extracted text. Located the v2 evidence ZIP (952 entries) and earlier reconciliation ZIP (3 entries). Inspected measurement plans and prior factual-review text. These are earlier artifacts: their reviews do not certify v7. No raw-response replay or final v7 bundle reconciliation has been completed in this pass.
+Reviewed all 21 pages of the v7 HVAC reference PDF as extracted text. Located the v2 evidence ZIP (952 entries) and earlier reconciliation ZIP (3 entries). Inspected measurement plans and prior factual-review text. These are earlier artifacts: their reviews do not certify v7. No raw-response replay or final v7 bundle reconciliation has been completed in this pass.
 
 What exists: explicit query lanes, matched geography, viewport controls, source notes, exact entity ID in an earlier plan, raw-response files and earlier independent review receipts. That is meaningful measurement lineage, not proof that the four queries were selected through a complete GBP/website/demand research process. The inspected plans encode chosen queries/settings but do not explain all inclusion/exclusion decisions.
 
@@ -81,15 +81,15 @@ M0: Freeze claims. Treat current newcomer flow as incomplete; preserve the worki
 M1: Business/query evidence schemas, validator and agent instructions. Fixtures cover restaurants, HVAC and a service-area business; conflicting identity, user keywords, missing evidence, stale evidence, unsupported offerings, unknown demand and prompt injection in source pages. All factual output links to source evidence.
 M2: Provider/capture integration. Verify kit endpoint schemas and live availability with bounded authorized canaries, plus offline response fixtures. All paid stages estimate first; no duplicate client or hidden spend. Resume and error behavior tested.
 M3: Wire all default agent and CLI entry points to preparation. No normal researched scan bypass. Keep explicit diagnostic/offline modes honestly labeled. Generate 'why these queries' from the ledger, not post-hoc persuasive copy. Add story/metric consistency checks and source support review.
-M4: Fresh-user acceptance on Madness of Masala at the confirmed Trooper address. Prompt only supplies business/domain; system researches, selects queries and geography, proposes cost, and produces a real street-map report after spending is authorized. No keyword/grid interview. Preserve the uncoached transcript, interruptions, costs and artifacts. Repeat on HVAC and a service-area fixture to catch restaurant-specific hardcoding.
-M5: Alpha retrospective and independent evidence review. Verify calculations against final source observations and review selection provenance separately from layout. Inspect every final PDF page.
+M4: Fresh-user acceptance on a restaurant pilot study at a confirmed storefront address. Prompt only supplies business/domain; system researches, selects queries and geography, proposes cost, and produces a real street-map report after spending is authorized. No keyword/grid interview. Preserve the uncoached transcript, interruptions, costs and artifacts. Repeat on HVAC and a service-area fixture to catch restaurant-specific hardcoding.
+M5: Reference study retrospective and independent evidence review. Verify calculations against final source observations and review selection provenance separately from layout. Inspect every final PDF page.
 M6: Release candidate review. Full pnpm check plus new research contract tests, clean installs on Windows and Linux, missing-browser/dependency guidance, bounded live integration proof, no exposed secrets, and user review of actual output. Publication remains a separate explicit decision.
 
 Definition of done: business input -> traceable required research -> justified queries -> calibrated bounded plan -> approved collection -> correctly sourced report, reproducible from saved evidence. No zero-data 'success', arbitrary keywords, fabricated primary categories, unsupported commercial promises or mapless real reports.
 
 ## Implementation receipt: 22 September 2026
 
-Local candidate only, in E:\legends-geogrid-jev-demo. No publication.
+Local candidate only. No publication.
 
 - The study recipe (docs/STUDY-RECIPE.md) now defines business-first research and interpretation without a
   default keyword/grid interview. README and AGENTS route to it.
@@ -103,13 +103,13 @@ Local candidate only, in E:\legends-geogrid-jev-demo. No publication.
 - Raw single/bulk/adaptive paid collection requires explicit --diagnostic.
 - 211 tests and full pnpm check passed, including four offline PDF workflows;
   19 new study tests include the collector-to-report configuration handoff.
-- Live Madness of Masala test verified exact CID/category, obtained demand and
+- Live restaurant pilot test verified exact CID/category, obtained demand and
   three category pilots for $0.03116 provider-reported cost. Website capture and
   Chromium both returned HTTP 500/empty body. Validator stopped the incomplete
-  plan before a dense grid. Evidence/brief are under ignored runs/madness-study.
+  plan before a dense grid. Evidence/brief are under ignored runs/pilot-study.
 
 Still open before release: successful business-only fresh-agent acceptance with
 complete website evidence; contrasting HVAC/service-area research fixtures;
-independent semantic review of selection/action quality; complete Alpha v7
+independent semantic review of selection/action quality; complete v7
 retrospective; clean candidate installation checks and final output review.
 No claim that the entire reconciliation plan or live newcomer acceptance passed.

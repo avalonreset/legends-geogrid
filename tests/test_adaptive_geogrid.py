@@ -14,6 +14,31 @@ sys.path.insert(0, str(ROOT / "tools"))
 import adaptive_geogrid as ag
 
 
+class CheckpointTests(unittest.TestCase):
+    def test_windows_transient_lock_retries_only_file_replace(self):
+        blocked = PermissionError("File temporarily held by another reader")
+        blocked.winerror = 32
+        with patch.object(ag.os, "replace", side_effect=[blocked, None]) as replace, patch.object(ag.time, "sleep") as sleep:
+            ag.replace_checkpoint(Path("state.tmp"), Path("state.json"))
+        self.assertEqual(replace.call_count, 2)
+        sleep.assert_called_once_with(.02)
+
+    def test_permanent_denial_stops_and_does_not_delete_either_file(self):
+        blocked = PermissionError("Access denied")
+        blocked.winerror = 5
+        with patch.object(ag.os, "replace", side_effect=blocked) as replace, patch.object(ag.time, "sleep"):
+            with self.assertRaises(PermissionError):
+                ag.replace_checkpoint(Path("state.tmp"), Path("state.json"))
+        self.assertEqual(replace.call_count, 6)
+
+    def test_other_permissions_are_not_retried(self):
+        with patch.object(ag.os, "replace", side_effect=PermissionError("Denied")) as replace, patch.object(ag.time, "sleep") as sleep:
+            with self.assertRaises(PermissionError):
+                ag.replace_checkpoint(Path("state.tmp"), Path("state.json"))
+        self.assertEqual(replace.call_count, 1)
+        sleep.assert_not_called()
+
+
 def config(**changes):
     raw = {
         "center": {"lat": 40.0, "lng": -100.0},

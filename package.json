@@ -24,14 +24,17 @@
     "preview": "vite preview --host 127.0.0.1",
     "check:python": "python -m compileall -q tools tests",
     "test": "python -m unittest discover -s tests -v",
+    "test:viewer": "node --test tests/*.test.js",
     "doctor": "python tools/geogrid_doctor.py",
     "doctor:reports": "python tools/geogrid_doctor.py --reports",
     "check:reports": "python tools/release_smoke.py",
     "dryrun:sample": "python tools/bulk_geogrid_runner.py --prospects examples/sample-prospects.csv --run-id sample-dryrun --output-root bulk-runs --method standard --grid-size 5 --radius-km 2 --depth 20 --zoom 15",
-    "check": "pnpm audit --prod --audit-level high && pnpm build && pnpm check:python && pnpm test && pnpm doctor:reports && pnpm dryrun:sample && pnpm check:reports"
+    "check": "pnpm audit --prod --audit-level high && pnpm build && pnpm check:python && pnpm test:viewer && pnpm test && pnpm doctor:reports && pnpm dryrun:sample && pnpm check:reports"
   },
   "dependencies": {
-    "leaflet": "^1.9.4"
+    "@maplibre/maplibre-gl-leaflet": "0.1.4",
+    "leaflet": "^1.9.4",
+    "maplibre-gl": "6.15.0"
   },
   "devDependencies": {
     "postcss": "^8.5.18",

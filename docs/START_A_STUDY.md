@@ -13,22 +13,37 @@ Write one sentence: which service, which market, and what decision will change a
 
 ## 2. Establish identity and geography
 
-Resolve an exact CID, place ID, or canonical domain. Record the verified business base separately from advertised cities and practical service territory. For mobile services, obtain departure town, travel constraints and viable booking types. Unknown facts remain unknown. A market-centered exploratory study is valid when explicitly commissioned and labeled; never present its center as a verified business address.
+Resolve an exact CID, place ID, or canonical domain. Record the verified business base separately from advertised cities and practical service territory. Private accounts (Search Console, private GBP owner metrics, CRM), profitability figures, and owner interview answers are never required for first use: mark unprovided private inputs as `unknown` and proceed with an explicitly exploratory public study. A market-centered or radial exploratory study is valid when explicitly commissioned and labeled; never present its sampling boundary as a verified customer catchment or profitable dispatch territory.
 
 ## 3. Run bounded discovery before a dense grid
 
-Check branded identity and representative service queries. Where relevant, check organic website visibility separately. Review whether returned competitors actually supply the service. Record result depth, zoom, language, device and search-this-area setting. If controls conflict, change one setting at a time and preserve each run separately.
+Follow [Search-window policy](SEARCH_WINDOW_POLICY.md). Origin-based visibility
+uses `search_this_area=false`; radius and spacing do not override a provider
+viewport. Compare controls across suspicious straight edges before scaling.
+Intentional restricted-window studies require an explicit purpose.
+
+Check branded identity and representative service queries. Where relevant, check organic website visibility separately. Review whether returned competitors actually supply the service. Record result depth, zoom, language, device and search-this-area setting. Run `python tools/study.py query-review --plan <study-plan.json>` (or `--refresh-dir <refresh-folder>`) to verify source observation ages, request/response hashes, service-theme coverage, synonym overlap, accepted/rejected/deferred candidate reasons, and `unknown` private business inputs before spending on a dense scan. Historical studies remain frozen, and `legends-geogrid` operates standalone without requiring AI Marketing Hub Home. If controls conflict, change one setting at a time and preserve each run separately.
 
 ## 4. Choose the useful route
 
-- High-resolution baseline core (default): Start zoomed in. Run a tight 1.0 to 1.5 km radius with dense spacing (<= 0.5 km) around the verified address to dip the toe in the water. This establishes immediate local rank contours and verifies the core authority boundary with minimal spend (~$0.15).
-- Do not stop at the first run: Do not be cheap with DataForSEO tokens. Almost every business requires an expansion, a regional zoom-out, or both to reveal the complete commercial picture.
-- Path A (Zoom Out): If the core is solid green (ranks 1-3 across the neighborhood), zoom out the provider viewport (switch to 11z-12z, 8-12 mile footprint) to discover where regional competitors contest your service boundary.
-- Path B (Expand Outward): If ranks 4-10 or competitive positions reach the boundary edges, expand outward at the same high spatial resolution in those active directions using enhance.
-- Sparse or irrelevant results: If even the core is missing within 500m, calibrate categories and address verification before buying outer samples.
-- Unknown practical territory: Request missing business facts or deliver a provisional discovery brief. Do not infer profitable travel from ranking positions alone.
+- Preserve active or owner-established study geometry: Never silently override an active study's established radius, spacing, search-window control, or query IDs (for example, an established 10-mile radial open-search study at half-mile spacing with `search_this_area=false`).
+- Regional half-mile radial baseline (default): Follow [Competitive sampling](COMPETITIVE_SAMPLING.md). Use half-mile spacing clipped to the requested radial footprint (such as a 10-mile radius around the verified business center) with `search_this_area=false` and Standard queue by default.
+- Focused neighborhood core (optional): When a tight walk-in or neighborhood check is specifically appropriate before regional sampling, use a compact radius with explicit scope notes rather than substituting it for an established regional study.
+- Path A (Zoom / Extent Comparison): If ranks 1-3 hold across the initial footprint, evaluate wider regional extent or zoom controls explicitly while keeping prior runs frozen.
+- Path B (Targeted Densification / Outward Expansion): Where ranks 4-10 or competitive transitions occur along active corridors, use `enhance` or quarter-mile follow-up sampling in those supported directions.
+- Sparse or irrelevant results: If results are missing near the business center, calibrate categories, primary/secondary GBP alignment, and address verification before buying additional outer samples.
+- Unknown private inputs: Mark private conversion, margin, and travel constraints as `unknown` and deliver an explicitly exploratory public study. Do not infer profitable travel from ranking positions alone.
 
 ## 5. Collect and report
+
+Use Standard queue by default. Half-mile spacing is the initial regional sampling
+policy; clip the regular lattice to the requested radius. Quarter-mile spacing
+is a separately priced detailed study when evidence justifies it. Eighth-mile
+sampling is reserved for a bounded diagnostic with a specific decision to resolve.
+Normal queue Maps requests at depth 30 cost $0.0006 each; all tracked profiles
+share the same request per coordinate and query. Live ($0.002) requires explicit
+user choice, never an automatic convenience upgrade. Both priced requests and
+NR observations must remain visible in the cost estimate and receipt.
 
 Estimate cost before execution. Use fixed sampling for repeat comparisons and adaptive expansion for a stated reach question. All compared queries share locations and settings. Keep controls separate. Use the normalized report contract in `examples/reports/README.md`; configure a registered basemap if street geography is required. Preserve evidence, observed depth and missing-data states.
 

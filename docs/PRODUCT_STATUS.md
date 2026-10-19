@@ -56,19 +56,17 @@ The refresh passes 174 tests and four offline PDF workflows. The version and rel
 - There are no background daemons, historical trend charts, multi-user accounts, hosted service, or support SLA.
 - Scans represent bounded point observations, not certified market coverage or guaranteed ranking predictions.
 
-## Proof dataset
+## Starter case study dataset (v0.2.0)
 
-The bundled Home Slice Pizza dataset is a historical demonstration scan for `pizza` in Austin, collected June 26, 2026:
+The bundled Home Slice Pizza starter case study (`src/data/home-slice-study.json`, `src/data/home-slice-campaign-research.json`, `src/data/home-slice-name-review.json`, and `examples/starter-home-slice/report/`) is a complete v0.2.0 Austin study for `Home Slice Pizza` (`1415 S Congress Ave, Austin, TX 78704`, CID `12299280573550492680`), collected October 19, 2026:
 
-- Grid: 17 x 17 / 289 coordinate tasks.
-- DataForSEO method: Standard Queue.
-- Historical reported raw API cost: $0.1734.
-- Found: 225 of 289 points.
-- Top 3: 100 of 289 points.
-- Top 10: 201 of 289 points.
-- Average rank where found: 4.97.
+- Footprint: `10-mile` radius (`16.09344 km`), `0.5-mile` spacing (`0.804672 km`), `1,249` shared circular-lattice origins (`radius_grid`).
+- Queries (4 distinct themes): `pizza restaurant` (`21` top-3, `261` top-10, `917` found), `new york style pizza` (`549` top-3, `1,023` top-10, `1,249` found), `pizza by the slice` (`470` top-3, `952` top-10, `1,183` found), and `pizza takeout` (`6` top-3, `222` top-10, `850` found).
+- Controls: DataForSEO Google Maps Standard Queue, `depth = 30`, `zoom = 13`, `search_this_area = false` (`4,996` tasks, `$2.9976` SERP collection spend).
+- Business-name review: `165` first-place winning profiles verified via Standard Queue GBP tasks (`$0.2475`) and `139` captured websites, with `79` recurring leaders source-reviewed and scored on the `0-5` `title-evidence-v1` rubric.
+- Completed report: 18-page PDF (`examples/starter-home-slice/report/report.pdf`) and HTML (`examples/starter-home-slice/report/report.html`) with OpenFreeMap street basemaps and `pypdfium2` QA verification.
 
-It is demonstration data, not a claim about current rankings.
+It is a saved demonstration snapshot, not a live real-time ranking claim.
 
 ## Recommended next milestone
 

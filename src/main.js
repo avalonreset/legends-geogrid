@@ -1,7 +1,6 @@
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
-import proof17Run from './data/home-slice-17x17.json'
-import proofRun from './data/home-slice-5x5.json'
+import starterStudy from './data/home-slice-study.json'
 import './styles.css'
 
 const austinCenter = { lat: 30.249711, lng: -97.749132 }
@@ -280,17 +279,29 @@ function makeSimulation(size, shape) {
   }
 }
 
-function gridFromRun(run, size, label, source) {
-  const points = run.results.map((result) => ({
-    id: result.point.tag,
-    row: result.point.row,
-    col: result.point.col,
-    lat: result.point.lat,
-    lng: result.point.lng,
-    rank: result.rank,
-    topResult: result.matched_item?.title || result.top_items?.[0]?.title || 'Not found',
-    topThree: (result.top_items || []).slice(0, 3).map((item) => item.title || 'Unknown'),
-  }))
+function gridFromStudy(study, laneId, maxDistKm, size, label, source) {
+  const profiles = study.profiles || {}
+  const filtered = maxDistKm
+    ? study.points.filter((point) => (point.distance_from_target_km || 0) <= maxDistKm)
+    : study.points
+  const points = filtered.map((point) => {
+    const lane = point.by_lane?.[laneId] || {}
+    const topItems = (lane.top_items || []).map((item) => ({
+      ...profiles[String(item.cid || '')],
+      ...item,
+    }))
+    const matched = topItems.find((item) => item.rank === lane.target_rank)
+    return {
+      id: point.tag,
+      row: point.row ?? 0,
+      col: point.col ?? 0,
+      lat: point.lat,
+      lng: point.lng,
+      rank: lane.target_rank ?? null,
+      topResult: matched?.title || topItems[0]?.title || 'Not found',
+      topThree: topItems.slice(0, 3).map((item) => item.title || 'Unknown'),
+    }
+  })
   return {
     size,
     points,
@@ -302,34 +313,34 @@ function gridFromRun(run, size, label, source) {
 
 function activeGrid() {
   if (state.dataset === 'proof5') {
-    return gridFromRun(proofRun, 5, 'Real cached proof 5 x 5', 'Historical saved DataForSEO receipt - 25 paid coordinate results')
+    return gridFromStudy(starterStudy, 'q1', 2.45, 5, 'Real cached proof (inner core)', 'Saved DataForSEO Standard Queue subset from 10-mile starter study')
   }
   if (state.dataset === 'simulation') {
     return makeSimulation(state.gridSize, state.shape)
   }
-  return gridFromRun(proof17Run, 17, 'Real DataForSEO proof 17 x 17', 'Saved DataForSEO Standard Queue receipt - 289 paid coordinate results')
+  return gridFromStudy(starterStudy, 'q1', null, 41, 'Real DataForSEO 10-mile starter study', 'Saved DataForSEO Standard Queue receipt - 1,249 shared origins')
 }
 
 function activeProject() {
   if (state.dataset === 'proof17') {
     return {
       kind: 'Real paid proof project',
-      name: 'Home Slice Pizza 17 x 17 DataForSEO proof',
+      name: 'Home Slice Pizza 10-mile DataForSEO starter study',
       badge: 'Real paid rank data',
-      scope: '1 real proof scan',
-      note: 'This is the live 289-coordinate Standard Queue scan. The browser reuses the saved receipt and does not spend again.',
-      plannerNote: 'This is the showpiece proof scan. Use the planner to estimate bulk spend before approving any prospect list.',
+      scope: '1,249 origins · 4 queries',
+      note: 'This is the 1,249-coordinate Standard Queue scan (0.5-mile spacing, 10-mile radius). The browser reuses the saved study and does not spend again.',
+      plannerNote: 'This is the showpiece starter scan. Use the planner to estimate bulk spend before approving any prospect list.',
     }
   }
 
   if (state.dataset === 'proof5') {
     return {
       kind: 'Real cached proof project',
-      name: 'Home Slice Pizza 5 x 5 DataForSEO proof',
+      name: 'Home Slice Pizza inner-core DataForSEO subset',
       badge: 'Cached paid rank data',
-      scope: '1 cached proof scan',
-      note: 'This uses the saved 25-coordinate DataForSEO receipt. No new API spend happens in the browser.',
-      plannerNote: 'Use this mode to model the original 1,000-prospect triage idea at low cost.',
+      scope: 'Inner core subset',
+      note: 'This uses the inner core of the saved DataForSEO starter study. No new API spend happens in the browser.',
+      plannerNote: 'Use this mode to model a compact inner-core triage scan at low cost.',
     }
   }
 
@@ -338,7 +349,7 @@ function activeProject() {
     name: 'Home Slice Pizza 17 x 17 one-prospect demo',
     badge: 'Modeled rank data',
     scope: '1 modeled prospect',
-    note: 'This is a dense modeled visual. It shows the experience without buying 289 coordinate results.',
+    note: 'This is a dense modeled visual. It shows the experience without buying coordinate results.',
     plannerNote: 'Use this mode for showpiece visuals. The 1,000-prospect line is only a paid-equivalent scenario.',
   }
 }

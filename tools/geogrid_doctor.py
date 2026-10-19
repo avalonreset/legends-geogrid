@@ -50,8 +50,10 @@ def main() -> int:
     required = [
         "package.json",
         "src/main.js",
-        "src/data/home-slice-17x17.json",
-        "src/data/home-slice-5x5.json",
+        "src/data/home-slice-study.json",
+        "src/data/home-slice-campaign-research.json",
+        "src/data/home-slice-name-review.json",
+        "examples/starter-home-slice/report/report.pdf",
         "tools/local_heatmap_poc.py",
         "tools/bulk_geogrid_runner.py",
         "examples/sample-prospects.csv",
@@ -103,12 +105,13 @@ def main() -> int:
             fail("file", rel)
 
     try:
-        payload = json.loads((ROOT / "src/data/home-slice-17x17.json").read_text(encoding="utf-8"))
-        metrics = payload.get("metrics", {})
-        ok("proof dataset", f"{metrics.get('points')} points, {metrics.get('solv')}% top 3")
+        payload = json.loads((ROOT / "src/data/home-slice-study.json").read_text(encoding="utf-8"))
+        pts = len(payload.get("points") or [])
+        lanes = len(payload.get("lanes") or [])
+        ok("starter dataset", f"{pts} points, {lanes} queries")
     except Exception as exc:
-        missing.append("proof dataset parse")
-        fail("proof dataset", str(exc))
+        missing.append("starter dataset parse")
+        fail("starter dataset", str(exc))
 
     if command_exists("pnpm"):
         ok("pnpm", "available")

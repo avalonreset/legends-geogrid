@@ -1,0 +1,86 @@
+{
+  "schema": "geogrid-sampling-review/v1",
+  "policy": "Heuristic review, not proof of adequate coverage. Default 0.75 km is a declared planning preference, not a universal SEO threshold.",
+  "target_spacing_km": 0.75,
+  "provider_calls": 0,
+  "lanes": [
+    {
+      "query": "pizza restaurant",
+      "regular_rectangular_grid": false,
+      "excluded_origins": 0,
+      "reasons": [
+        "Irregular or duplicate origins: review actual geographic gaps; square-grid heuristics do not apply."
+      ],
+      "status": "review_required"
+    },
+    {
+      "query": "new york style pizza",
+      "regular_rectangular_grid": false,
+      "excluded_origins": 0,
+      "reasons": [
+        "Irregular or duplicate origins: review actual geographic gaps; square-grid heuristics do not apply."
+      ],
+      "status": "review_required"
+    },
+    {
+      "query": "pizza by the slice",
+      "regular_rectangular_grid": false,
+      "excluded_origins": 0,
+      "reasons": [
+        "Irregular or duplicate origins: review actual geographic gaps; square-grid heuristics do not apply."
+      ],
+      "status": "review_required"
+    },
+    {
+      "query": "pizza takeout",
+      "regular_rectangular_grid": false,
+      "excluded_origins": 0,
+      "reasons": [
+        "Irregular or duplicate origins: review actual geographic gaps; square-grid heuristics do not apply."
+      ],
+      "status": "review_required"
+    }
+  ],
+  "collective_coverage": {
+    "policy": "Information value first. Costs are disclosed, not minimized at the expense of a useful comparison. The 60%/two-theme threshold is an adjustable review heuristic, not an SEO law.",
+    "directions": {
+      "north": {
+        "recommendation": "hold_or_evidence_led_exception",
+        "supporting_themes": [],
+        "conditional_themes": [],
+        "uncertain_themes": [],
+        "comparison_themes": [],
+        "explanation": "Use individual boundary evidence plus geography, interior trends and the study question. A small sentinel probe may test an evidence-backed exception; do not assume every NR boundary is final.",
+        "execution": "Proposal only: specify shared coordinates, incremental per-theme cost and a stop/reassess rule before collection."
+      },
+      "south": {
+        "recommendation": "hold_or_evidence_led_exception",
+        "supporting_themes": [],
+        "conditional_themes": [],
+        "uncertain_themes": [],
+        "comparison_themes": [],
+        "explanation": "Use individual boundary evidence plus geography, interior trends and the study question. A small sentinel probe may test an evidence-backed exception; do not assume every NR boundary is final.",
+        "execution": "Proposal only: specify shared coordinates, incremental per-theme cost and a stop/reassess rule before collection."
+      },
+      "east": {
+        "recommendation": "hold_or_evidence_led_exception",
+        "supporting_themes": [],
+        "conditional_themes": [],
+        "uncertain_themes": [],
+        "comparison_themes": [],
+        "explanation": "Use individual boundary evidence plus geography, interior trends and the study question. A small sentinel probe may test an evidence-backed exception; do not assume every NR boundary is final.",
+        "execution": "Proposal only: specify shared coordinates, incremental per-theme cost and a stop/reassess rule before collection."
+      },
+      "west": {
+        "recommendation": "hold_or_evidence_led_exception",
+        "supporting_themes": [],
+        "conditional_themes": [],
+        "uncertain_themes": [],
+        "comparison_themes": [],
+        "explanation": "Use individual boundary evidence plus geography, interior trends and the study question. A small sentinel probe may test an evidence-backed exception; do not assume every NR boundary is final.",
+        "execution": "Proposal only: specify shared coordinates, incremental per-theme cost and a stop/reassess rule before collection."
+      }
+    }
+  },
+  "action": "Resolve sampling recommendations before calling the study comprehensive. Keep paired queries comparable; preserve the original baseline. No automatic purchases."
+}

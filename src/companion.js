@@ -1,6 +1,8 @@
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
-import sample from './data/home-slice-17x17.json'
+import sample from './data/home-slice-study.json'
+import sampleResearch from './data/home-slice-campaign-research.json'
+import sampleNameReview from './data/home-slice-name-review.json'
 import { normalizeStudy, observationFor, businessMetrics, businessLeaderboard, businessPage, rankPresentation, RANK_COLORS, RANK_OPACITIES, rankFillOpacity } from './study-model.js'
 import { cellSpacings, destination, blendColor, latticeIntersections } from './map-geometry.js'
 import { installWheelZoom } from './wheel-zoom.js'
@@ -208,18 +210,25 @@ function inspectRegion({ regionId = 'all', queryId = state.query, rivalId = null
   fitOrigins(region.originIds)
 }
 
-async function loadCampaignResearch() {
+async function loadCampaignResearch(fallbackInput = null) {
   campaign.research = null
   if (model.limited) return
   const currentModel = model
   try {
     const url = await resolveStudyAttachment({ attachment: 'campaign_research',
       explicit: params.get('research'), studyURL: params.get('study'), model: currentModel, baseURL: location.href })
-    if (!url || model !== currentModel) return
-    const response = await fetch(url)
-    if (!response.ok) throw new Error(`HTTP ${response.status}`)
-    const input = await response.json()
     if (model !== currentModel) return
+    let input = null
+    if (url) {
+      const response = await fetch(url)
+      if (!response.ok) throw new Error(`HTTP ${response.status}`)
+      input = await response.json()
+      if (model !== currentModel) return
+    } else if (fallbackInput && !params.get('research') && !params.get('study')) {
+      input = fallbackInput
+    } else {
+      return
+    }
     const research = validateCampaignResearch(input, currentModel)
     if (model === currentModel) { campaign.research = research; render(); strategyRoom?.refresh?.() }
   } catch (error) { if (model === currentModel) announce(`Campaign research unavailable: ${error.message}`) }
@@ -618,8 +627,12 @@ function loadStudy(input, restore = false) {
   fieldBrowser.page = 0
   fitStudy()
   render()
-  void loadCampaignResearch()
-  void nameReview?.load(params.get('name_review'), { studyURL: params.get('study') })
+  const isBundledSample = input === sample
+  void loadCampaignResearch(isBundledSample ? sampleResearch : null)
+  void nameReview?.load(params.get('name_review'), {
+    studyURL: params.get('study'),
+    fallbackInput: isBundledSample ? sampleNameReview : null,
+  })
 }
 
 function contextText() {
@@ -880,7 +893,7 @@ window.GeoGrid = {
 loadStudy(sample, true)
 // A private local pointer can select the working study without bundling client
 // evidence in the open-source build. Explicit links always retain their study.
-if (import.meta.env.DEV) {
+if (import.meta.env.DEV && initialParams.get('starter') !== '1') {
   try {
     const response = await fetch('/runs/current-study.json', { cache: 'no-store' })
     if (response.ok && response.headers.get('content-type')?.includes('application/json')) {

@@ -21,17 +21,20 @@
 - Adaptive sampling collector (`tools/adaptive_geogrid.py`) with sector expansion (`adaptive8sectors`), clean-negative stopping, and synthetic replay.
 - Normalized observation contract (`query_id, lat, lng, rank, state, returned_count, depth, sampled_at, source`).
 
-## 0.4 · Connect runners to studio
+## 0.4 / 0.2.0 (Router-native) · Competitive map companion & battlefield intelligence (Shipped)
 
-- Import saved `parsed-grid.json` scans and strategy report configurations directly into the Leaflet browser studio.
-- Add an optional lightweight local SQLite store for run indexing.
-- Side-by-side scan comparisons in the browser.
+- Interactive Competitive Map Companion (`src/companion.js`) with `geogrid-companion/v1` and `geogrid-battlefield/v1` local study import and study-bound sidecar attachments (`*.attachments.json`).
+- Five coordinated map lenses (**Rankings**, **Local leaders**, **Campaigns**, **Keyword stuffing**, and **Head-to-head**) plus a dockable split-screen **Strategy room**.
+- Deterministic study-wide OKLab neighbor color separation, stable `L`-number badges, and outside-circle competitor base connectors.
+- Regular circular-lattice sampling (`search_this_area=false`) and nested radius composition (`tools/lattice_sampling.py`, `tools/radius_compose.py`, `tools/competitive_collect.py`).
+- Business-name review workbench (`tools/business_name_review.py`, `tools/compose_name_reviews.py`) with Standard-queue exact-CID refreshes, website branding capture, historical report lead matching, and the `0-5` `title-evidence-v1` concern confidence scale.
 
 ## Later
 
 - Multi-keyword recurring scans with freshness controls.
-- Historical trend charts and competitor movement analysis.
-- Optional local CLI/API hooks for workflow automation.
+- Historical trend charts and competitor movement analysis across time series.
+- Optional local SQLite run indexing and CLI/API hooks for workflow automation.
 - White-label report templates.
 
 Hosted multi-tenant accounts, cloud billing, and SaaS administration remain intentionally outside the project scope.
+

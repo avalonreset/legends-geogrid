@@ -31,9 +31,9 @@ Install with `cto-legends install legends-geogrid`, then follow the module recip
   <a href="https://www.youtube.com/shorts/4RYY_gh6b70"><em>why have we never met before?</em></a>
 </p>
 
-## What 0.1.0 adds
+## What 0.2.0 adds
 
-A ranking grid should help answer a decision: where does a business appear, which services are weaker, who actually wins each neighborhood, and what should be investigated or changed next? Version 0.1.0 pairs a full-field competitive map companion with researched study planning, multi-query PDF/HTML reports, and a persistent study library.
+A ranking grid should help answer a decision: where does a business appear, which services are weaker, who actually wins each neighborhood, and what should be investigated or changed next? Version 0.2.0 pairs a full-field competitive map companion with circular-lattice sampling, a business-name review workbench, researched study planning, multi-query PDF/HTML reports, and a persistent study library.
 
 | Capability | What it gives you |
 | --- | --- |
@@ -98,7 +98,7 @@ Review the generated estimate and [current provider pricing](https://dataforseo.
 
 This is a practical local tool and reference implementation, not feature-for-feature parity with a mature hosted platform.
 
-## Explore the browser demo
+## Quick start and usage: explore the browser demo
 
 Requirements:
 
@@ -181,7 +181,7 @@ Fresh scans depend on [legends-dataforseo](https://github.com/avalonreset/legend
 
 Reports default to the dark theme. For pure-white printable reports, set `"theme": "light"` in the report config; both themes preserve rank colors and legends-geogrid branding.
 
-**Tested pairing:** legends-geogrid v0.1.0 with legends-dataforseo v0.1.0.
+**Tested pairing:** legends-geogrid v0.2.0 with legends-dataforseo v0.1.0.
 The requirement below pins the kit's immutable public source ZIP, so installation
 does not require Git. The two projects are maintained and versioned separately.
 Offline reports remain usable without the provider dependency or credentials.
@@ -410,6 +410,10 @@ The bundled Home Slice Pizza proof is historical demonstration data collected on
 - [ReportLab](https://www.reportlab.com/) and [Pillow](https://python-pillow.org/) are open-source Python libraries used for local vector PDF generation and image processing (`requirements-report.txt`). They are optional local dependencies, not vendored in this repository.
 
 The original product research compared public workflow and pricing information from [Local Falcon](https://www.localfalcon.com/) ([GitHub](https://github.com/local-falcon)), [Search Atlas](https://searchatlas.com/local-seo-software/) ([GitHub](https://github.com/search-atlas-group)), [LeadSnap](https://leadsnap.com/features/local-citations/), and [BrightLocal](https://www.brightlocal.com/citation-builder/) ([GitHub](https://github.com/BrightLocal)). They were market references only: the current release does not contain their source code, assets, screenshots, or proprietary data. See [Provenance and research sources](docs/PROVENANCE.md) and [Third-party notices](THIRD_PARTY_NOTICES.md).
+
+## Contributing and security
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for development workflow, cost-safety requirements, and pull-request checks. Report security issues privately using [SECURITY.md](SECURITY.md).
 
 ## License
 

@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.2.0 - 2026-10-19
+
+- Add the **Competitive Map Companion** (`index.html`, `src/companion.js`, `src/study-model.js`, `src/rank-canvas.js`): interactive circular-lattice workspace with equal-sided stop-sign pins scaled to 30% of grid spacing, four-corner continuous gradient diamonds, animated rank-1 cyan sparkles, coverage dots distinguishing top-30 absence from incomplete responses, and full-field competitor search across all observed profiles while preserving `/legacy.html` for the original grid studio.
+- Add **Local Leaders & Neighbor Coloring** (`src/local-leaders.js`, `src/leader-colors.js`): recurring (`3+` wins) and all-winner coverage modes, deterministic study-wide OKLab neighbor color separation, stable `L`-number badges across queries, and dashed connectors to competitor bases more than two miles outside the study circle.
+- Add **Strategy Room & Head-to-Head Matchups** (`src/strategy-room.js`, `src/strategy-engine.js`, `src/strategy-map-panel.js`, `tools/battlefield.py`, `tools/battlefield_intelligence.py`): dockable split-screen regional/service comparison matrix and direct two-profile `matchup` map overlays.
+- Add **Territory Campaigns** (`src/campaign-panel.js`, `src/territory-intelligence.js`): spatial footholds, advance zones (ranks 4-10), defended areas, and study-bound `campaign-research.json` action briefs.
+- Add **Business-Name Review (`Keyword stuffing`) Workbench** (`tools/business_name_review.py`, `tools/compose_name_reviews.py`, `src/name-review.js`, `src/title-confidence.js`, `src/review-attachment.js`): read-only agent-owned dossier for Google Business Profile title discrepancies, Standard-queue exact-CID profile verification, website branding capture, historical report lead reconciliation (`--include-cid` / `--only-cid`), multi-run evidence composition, study-bound sidecar attachments (`*.attachments.json`), and an explained `0-5` `title-evidence-v1` concern confidence rubric.
+- Add **Circular-Lattice Sampling & Nested Radius Composition** (`tools/lattice_sampling.py`, `tools/radius_sampling.py`, `tools/radius_compose.py`, `tools/competitive_collect.py`, `tools/competitive_export.py`, `tools/visibility_policy.py`): regular square lattice clipped to a true circle with `search_this_area=false`, reusing inner-radius points when expanding outward under matched controls.
+- Add **Interactive Basemap Switcher & Local Google Map Tiles Adapter** (`src/basemap-switcher.js`, `src/google-tiles.js`, `src/persistent-tiles.js`, `src/wheel-zoom.js`, `tools/google-tiles-plugin.mjs`): OpenStreetMap Legends dark treatment, OpenFreeMap vector styles, smooth fractional wheel zoom with tile crossfading, and optional server-held Google Map Tiles session proxying.
+- Security & hygiene: override `source-map-js >= 1.2.2` (`CVE-2026-93749`) and expand public-tree release hygiene checks across 520 automated tests (129 Node viewer tests and 391 Python unit tests).
+
 ## 0.1.0 - 2026-09-25
 
 - Router-native generation reset: study recipe moves from root SKILL.md to docs/STUDY-RECIPE.md (no skill frontmatter); pinned cto-legends router skill vendored at skills/cto-legends/SKILL.md (router commit 6975dcbf073e5eec7a30ce6a04a6975238c61158); DataForSEO kit re-pinned to kit 0.1.0 (dd00fb030393f300226ca18db3644bb141f96fb0); version reset to 0.1.0 with history preserved.

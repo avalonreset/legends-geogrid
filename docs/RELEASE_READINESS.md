@@ -1,13 +1,10 @@
-# 0.4.0 release verification
+# 0.2.0 release verification
 
-The packaged scope is business-first research, justified search themes, comparable
-collection, proposals, decision-oriented reports, automatic street maps, and an
-Obsidian-readable Markdown/JSON study library. Dark and white-print reports use
-the same editorial template.
+The packaged scope is the Competitive Map Companion, Local Leaders with neighbor-aware OKLab coloring, Strategy Room and head-to-head matchups, Territory Campaigns, circular-lattice sampling with nested radius composition, the Business-Name Review (`Keyword stuffing`) workbench with the `0-5` `title-evidence-v1` confidence scale, business-first research, justified search themes, decision-oriented PDF/HTML reports, automatic street maps, and an Obsidian-readable Markdown/JSON study library. Dark and white-print reports use the same editorial template.
 
 ## Verified locally
 
-- 271 tests and all four offline report workflows pass.
+- 520 automated tests (129 Node viewer tests and 391 Python unit tests) and all four offline report workflows pass.
 - The source ZIP installs in an empty Windows Python environment using only
   declared dependencies; the full pipeline passes without a private font.
 - Free street-map acquisition works with Chromium and preserved attribution.

@@ -1,19 +1,9 @@
-# Current release: 0.1.0
+# Current release: 0.2.0
 
-The current release connects business-first research, public GBP and website
-evidence, 3-5 justified search themes, validated proposals, comparable scans,
-decision-oriented reports and a persistent Markdown/JSON study library.
-Real reports default to free street maps. Dark and white print modes share the
-same template. `study.py enhance` executes finer sampling within the existing
-footprint with eligible point reuse and incremental estimates; outward expansion
-remains advisory.
+The current release pairs the **Competitive Map Companion** (`index.html`, `src/companion.js`), **Local Leaders & neighbor-aware OKLab coloring**, **Strategy Room & Head-to-Head matchups**, **Territory Campaigns**, **Circular-Lattice sampling & nested radius composition**, and the **Business-Name Review (`Keyword stuffing`) workbench** (including the `0-5` `title-evidence-v1` concern confidence scale and historical report lead reconciliation) with business-first research, public GBP and website evidence, 3-5 justified search themes, decision-oriented PDF/HTML reports, and a persistent Markdown/JSON study library. Real reports default to free street maps; dark and white print modes share the same template. `study.py enhance` executes finer sampling within the existing footprint with eligible point reuse and incremental estimates.
 
-271 tests and four offline report workflows passed, including a clean source-ZIP
-installation and Windows/Linux Python 3.10/3.12 CI. macOS is not yet verified.
-Agents remain responsible for semantic research and recommendation quality.
-See [release readiness](RELEASE_READINESS.md) for supported limits and
-[GitHub Releases](https://github.com/avalonreset/legends-geogrid/releases) for
-exact-commit verification receipts and downloads.
+520 automated tests (129 Node viewer tests and 391 Python unit tests) and four offline report workflows passed, including Windows and Linux Python 3.10 and 3.12 CI. Agents remain responsible for semantic research and recommendation quality. See [release readiness](RELEASE_READINESS.md) for supported limits and [GitHub Releases](https://github.com/avalonreset/legends-geogrid/releases) for exact-commit verification receipts and downloads.
+
 
 ## Historical 0.3.0 record
 

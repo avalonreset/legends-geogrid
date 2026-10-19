@@ -77,20 +77,32 @@ class ReleaseHygieneTests(unittest.TestCase):
         self.assertEqual("", values["DATAFORSEO_USERNAME"])
         self.assertEqual("", values["DATAFORSEO_PASSWORD"])
 
-    def test_bundled_proofs_are_minimized(self) -> None:
-        allowed_root = {"target", "keyword", "location", "metrics", "results"}
-        allowed_result = {"point", "rank", "matched_item", "top_items", "error"}
-        allowed_point = {"row", "col", "lat", "lng", "tag"}
-        for path in sorted((ROOT / "src" / "data").glob("home-slice-*.json")):
-            payload = json.loads(path.read_text(encoding="utf-8"))
-            self.assertEqual(allowed_root, set(payload))
-            for result in payload["results"]:
-                self.assertEqual(allowed_result, set(result))
-                self.assertEqual(allowed_point, set(result["point"]))
-                if result["matched_item"] is not None:
-                    self.assertEqual({"title"}, set(result["matched_item"]))
-                for item in result["top_items"]:
-                    self.assertEqual({"title"}, set(item))
+    def test_bundled_starter_pack_is_complete_and_compact(self) -> None:
+        study_path = ROOT / "src" / "data" / "home-slice-study.json"
+        research_path = ROOT / "src" / "data" / "home-slice-campaign-research.json"
+        review_path = ROOT / "src" / "data" / "home-slice-name-review.json"
+        report_pdf = ROOT / "examples" / "starter-home-slice" / "report" / "report.pdf"
+        self.assertTrue(study_path.is_file())
+        self.assertTrue(research_path.is_file())
+        self.assertTrue(review_path.is_file())
+        self.assertTrue(report_pdf.is_file())
+
+        study = json.loads(study_path.read_text(encoding="utf-8"))
+        self.assertEqual("geogrid-companion/v1", study.get("schema"))
+        self.assertEqual(1249, len(study.get("points") or []))
+        self.assertEqual(4, len(study.get("lanes") or []))
+        self.assertEqual(30, (study.get("study") or {}).get("depth"))
+        self.assertIsInstance(study.get("profiles"), dict)
+        plan_sha = (study.get("evidence") or {}).get("plan_sha256")
+        self.assertTrue(isinstance(plan_sha, str) and len(plan_sha) == 64)
+
+        research = json.loads(research_path.read_text(encoding="utf-8"))
+        self.assertEqual("geogrid-campaign-research/v1", research.get("schema"))
+        self.assertEqual(plan_sha, research.get("studyPlanSha256"))
+
+        review = json.loads(review_path.read_text(encoding="utf-8"))
+        self.assertEqual("geogrid-name-review/v1", review.get("schema"))
+        self.assertEqual(plan_sha, review.get("study_plan_sha256"))
 
     def test_map_endpoint_and_attribution_match_osm_policy(self) -> None:
         source = (ROOT / "src" / "main.js").read_text(encoding="utf-8")

@@ -603,7 +603,102 @@ def load_study_lanes(source_path: str | Path) -> StudyLanesBundle:
     if resolved_input.is_file():
         payload = json.loads(resolved_input.read_text(encoding="utf-8-sig"))
         base_dir = resolved_input.parent
-        if isinstance(payload, dict) and isinstance(payload.get("lanes"), list):
+        if isinstance(payload, dict) and payload.get("schema") in ("geogrid-battlefield/v1", "geogrid-companion/v1"):
+            business_meta.update(payload.get("business") or {})
+            profiles = dict(payload.get("profiles") or {}) if isinstance(payload.get("profiles"), dict) else {}
+            for f in payload.get("factions") or []:
+                if isinstance(f, dict) and f.get("cid"):
+                    profiles.setdefault(str(f["cid"]), f)
+            study_cfg = payload.get("study") or {}
+            controls = study_cfg.get("controls") or {}
+            sampling = study_cfg.get("sampling") or {}
+            depth = int(study_cfg.get("depth") or 30)
+            zoom = int(controls.get("zoom") or 13)
+            radius_km = float(sampling.get("radius_km") or 16.09344)
+            target_name = _clean_text(business_meta.get("name") or "Target Business")
+            for idx, lane_cfg in enumerate(payload.get("lanes") or [], start=1):
+                lane_id = str(lane_cfg.get("lane_id") or lane_cfg.get("query_id") or f"q{idx}")
+                kw = _clean_text(lane_cfg.get("query") or lane_cfg.get("keyword") or f"Query {idx}")
+                lbl = _clean_text(lane_cfg.get("label") or kw)
+                lane_results = []
+                for pt in payload.get("points") or []:
+                    obs = (pt.get("by_lane") or {}).get(lane_id) or {}
+                    serp_items = []
+                    for raw_it in obs.get("top_items") or []:
+                        cid = str(raw_it.get("cid") or "")
+                        merged = dict(profiles.get(cid) or {}, **raw_it)
+                        if "name" in merged and "title" not in merged:
+                            merged["title"] = merged["name"]
+                        if "lat" in merged and "latitude" not in merged:
+                            merged["latitude"] = merged["lat"]
+                        if "lng" in merged and "longitude" not in merged:
+                            merged["longitude"] = merged["lng"]
+                        serp_items.append(_enrich_item_dict(merged, fallback_rank=int(raw_it.get("rank") or 1)))
+                    point_rank = _to_int(obs.get("target_rank"))
+                    matched_enriched = (
+                        next((it for it in serp_items if it["rank"] == point_rank), None)
+                        if point_rank is not None
+                        else None
+                    )
+                    lane_results.append(
+                        {
+                            "point": {
+                                "row": int(pt.get("row") or 0),
+                                "col": int(pt.get("col") or 0),
+                                "lat": float(pt["lat"]),
+                                "lng": float(pt["lng"]),
+                                "tag": str(pt["tag"]),
+                            },
+                            "rank": point_rank,
+                            "status": str(
+                                obs.get("status")
+                                or ("found" if point_rank is not None else "not_returned_depth_reached")
+                            ),
+                            "error": None,
+                            "matched_item": matched_enriched,
+                            "top_items": serp_items,
+                            "serp_items": serp_items,
+                            "returned_items_count": int(obs.get("returned_count") or len(serp_items)),
+                            "organic_items_count": int(obs.get("returned_count") or len(serp_items)),
+                            "observed_ranks": list(
+                                obs.get("observed_ranks")
+                                or sorted({it["rank"] for it in serp_items if isinstance(it.get("rank"), int)})
+                            ),
+                        }
+                    )
+                lanes.append(
+                    {
+                        "lane_id": lane_id,
+                        "query_id": lane_id,
+                        "lane_number": idx,
+                        "query": kw,
+                        "keyword": kw,
+                        "label": lbl,
+                        "narrative": _clean_text(lane_cfg.get("narrative") or ""),
+                        "parsed_path": str(resolved_input.resolve()),
+                        "raw_path": None,
+                        "enriched_from_raw": True,
+                        "target": target_name,
+                        "location": _clean_text(payload.get("location") or business_meta.get("location") or ""),
+                        "measurement_settings": {
+                            "schema_version": 4,
+                            "method": "standard",
+                            "keyword": kw,
+                            "center_lat": float(business_meta.get("lat") or 0.0),
+                            "center_lng": float(business_meta.get("lng") or 0.0),
+                            "radius_km": radius_km,
+                            "grid_size": int(sampling.get("grid_size") or 41),
+                            "depth": depth,
+                            "zoom": zoom,
+                            "target_name": target_name,
+                            "target_cid": str(business_meta.get("cid") or ""),
+                            "target_domain": str(business_meta.get("domain") or ""),
+                        },
+                        "metrics": {"points": len(lane_results)},
+                        "results": lane_results,
+                    }
+                )
+        elif isinstance(payload, dict) and isinstance(payload.get("lanes"), list):
             report_config = payload
             business_meta.update(payload.get("business") or {})
             profile_review = payload.get("profile_review") or {}

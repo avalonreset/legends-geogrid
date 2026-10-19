@@ -51,6 +51,7 @@ export function normalizeStudy(input) {
       return idOf({ ...item, faction_id: null })
     }
     const queries = input.lanes.map(l => ({ id: l.lane_id, name: l.query || l.keyword }))
+    const profileDirectory = input.profiles && typeof input.profiles === 'object' ? input.profiles : {}
     const points = input.points.map(p => ({
       id: p.tag, lat: p.lat, lng: p.lng, distance: p.distance_from_target_km,
       roles: p.roles || [], phase: p.phase, anchors: p.anchor_factions || [],
@@ -60,12 +61,16 @@ export function normalizeStudy(input) {
           status: o?.status || 'missing', targetRank: rankOf(o?.target_rank), sampledAt: o?.sampled_at,
           collectionMethod: o?.provenance?.method ||
             (['standard', 'live'].includes(input.study?.controls?.method) ? input.study.controls.method : undefined),
-          items: (o?.top_items || []).map(i => ({
-            id: resolveIdentity(i), name: i.title, rank: rankOf(i.rank ?? i.rank_group),
-            rating: i.rating, reviews: i.votes_count, address: i.address, cid: i.cid, placeId: i.place_id,
-            lat: validLocation(i.latitude, i.longitude) ? i.latitude : null,
-            lng: validLocation(i.latitude, i.longitude) ? i.longitude : null,
-          })).filter(i => i.rank !== null).sort((a, b) => a.rank - b.rank),
+          items: (o?.top_items || []).map(rawItem => {
+            const prof = (rawItem.cid && profileDirectory[String(rawItem.cid)]) || {}
+            const i = { ...prof, ...rawItem }
+            return {
+              id: resolveIdentity(i), name: i.title, rank: rankOf(i.rank ?? i.rank_group),
+              rating: i.rating, reviews: i.votes_count, address: i.address, cid: i.cid, placeId: i.place_id,
+              lat: validLocation(i.latitude, i.longitude) ? i.latitude : null,
+              lng: validLocation(i.latitude, i.longitude) ? i.longitude : null,
+            }
+          }).filter(i => i.rank !== null).sort((a, b) => a.rank - b.rank),
         }]
       })),
     }))

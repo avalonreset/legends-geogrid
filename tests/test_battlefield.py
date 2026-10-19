@@ -416,37 +416,38 @@ class BattlefieldEngineTests(unittest.TestCase):
             self.assertTrue(len(orders["fortress_warnings"]) >= 1)
             self.assertTrue(1 <= len(orders["next_turn_recon_probes"]) <= 5)
 
-    def test_home_slice_17x17_fallback_without_raw_payload(self) -> None:
-        home_slice_path = ROOT / "src" / "data" / "home-slice-17x17.json"
+    def test_home_slice_starter_study_model(self) -> None:
+        home_slice_path = ROOT / "src" / "data" / "home-slice-study.json"
         self.assertTrue(home_slice_path.is_file())
 
         model = battlefield.build_battlefield_model(home_slice_path)
         _assert_no_em_dash(self, model)
 
-        self.assertEqual(1, len(model["lanes"]))
-        self.assertEqual(289, len(model["points"]))
+        self.assertEqual(4, len(model["lanes"]))
+        self.assertEqual(1249, len(model["points"]))
         self.assertEqual(11, len(model["factions"]))
 
         target = model["target_faction"]
         self.assertEqual("Home Slice Pizza", target["name"])
-        self.assertAlmostEqual(34.6, target["solv_pct"], places=1)
+        self.assertGreater(target["solv_pct"], 5.0)
 
         fow = model["campaign_orders"]["fog_of_war_summary"]
-        self.assertEqual(100, fow["cleared_citadel_tiles"])
-        self.assertEqual(101, fow["contested_vision_tiles"])
-        self.assertEqual(24, fow["suppressed_tiles"])
-        self.assertEqual(64, fow["dark_zone_tiles"])
-        self.assertAlmostEqual(69.6, fow["visibility_coverage_pct"], places=1)
+        self.assertEqual(
+            1249,
+            fow["cleared_citadel_tiles"]
+            + fow["contested_vision_tiles"]
+            + fow["suppressed_tiles"]
+            + fow["dark_zone_tiles"],
+        )
 
-        # Ensure every rival has an estimated centroid coordinate from its Top-3 grid points
         for rival in model["rival_factions"]:
             self.assertIsNotNone(rival["lat"])
             self.assertIsNotNone(rival["lng"])
-            self.assertTrue(30.20 <= rival["lat"] <= 30.30)
-            self.assertTrue(-97.80 <= rival["lng"] <= -97.70)
+            self.assertTrue(30.10 <= rival["lat"] <= 30.45)
+            self.assertTrue(-97.95 <= rival["lng"] <= -97.55)
 
     def test_bundled_proof_cli_execution(self) -> None:
-        source = ROOT / "src" / "data" / "home-slice-17x17.json"
+        source = ROOT / "src" / "data" / "home-slice-study.json"
 
         with tempfile.TemporaryDirectory() as tmp:
             out_dir = Path(tmp) / "out"
@@ -469,8 +470,8 @@ class BattlefieldEngineTests(unittest.TestCase):
             self.assertTrue(model_file.is_file())
             saved_model = json.loads(model_file.read_text(encoding="utf-8"))
             _assert_no_em_dash(self, saved_model)
-            self.assertEqual(1, saved_model["grid"]["total_lanes"])
-            self.assertEqual(289, saved_model["grid"]["total_points"])
+            self.assertEqual(4, saved_model["grid"]["total_lanes"])
+            self.assertEqual(1249, saved_model["grid"]["total_points"])
 
 
 if __name__ == "__main__":

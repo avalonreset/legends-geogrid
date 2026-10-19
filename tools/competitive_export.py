@@ -14,7 +14,7 @@ from competitive_sampling import haversine_km
 from study_contract import digest
 
 
-def export_study(run_dir: Path, radius_miles: float | None = None) -> dict:
+def export_study(run_dir: Path, radius_miles: float | None = None, compact: bool = False) -> dict:
     if radius_miles is not None and (not math.isfinite(radius_miles) or radius_miles <= 0):
         raise ValueError("Radius must be finite and positive")
     plan_path = run_dir / "competitive-plan.json"
@@ -66,7 +66,7 @@ def export_study(run_dir: Path, radius_miles: float | None = None) -> dict:
 
     origins = {o["origin_id"]: o for o in plan["origins"]}
     points, lanes, timestamps, controls = {}, [], [], []
-    top3_counts, profiles, visibility_scores, appearances = Counter(), {}, Counter(), Counter()
+    top3_counts, profiles, all_profiles, visibility_scores, appearances = Counter(), {}, {}, Counter(), Counter()
     categories, query_scores, examples = {}, {}, {}
     for lane in config["lanes"]:
         parsed = json.loads((run_dir / lane["records_path"]).read_text(encoding="utf-8"))
@@ -91,6 +91,21 @@ def export_study(run_dir: Path, radius_miles: float | None = None) -> dict:
                 if not isinstance(rank, int) or rank < 1:
                     continue
                 cid = str(item.get("cid") or "")
+                rating = item.get("rating") or {}
+                r_val = rating.get("value") if isinstance(rating, dict) else rating
+                v_cnt = rating.get("votes_count") if isinstance(rating, dict) else item.get("votes_count")
+                if cid:
+                    all_profiles[cid] = {
+                        "title": item.get("title"),
+                        "address": item.get("address"),
+                        "latitude": item.get("latitude"),
+                        "longitude": item.get("longitude"),
+                        "cid": item.get("cid"),
+                        "place_id": item.get("place_id"),
+                        "rating": r_val,
+                        "votes_count": v_cnt,
+                        **({"domain": item.get("domain")} if item.get("domain") else {}),
+                    }
                 if cid and rank <= 20 and cid not in seen:
                     seen.add(cid)
                     profiles[cid] = item
@@ -103,14 +118,13 @@ def export_study(run_dir: Path, radius_miles: float | None = None) -> dict:
                         examples[cid].append({"records_path": lane["records_path"], "origin": tag, "query_id": qid, "rank": rank})
                     if rank <= 3:
                         top3_counts[cid] += 1
-                rating = item.get("rating") or {}
                 items.append({
                     "title": item.get("title"), "rank": rank,
                     "address": item.get("address"),
                     "latitude": item.get("latitude"), "longitude": item.get("longitude"),
                     "cid": item.get("cid"), "place_id": item.get("place_id"),
-                    "faction_id": identity(item), "rating": rating.get("value") if isinstance(rating, dict) else rating,
-                    "votes_count": rating.get("votes_count") if isinstance(rating, dict) else item.get("votes_count"),
+                    "faction_id": identity(item), "rating": r_val,
+                    "votes_count": v_cnt,
                 })
             stamp = result.get("sampled_at")
             if stamp:
@@ -118,7 +132,7 @@ def export_study(run_dir: Path, radius_miles: float | None = None) -> dict:
             point["by_lane"][qid] = {
                 "target_rank": result["rank"], "status": result["status"],
                 "sampled_at": stamp, "top_items": items,
-                "observed_ranks": result["observed_ranks"],
+                **({} if compact else {"observed_ranks": result["observed_ranks"]}),
                 **({"provenance": result["provenance"]} if result.get("provenance") else {}),
             }
     if (selected_tags is not None and set(points) != selected_tags) or any(len(p["by_lane"]) != len(lanes) for p in points.values()):
@@ -147,19 +161,43 @@ def export_study(run_dir: Path, radius_miles: float | None = None) -> dict:
         }
         factions.append(faction)
     # Shortlisting changes display identities only. Preserve all returned listings.
+    for cid_key, prof_entry in all_profiles.items():
+        prof_entry["faction_id"] = identity(prof_entry)
     for point in points.values():
         for observation in point["by_lane"].values():
-            for item in observation["top_items"]:
-                item["faction_id"] = identity(item)
+            if compact:
+                compact_items = []
+                for item in observation["top_items"]:
+                    cid_str = str(item.get("cid") or "")
+                    if cid_str and cid_str in all_profiles:
+                        compact_items.append({"cid": item["cid"], "rank": item["rank"]})
+                    else:
+                        item["faction_id"] = identity(item)
+                        compact_items.append(item)
+                observation["top_items"] = compact_items
+            else:
+                for item in observation["top_items"]:
+                    item["faction_id"] = identity(item)
     for faction in factions:
-        profile = profiles.get(str(faction.get("cid")))
+        profile = profiles.get(str(faction.get("cid"))) or all_profiles.get(str(faction.get("cid")))
         if profile:
-            faction.update(rating=profile.get("rating"), votes_count=profile.get("votes_count"), address=profile.get("address"))
+            rating_obj = profile.get("rating")
+            r_val = rating_obj.get("value") if isinstance(rating_obj, dict) else rating_obj
+            v_cnt = rating_obj.get("votes_count") if isinstance(rating_obj, dict) else profile.get("votes_count")
+            faction.update(rating=r_val, votes_count=v_cnt, address=profile.get("address"))
+    source_query_plan = plan.get("source_study_plan")
+    if compact and isinstance(source_query_plan, str):
+        try:
+            source_query_plan = Path(source_query_plan).resolve().relative_to(Path(__file__).resolve().parents[1]).as_posix()
+        except ValueError:
+            pass
     return {
         "schema": "geogrid-companion/v1", "generated_at": dt.datetime.now(dt.timezone.utc).isoformat(),
         "business": config["business"], "target": target,
         "location": config["business"].get("location"),
-        "factions": factions, "lanes": lanes, "points": list(points.values()),
+        "factions": factions,
+        **({"profiles": all_profiles} if compact else {}),
+        "lanes": lanes, "points": list(points.values()),
         "study": {"geometry": geometry,
                   "sampling": sampling,
                   "depth": plan["measurement_settings"]["depth"],
@@ -173,7 +211,7 @@ def export_study(run_dir: Path, radius_miles: float | None = None) -> dict:
             "source_total_observations": receipt.get("composition", {}).get("source_total_observations", receipt["total_tasks"]),
             "view_equivalent_scan_cost_usd": None if receipt.get("composition") else round((receipt.get("run_total_cost_usd") or 0) * len(points) * len(lanes) / receipt["total_tasks"], 6),
             "export_is_subset": radius_miles is not None,
-            "plan_sha256": receipt["plan_sha256"], "source_query_plan": plan["source_study_plan"],
+            "plan_sha256": receipt["plan_sha256"], "source_query_plan": source_query_plan,
             "roster_policy": "Primary Google Business Profile plus nine competing profiles. Separate locations remain separate competitors even when names and websites match. Rank-weighted visibility sums 21 minus organic rank (ranks 1–20) over all origins and queries equally. Ties: top-three appearances, then appearances, then CID. The roster stays fixed across queries. " + (
                 "Eligibility follows the service-category filter recorded in the study plan. " if category_pattern else ""
             ) + "All returned listings through the requested depth remain available in location evidence. This measures visibility on this footprint, not revenue or market share.",
@@ -193,13 +231,15 @@ def main():
     parser.add_argument("--run-dir", type=Path, required=True)
     parser.add_argument("--radius-miles", type=float)
     parser.add_argument("--output", type=Path)
+    parser.add_argument("--compact", action="store_true", help="Deduplicate profile metadata into top-level profiles table and emit compact JSON")
     args = parser.parse_args()
     if args.radius_miles is not None and args.output is None:
         parser.error("--radius-miles requires a separate --output to preserve the source archive")
-    model = export_study(args.run_dir, args.radius_miles)
+    model = export_study(args.run_dir, args.radius_miles, compact=args.compact)
     output = args.output or args.run_dir / "companion-study.json"
     output.parent.mkdir(parents=True, exist_ok=True)
-    output.write_text(json.dumps(model, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    serialized = json.dumps(model, ensure_ascii=False, separators=(",", ":")) if args.compact else json.dumps(model, ensure_ascii=False, indent=2)
+    output.write_text(serialized + "\n", encoding="utf-8")
     print(json.dumps({"output": str(output), "points": len(model["points"]), "queries": len(model["lanes"]), "evidence": model["evidence"]}, indent=2))
 
 

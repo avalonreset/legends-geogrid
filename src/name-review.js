@@ -208,18 +208,18 @@ export function brandingEvidenceHTML(site = {}) {
   const unavailable = site.status === 'unavailable'
   return `<section><h3>Captured website wording</h3>${metadataOnly ? '<p class="nr-evidence-limit">Metadata only in this extract. The trading name is not verified.</p>' : ''}${names.length ? names.map(n=>`<p><strong>${esc(readableWebsiteText(n.name))}</strong><small>${esc(brandingSourceLabel(n.source))}</small></p>`).join('') : `<p>${unavailable?'Website could not be retrieved.':'No branding text extracted.'} See the individual source review below.</p>`}<p class="nr-source-date">${site.checked_at ? `${unavailable?'Attempted':'Captured'} ${date(site.checked_at)}.` : 'Website check not attached.'}</p><p class="nr-evidence-note">Extracted wording is not verified signage or a proposed replacement name.</p></section>`
 }
-export function caseBriefHTML(c) {
+export function caseBriefHTML(c, now = Date.now()) {
   const site = c.website_evidence || {}, profile = c.profile || {}, terms = c.source_review?.suspect_terms || []
   return `<div class="nr-detail-heading"><span class="nr-status">${esc(REVIEW_BRACKETS[reviewBracket(c)])}</span><h2>${esc(profile.name || c.name)}</h2><p>${esc(c.address || 'Address not supplied')} · ${c.total_wins || 0} first-place observations across the study</p><div class="nr-links">${link(c.map_url || profile.source_url, 'Google profile')}${link(c.website || site.url, 'Business website')}<button data-nr="map">Show on map</button></div></div>
-    ${confidenceHTML(c)}
+    ${confidenceHTML(c, now)}
     ${historicalCaseHTML(c)}
     <div class="nr-comparison"><section><h3>Google business title</h3><strong>${highlightedTitleHTML(profile.name || c.name,terms)}</strong>${terms.length ? `<p class="nr-disputed"><b>Words to verify:</b> ${terms.map(t=>`“${esc(t)}”`).join(', ')}</p>` : ''}<small>${profile.checked_at ? `Checked ${date(profile.checked_at)}.` : 'Historical scan name; a current profile check is missing.'}</small></section>${brandingEvidenceHTML(site)}</div>
     ${sourceReviewHTML(c.source_review) || `<section class="nr-next-action"><h3>Agent investigation needed</h3><p>${esc(c.assessment || 'Resolve the current profile name and public branding before proposing a correction.')}</p><p>The agent needs to investigate this profile; no conclusion follows from an automated text match.</p></section>`}
     ${c.scan_name && profile.name && c.scan_name !== profile.name ? `<p class="nr-name-change">Name changed since the ranking scan: ${esc(c.scan_name)} → ${esc(profile.name)}</p>` : ''}
     <details><summary>Collection records and limitations</summary><p>Profile CID: ${esc(c.cid)}</p><p>Profile record: <code>${esc(profile.evidence_path || 'Not attached')}</code></p><p>Profile SHA-256: <code>${esc(profile.sha256 || 'Not attached')}</code></p><p>Website record: <code>${esc(site.evidence_path || 'Not attached')}</code></p><p>Website SHA-256: <code>${esc(site.sha256 || 'Not attached')}</code></p><ul>${(c.signals || []).map(s => `<li>${esc(s.reason || s.code)}</li>`).join('')}${(c.limitations || []).map(s => `<li>${esc(s)}</li>`).join('')}</ul></details>`
 }
-export function confidenceHTML(c) {
-  const score = titleConfidence(c)
+export function confidenceHTML(c, now = Date.now()) {
+  const score = titleConfidence(c, now)
   if (!score) return `<section class="nr-confidence" data-level="unrated"><div class="nr-confidence-label">Concern confidence <strong>Not scored</strong></div><p>${c.confidence ? 'A fresh identity-matched profile and complete assessment are needed to use this score.' : 'No individual confidence score is attached. Missing evidence is not a low likelihood of stuffing.'}</p></section>`
   return `<section class="nr-confidence" data-level="${score.tone}"><div class="nr-confidence-label">Concern confidence <strong>${score.level}/5 · ${esc(score.label)}</strong></div><div class="nr-confidence-track" role="meter" aria-label="Evidence supporting a title concern, not violation probability" aria-valuemin="0" aria-valuemax="5" aria-valuenow="${score.level}"><i style="width:${score.level*20}%"></i></div><p>${esc(score.rationale)}</p><details><summary>Why this score?</summary><ul class="nr-confidence-factors">${score.factors.map(f=>`<li><b>${esc(f.label)}</b><span>${esc(f.reason)}</span></li>`).join('')}</ul><p>Analyst judgement on a 0–5 evidence scale, not a percentage chance of a violation or Google action. A higher score does not automatically authorize a report.</p></details></section>`
 }
@@ -237,10 +237,12 @@ export function createNameReview({ getModel, getQuery = () => getModel().queries
   (host || document.body).append(panel)
   let scope = DEFAULT_NAME_REVIEW_SCOPE, lastQuery = null
   let evidence = null, cases = [], error = '', selected = null, search = '', filter = 'all', page = 0, loading = false, version = 0
+  const refNow = () => Date.parse(evidence?.generated_at) || Date.now()
   const current = () => cases.find(c => c.id === selected)
-  const ordered = rows => rows.slice().sort((a,b) => bracketPriority(a)-bracketPriority(b) || (titleConfidence(b)?.level ?? -1)-(titleConfidence(a)?.level ?? -1) || (b.total_wins || 0)-(a.total_wins || 0) || a.name.localeCompare(b.name))
+  const ordered = rows => rows.slice().sort((a,b) => bracketPriority(a)-bracketPriority(b) || (titleConfidence(b, refNow())?.level ?? -1)-(titleConfidence(a, refNow())?.level ?? -1) || (b.total_wins || 0)-(a.total_wins || 0) || a.name.localeCompare(b.name))
   const scoped = () => reviewCasesInScope(cases,getQuery(),scope)
   function render() {
+    const now = refNow()
     const inScope = scoped()
     const matchesFilter = c => filter === 'all' || (filter === 'concerns' ? isTitleConcern(c) : reviewBracket(c) === filter)
     const rows = ordered(inScope.filter(c => (!search || `${c.name} ${c.address || ''} ${c.cid || ''}`.toLowerCase().includes(search.toLowerCase())) && matchesFilter(c)))
@@ -258,7 +260,7 @@ export function createNameReview({ getModel, getQuery = () => getModel().queries
       ${titleConcernOverviewHTML(cases,getQuery(),scope,filter)}
       ${historyCount ? `<div class="nr-history-summary"><span><b>${historyCount} September-report leads matched.</b> First-place wins are not required for a naming investigation.</span><button data-nr="history">Review prior leads</button></div>` : ''}
       <details class="nr-method"><summary>Scope, confidence, and naming rule</summary><p>Recurring means at least three first-place locations in any studied keyword. Historical leads remain included even with no first-place wins. The optional keyword filter narrows every count and list together. Businesses outside the circle remain included if they compete within it. This is a selected investigation, not a count of all violations in the market.</p><p>Confidence measures support for a naming concern: 0 = branding supports the title; 1 = weak; 2 = limited; 3 = moderate; 4 = strong; 5 = very strong. Unscored means evidence is insufficient or stale. These are analyst judgements, not statistical probabilities or guarantees of a Google correction.</p><p>Google uses consistent real-world business names. A DBA or service word alone does not establish compliance or a violation. ${link('https://support.google.com/business/answer/3038177','Google naming policy')}</p><p>The agent owns the investigation. No correction has been submitted by this viewer.</p></details></section>
-      <div class="nr-browser"><aside class="nr-cases"><label>Investigation scope<select id="nr-scope"><option value="priority">Recurring leaders + prior report</option><option value="history">September report · matched leads</option><option value="recurring">All keywords · recurring leaders</option><option value="query">Selected keyword only · recurring leaders</option><option value="all">All winners + investigated leads</option></select></label><label>Find a business<input id="nr-search" type="search" value="${esc(search)}" placeholder="Name, address, or profile ID"></label><label>Findings<select id="nr-filter"><option value="all">All profiles · concerns first</option><option value="concerns">All title concerns</option>${Object.entries(REVIEW_BRACKETS).map(([k,v])=>`<option value="${k}">${v}</option>`).join('')}</select></label><p>${rows.length} of ${summary.total} profiles · ${filter==='all'?'concerns first':'filtered findings'}</p><div class="nr-case-list">${visibleRows.map(row=>`<button data-case="${esc(row.id)}" aria-pressed="${selected===row.id}"><strong>${esc(row.profile?.name || row.name)}</strong><span>${esc(row.address || 'Address unavailable')}</span><small>${esc(REVIEW_BRACKETS[reviewBracket(row)])}${titleConfidence(row) ? ` · ${titleConfidence(row).level}/5` : ''}</small>${row.historical_report ? '<span class="nr-history-tag">September report</span>' : ''}${row.source_review?.suspect_terms?.length ? `<em>Verify: ${row.source_review.suspect_terms.map(t=>`“${esc(t)}”`).join(', ')}</em>` : ''}</button>`).join('') || '<p>No profiles match this filter. This is not a finding that every business name is compliant.</p>'}</div><div class="nr-buttons"><button data-nr="previous" ${page?'':'disabled'}>Previous</button><span>${page+1}/${Math.max(1,Math.ceil(rows.length/CASE_PAGE_SIZE))}</span><button data-nr="next" ${(page+1)*CASE_PAGE_SIZE<rows.length?'':'disabled'}>Next</button></div></aside><article class="nr-case-detail">${c ? caseBriefHTML(c) : '<h2>No case selected</h2><p>Choose an observed profile or return to all findings.</p>'}</article></div></div>`
+      <div class="nr-browser"><aside class="nr-cases"><label>Investigation scope<select id="nr-scope"><option value="priority">Recurring leaders + prior report</option><option value="history">September report · matched leads</option><option value="recurring">All keywords · recurring leaders</option><option value="query">Selected keyword only · recurring leaders</option><option value="all">All winners + investigated leads</option></select></label><label>Find a business<input id="nr-search" type="search" value="${esc(search)}" placeholder="Name, address, or profile ID"></label><label>Findings<select id="nr-filter"><option value="all">All profiles · concerns first</option><option value="concerns">All title concerns</option>${Object.entries(REVIEW_BRACKETS).map(([k,v])=>`<option value="${k}">${v}</option>`).join('')}</select></label><p>${rows.length} of ${summary.total} profiles · ${filter==='all'?'concerns first':'filtered findings'}</p><div class="nr-case-list">${visibleRows.map(row=>`<button data-case="${esc(row.id)}" aria-pressed="${selected===row.id}"><strong>${esc(row.profile?.name || row.name)}</strong><span>${esc(row.address || 'Address unavailable')}</span><small>${esc(REVIEW_BRACKETS[reviewBracket(row)])}${titleConfidence(row, now) ? ` · ${titleConfidence(row, now).level}/5` : ''}</small>${row.historical_report ? '<span class="nr-history-tag">September report</span>' : ''}${row.source_review?.suspect_terms?.length ? `<em>Verify: ${row.source_review.suspect_terms.map(t=>`“${esc(t)}”`).join(', ')}</em>` : ''}</button>`).join('') || '<p>No profiles match this filter. This is not a finding that every business name is compliant.</p>'}</div><div class="nr-buttons"><button data-nr="previous" ${page?'':'disabled'}>Previous</button><span>${page+1}/${Math.max(1,Math.ceil(rows.length/CASE_PAGE_SIZE))}</span><button data-nr="next" ${(page+1)*CASE_PAGE_SIZE<rows.length?'':'disabled'}>Next</button></div></aside><article class="nr-case-detail">${c ? caseBriefHTML(c, now) : '<h2>No case selected</h2><p>Choose an observed profile or return to all findings.</p>'}</article></div></div>`
     panel.querySelector('#nr-filter').value=filter
     panel.querySelector('#nr-scope').value=scope
     lastQuery=getQuery()
@@ -287,18 +289,24 @@ export function createNameReview({ getModel, getQuery = () => getModel().queries
     sync(){if(!panel.hidden && lastQuery!==getQuery()){if(scope==='query'){filter='all';search='';page=0}render()}},
     // Legacy local drafts remain untouched in browser storage. Agents own the case files.
     savePending() {},
-    async load(path,{studyURL}={}) {
+    async load(path,{studyURL,fallbackInput=null}={}) {
       const token=++version, study=getModel()
       evidence=null;cases=observedReviewScope(study);error='';loading=true;selected=ordered(cases)[0]?.id;filter='all';page=0
       if(!panel.hidden)render()
       try {
+        let input=null
         const resolved=await resolveReviewAttachment({explicit:path,studyURL,model:study,baseURL:location.href})
         if(token!==version)return
-        if(!resolved)return
-        const response=await fetch(resolved,{cache:'no-store'})
-        if(!response.ok)throw new Error(`Evidence request failed (HTTP ${response.status})`)
-        const input=await response.json()
-        if(token!==version)return
+        if(resolved){
+          const response=await fetch(resolved,{cache:'no-store'})
+          if(!response.ok)throw new Error(`Evidence request failed (HTTP ${response.status})`)
+          input=await response.json()
+          if(token!==version)return
+        } else if(fallbackInput && !path && !studyURL) {
+          input=fallbackInput
+        } else {
+          return
+        }
         evidence=validateNameReview(input,study)
         const attached=new Map(evidence.cases.map(c=>[c.businessId,c]))
         cases=observedReviewScope(study,{includeIds:[...attached.keys()]}).map(c=>attached.has(c.businessId) ? {...attached.get(c.businessId),wins_by_query:c.wins_by_query,total_wins:c.total_wins} : c)

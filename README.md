@@ -9,9 +9,9 @@
 
 legends-geogrid is an **open-source google maps rank checker** for local SEO. See where a business ranks across a geographic grid, compare visibility across services, and turn the evidence into readable PDF reports. Run it locally with your own DataForSEO account, without a rank-tracking subscription.
 
-Explore a saved real-world 17 × 17 pizza-shop scan in the browser, or generate a sample strategy report without credentials or API spend. Fresh scans use [legends-dataforseo](https://github.com/avalonreset/legends-dataforseo), with explicit execution, cost estimates, and reusable cached results.
+Explore a complete real-world **10-mile, 0.5-mile spacing (`1,249`-origin, 4-query, top-30)** starter case study for **Home Slice Pizza** in the browser (complete with attached **Campaign Research** and **Keyword Stuffing** business-name reviews), or open the pre-built 18-page Strategy Report in [`examples/starter-home-slice/report/report.pdf`](examples/starter-home-slice/report/report.pdf) without credentials or API spend. Fresh scans use [legends-dataforseo](https://github.com/avalonreset/legends-dataforseo), with explicit execution, cost estimates, and reusable cached results.
 
-The new [competitive map companion](docs/COMPANION.md) opens saved battlefield
+The [competitive map companion](docs/COMPANION.md) opens saved battlefield
 studies beside your agent conversation. Switch queries and businesses, inspect
 rankings at a location, and copy the evidence back into the conversation. The
 original studio remains available at `/legacy.html`.
@@ -33,7 +33,7 @@ Install with `cto-legends install legends-geogrid`, then follow the module recip
 
 ## What 0.2.0 adds
 
-A ranking grid should help answer a decision: where does a business appear, which services are weaker, who actually wins each neighborhood, and what should be investigated or changed next? Version 0.2.0 pairs a full-field competitive map companion with circular-lattice sampling, a business-name review workbench, researched study planning, multi-query PDF/HTML reports, and a persistent study library.
+A ranking grid should help answer a decision: where does a business appear, which services are weaker, who actually wins each neighborhood, and what should be investigated or changed next? Version 0.2.0 pairs a full-field competitive map companion with circular-lattice sampling, a business-name review workbench, researched study planning, multi-query PDF/HTML reports, a persistent study library, and a complete 10-mile Austin starter case study out of the box.
 
 | Capability | What it gives you |
 | --- | --- |
@@ -43,15 +43,18 @@ A ranking grid should help answer a decision: where does a business appear, whic
 | [Territory campaigns](docs/BATTLEFIELD_INTELLIGENCE.md) | Measured footholds, advance zones (ranks 4-10), defended areas, and study-bound `campaign-research.json` action briefs. |
 | [Keyword stuffing & title review](docs/BUSINESS_NAME_REVIEW.md) | Read-only agent-owned dossier for Google Business Profile name discrepancies, combining Standard-queue exact-CID profile refreshes, website branding captures, historical report reconciliation, counterevidence, and an explained `0-5` `title-evidence-v1` concern confidence scale. |
 | [Search-window & lattice discipline](docs/SEARCH_WINDOW_POLICY.md) | Unbiased regional sampling (`search_this_area=false`), nested radius composition, and explicit distinction between evidenced top-30 absence and incomplete responses. |
+| [10-mile starter case study](examples/starter-home-slice/README.md) | Pre-loaded Home Slice Pizza (`1415 S Congress Ave, Austin, TX`) 10-mile, 0.5-mile spacing (`1,249` origins x `4` queries = `4,996` tasks, `depth=30`) companion study (`src/data/home-slice-study.json`), campaign research (`src/data/home-slice-campaign-research.json`), 165-profile name review (`src/data/home-slice-name-review.json`), and completed 18-page PDF/HTML report (`examples/starter-home-slice/report/`). |
 | Research, reports & study library | Website/public-profile evidence, [3-5 justified search themes](docs/QUERY_SELECTION_POLICY.md), Letter PDF/HTML strategy reports, [incremental study enhancement](docs/ENHANCE.md), and hashed Markdown/JSON study banking. |
 
 The software calculates and renders evidence. The operator and agent supply business context, evaluate hypotheses, and write supported recommendations. It does not automatically choose profitable territories, diagnose a Google penalty, or auto-submit Google edits or redressal complaints.
 
 **Business-only request?** Give your agent the [study recipe](docs/STUDY-RECIPE.md). It researches the website, public Google Business Profile and DataForSEO evidence, then recommends [3-5 distinct search themes](docs/QUERY_SELECTION_POLICY.md). A narrower study needs an evidence-backed explanation. The [study command](docs/STUDY_CONTRACT.md) validates that evidence before collection.
 
-**Start here:** [Start a study](docs/START_A_STUDY.md) · [Companion guide](docs/COMPANION.md) · [Battlefield intelligence](docs/BATTLEFIELD_INTELLIGENCE.md) · [Business-name review](docs/BUSINESS_NAME_REVIEW.md) · [Search-window policy](docs/SEARCH_WINDOW_POLICY.md) · [Street-map setup](docs/BASEMAPS.md) · [Latest release](https://github.com/avalonreset/legends-geogrid/releases/latest)
+**Start here:** [Starter case study](examples/starter-home-slice/README.md) · [Start a study](docs/START_A_STUDY.md) · [Companion guide](docs/COMPANION.md) · [Battlefield intelligence](docs/BATTLEFIELD_INTELLIGENCE.md) · [Business-name review](docs/BUSINESS_NAME_REVIEW.md) · [Search-window policy](docs/SEARCH_WINDOW_POLICY.md) · [Street-map setup](docs/BASEMAPS.md) · [Latest release](https://github.com/avalonreset/legends-geogrid/releases/latest)
 
 ## Try a report first
+
+Want to inspect a completed real-world report immediately? Open [`examples/starter-home-slice/report/report.pdf`](examples/starter-home-slice/report/report.pdf) or [`examples/starter-home-slice/report/report.html`](examples/starter-home-slice/report/report.html) (see the [starter case study guide](examples/starter-home-slice/README.md)).
 
 **Want more detail after a study?** Tell your agent **enhance**. It assesses the
 saved results, estimates incremental collection, reuses eligible observations,
@@ -79,7 +82,7 @@ Internet access is required when acquiring maps. If imagery cannot load, report 
 
 ## A local rank tracker at data cost
 
-If you are evaluating a Local Falcon alternative, start with the tradeoff: you own the workflow and local outputs, and take responsibility for setup, scheduling, and interpretation. This is a self-managed tool rather than a managed-service feature match. Fresh searches use your DataForSEO account. The single and bulk runners estimate Standard Queue scans at a modeled base of `$0.0006` per task: 289 tasks in a 17 x 17 scan total `$0.1734` before optional multipliers. Adaptive collection uses the Live endpoint and its different rate. These are software estimates, not a live price quotation or a provider-enforced billing cap.
+If you are evaluating a Local Falcon alternative, start with the tradeoff: you own the workflow and local outputs, and take responsibility for setup, scheduling, and interpretation. This is a self-managed tool rather than a managed-service feature match. Fresh searches use your DataForSEO account. The single and bulk runners estimate Standard Queue scans at a modeled base of `$0.0006` per task (`$0.0009` at `depth=30`): a 4-query, 1,249-point 10-mile study (`4,996` tasks) totals about `$3.00` in Standard Queue SERP spend. Adaptive collection uses the Live endpoint and its different rate. These are software estimates, not a live price quotation or a provider-enforced billing cap.
 
 Review the generated estimate and [current provider pricing](https://dataforseo.com/apis/serp-api/google-maps-api) before paid execution. Both an execution flag and a cost ceiling are required. The offline examples and replay mode spend nothing.
 
@@ -88,7 +91,7 @@ Review the generated estimate and [current provider pricing](https://dataforseo.
 - **Competitive map companion (`src/companion.js`)**: Interactive circular-lattice workspace with five lenses (**Rankings**, **Local leaders**, **Campaigns**, **Keyword stuffing**, and **Head-to-head**), docked/modal **Strategy room**, full observed competitor directory (preserving distinct physical branches by CID), and study-bound sidecar attachments (`*.attachments.json`). The original studio remains available at `/legacy.html`.
 - **Business-name review workbench (`tools/business_name_review.py`, `tools/compose_name_reviews.py`)**: Standard-queue exact-CID profile verification, website branding capture, multi-run evidence composition, historical report lead matching, and an explained `0-5` `title-evidence-v1` concern confidence rubric.
 - **Circular lattice & radius composition (`tools/lattice_sampling.py`, `tools/radius_sampling.py`, `tools/radius_compose.py`, `tools/competitive_collect.py`)**: Regular lattice planning clipped to a true geographic radius, reusing inner-radius observations when expanding outward under matched controls.
-- **Saved 17 x 17 and 5 x 5 proof datasets** that do not trigger API calls.
+- **Bundled 10-mile Home Slice Pizza starter case study (`src/data/home-slice-*.json`, `examples/starter-home-slice/`)**: Complete 1,249-origin, 4-query top-30 companion dataset, campaign research, 165-profile business-name review, and 18-page PDF/HTML strategy report that load out of the box without API calls.
 - **Strategy report engine (`tools/strategy_report.py`)** producing screen-reading Letter PDFs and HTML from normalized multi-lane observations under a strict map-first copy-fit contract.
 - **Adaptive sampling collector (`tools/adaptive_geogrid.py`)** supporting sector-based expansion, offline planning, and synthetic replay.
 - **Single-business and CSV-driven bulk DataForSEO runners** with estimates, fingerprints, freshness-aware caching, and resumable artifacts.
@@ -390,7 +393,7 @@ Cache protection reduces accidental duplicate work; it is not a transactional bi
 - `docs/PROVENANCE.md` :  code, data, and research provenance.
 - `third_party/claude-seo/` :  vendored MIT skills (DataForSEO data, Maps intel).
 - `tests/` :  viewer, companion, name-review, confidence-rubric, sampling, cost, cache, hygiene, and no-spend safety tests.
-- `examples/` :  sample CSV, synthetic report configs (`examples/reports/`), sample adaptive collector configs (`examples/adaptive/`), and sanitized proof artifacts.
+- `examples/` :  complete 10-mile Home Slice Pizza starter report (`examples/starter-home-slice/`), sample CSV, synthetic report configs (`examples/reports/`), and sample adaptive collector configs (`examples/adaptive/`).
 - `requirements-report.txt` :  Python dependencies for strategy report rendering (ReportLab, Pillow, optional pypdfium2).
 - `THIRD_PARTY_NOTICES.md` :  software licences, service/data terms, and attribution details.
 
@@ -398,7 +401,7 @@ Cache protection reduces accidental duplicate work; it is not a transactional bi
 
 Fresh run folders can contain business names, coordinates, public Maps listing details, DataForSEO task IDs, and raw API responses. They are ignored by Git by default. Review artifacts before sharing them and follow the terms and legal rights that apply to your DataForSEO account and the underlying search-engine data.
 
-The bundled Home Slice Pizza proof is historical demonstration data collected on June 26, 2026. It contains only the target name, keyword, general location, scan coordinates, ranks, and public business titles needed for the demo. It contains no credentials, account identifiers, task IDs, raw provider payloads, contact details, or private client data. It is not a current ranking claim or an endorsement.
+The bundled Home Slice Pizza starter case study (`src/data/home-slice-*.json` and `examples/starter-home-slice/`) is a public demonstration study collected on October 19, 2026 (`1,249` origins across a `10-mile` radius at `0.5-mile` spacing, `4` queries, `depth=30`, `search_this_area=false`). It contains only public Maps ranking observations, public business profile metadata, and public website branding excerpts needed for the companion and starter report. It contains no credentials, account identifiers, raw provider task IDs, or private client data. It is not a real-time ranking claim or an endorsement.
 
 ## Attribution and provenance
 

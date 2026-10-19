@@ -831,23 +831,37 @@ describe('study-model: Single-Query vs Cross-Query Metrics', () => {
 })
 
 describe('study-model: Real Sample Integration', () => {
-  it('successfully loads and normalizes the bundled home-slice-17x17.json sample', () => {
-    const samplePath = path.join(ROOT_DIR, 'src/data/home-slice-17x17.json')
-    assert.ok(fs.existsSync(samplePath), 'Bundled home-slice-17x17.json must exist')
+  it('successfully loads and normalizes the bundled home-slice-study.json 10-mile starter pack', async () => {
+    const samplePath = path.join(ROOT_DIR, 'src/data/home-slice-study.json')
+    const researchPath = path.join(ROOT_DIR, 'src/data/home-slice-campaign-research.json')
+    const reviewPath = path.join(ROOT_DIR, 'src/data/home-slice-name-review.json')
+    assert.ok(fs.existsSync(samplePath), 'Bundled home-slice-study.json must exist')
+    assert.ok(fs.existsSync(researchPath), 'Bundled home-slice-campaign-research.json must exist')
+    assert.ok(fs.existsSync(reviewPath), 'Bundled home-slice-name-review.json must exist')
 
     const raw = JSON.parse(fs.readFileSync(samplePath, 'utf-8'))
     const model = normalizeStudy(raw)
 
-    assert.equal(model.kind, 'Bundled sample')
+    assert.equal(model.kind, 'Measured study')
     assert.equal(model.name, 'Home Slice Pizza')
     assert.equal(model.targetId, 'TARGET')
-    assert.equal(model.points.length, 289, '17x17 grid should have 289 points')
-    assert.equal(model.queries.length, 1)
-    assert.equal(model.queries[0].id, 'q1')
+    assert.equal(model.geometry, 'radius_grid')
+    assert.equal(model.depth, 30)
+    assert.equal(model.points.length, 1249, '10-mile 0.5-mile radial grid should have 1,249 points')
+    assert.equal(model.queries.length, 4)
+    assert.deepEqual(model.queries.map(q => q.id), ['q1', 'q2', 'q3', 'q4'])
 
     const m = businessMetrics(model, 'q1', 'TARGET')
-    assert.ok(m.found > 0, 'Target should be found at multiple locations')
-    assert.ok(m.top3 > 0, 'Target should have top 3 coverage')
+    assert.equal(m.top3, 21)
+    assert.equal(m.found, 917)
+
+    const { validateCampaignResearch } = await import('../src/campaign-panel.js')
+    const { validateNameReview } = await import('../src/name-review.js')
+    const research = validateCampaignResearch(JSON.parse(fs.readFileSync(researchPath, 'utf-8')), model)
+    assert.equal(research.campaignPlans.length, 4)
+    const review = validateNameReview(JSON.parse(fs.readFileSync(reviewPath, 'utf-8')), model)
+    assert.equal(review.cases.length, 165)
+    assert.equal(review.cases.filter(c => c.source_review).length, 79)
   })
 
   it('normalizes a multi-query radial battlefield model with shortlist and discovered profiles', () => {

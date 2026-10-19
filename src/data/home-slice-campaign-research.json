@@ -1,0 +1,283 @@
+{
+  "schema": "geogrid-campaign-research/v1",
+  "studyPlanSha256": "ee9f7711cc57f0730b9022137a27264dc641bbe9351b38071f154a35a7745d24",
+  "primaryCid": "12299280573550492680",
+  "reviewedAt": "2026-10-19",
+  "summary": "Home Slice Pizza South Congress (1415 S Congress Ave) operates alongside its dedicated walk-up slice and takeout sister counter More Home Slice (1421 S Congress Ave) and its North Loop location (501 E 53rd St). The 10-mile open-search study shows how specialty style authority (new york style pizza) and slice discovery (pizza by the slice) extend farther across Austin than general category or takeout searches. Public ranking observations identify where sister profiles and neighborhood rivals trade places; they do not establish order volume, margin, or ranking causation.",
+  "queries": {
+    "q1": {
+      "area": "South Congress & Central Austin",
+      "hypothesis": "Broad pizzeria category searches return neighborhood-proximate competitors across Austin's dining districts; defending the South River City and Downtown core matters more than chasing distant suburban category slots.",
+      "checkedWebsiteFacts": [
+        "The homepage positions Home Slice Pizza as an independent neighborhood pizza joint serving authentic NY-style pizza by the slice or pie.",
+        "The South Congress location page lists dine-in hours (11 AM to 11 PM Sunday through Thursday, 11 AM to Midnight Friday and Saturday) and church-lot parking off Elizabeth Street."
+      ],
+      "nextChecks": [
+        "Compare South Congress dine-in table turns and wait-list patterns with North Loop across central Austin zip codes.",
+        "Inspect Search Console query and landing-page impressions for the South Congress location URL versus the root homepage.",
+        "Review Google Business Profile category and menu completeness against the top recurring South and Central Austin leaders."
+      ],
+      "pages": [
+        {
+          "label": "South Congress location",
+          "url": "https://homeslicepizza.com/location/south-congress/"
+        },
+        {
+          "label": "Home Slice homepage",
+          "url": "https://homeslicepizza.com/"
+        }
+      ],
+      "success": "Track South Congress dine-in covers and online order starts alongside fixed-origin top-three coverage within 3 miles of 1415 S Congress Ave.",
+      "query": "pizza restaurant",
+      "actionBrief": {
+        "title": "Anchor South Congress category discovery on the dedicated location page",
+        "observed": "The verified Google Business Profile links directly to the South Congress location page, which provides street address, hours, parking instructions, and menu links.",
+        "action": "Keep the South Congress GBP linked to its dedicated location page and verify structured restaurant metadata (hours, menu URL, neighborhood parking) rather than redirecting to the multi-city homepage.",
+        "reason": "Broad pizza restaurant searches weight proximity heavily across Austin; clear location-page alignment supports central Austin searchers without over-claiming suburban reach.",
+        "nextChecks": [
+          "Verify schema.org Restaurant markup on the South Congress location page.",
+          "Compare organic landing-page clicks between the root domain and location pages.",
+          "Check how often North Loop (501 E 53rd St) captures category searches north of UT Austin."
+        ],
+        "success": "Maintained top-three category visibility in South River City, Travis Heights, Bouldin Creek, and Downtown alongside stable dine-in volume.",
+        "existingUrl": "https://homeslicepizza.com/location/south-congress/",
+        "readiness": "Baseline protection; verify technical metadata before any page edits."
+      }
+    },
+    "q2": {
+      "area": "Greater Austin specialty reach",
+      "hypothesis": "New York style pizza is Home Slice's widest regional authority lane, reaching top-three positions far beyond South Congress where general pizza searches default to closer neighborhood shops.",
+      "checkedWebsiteFacts": [
+        "The homepage explicitly states: serving authentic NY-style pizza by the slice or pie, homemade, hand tossed, bona fide pies.",
+        "Google Business Profile place topics show 452 customer review mentions of ny style pizza and 56 mentions of crispy crust."
+      ],
+      "nextChecks": [
+        "Compare where South Congress and North Loop each rank in the top three for new york style pizza across the 10-mile Austin grid.",
+        "Check whether the South Congress location page explicitly repeats the authentic NY-style pizza phrasing present on the homepage.",
+        "Compare competing NY-style specialists (such as Pedroso's Pizza, Little Deli & Pizzeria, and Baldinucci Pizza Romana) in the near-top-three corridors."
+      ],
+      "pages": [
+        {
+          "label": "Home Slice homepage",
+          "url": "https://homeslicepizza.com/"
+        },
+        {
+          "label": "South Congress location",
+          "url": "https://homeslicepizza.com/location/south-congress/"
+        }
+      ],
+      "success": "Preserve multi-mile top-three coverage for new york style pizza and measure whether destination diners and catering orders originate from outer Austin neighborhoods.",
+      "query": "new york style pizza",
+      "actionBrief": {
+        "title": "Reinforce NY-style culinary copy on the linked South Congress page",
+        "observed": "The homepage highlights authentic NY-style pizza, while the linked South Congress location page focuses primarily on hours, address, and parking.",
+        "action": "Add a concise, factual summary of the South Congress menu (hand-tossed NY-style whole pies, slices, calzones, and Italian subs) directly onto the South Congress location page.",
+        "reason": "The GBP landing page is the South Congress URL; surfacing the core culinary description on that page aligns the linked destination with the specialty query.",
+        "nextChecks": [
+          "Confirm exact menu wording with the current South Congress PDF/online menu.",
+          "Record current organic and Maps rankings before editing the location page.",
+          "Monitor both South Congress and North Loop rankings to avoid cannibalizing North Austin searches."
+        ],
+        "success": "Sustained top-three specialty reach across South, Central, East, and West Austin origins.",
+        "existingUrl": "https://homeslicepizza.com/location/south-congress/",
+        "readiness": "Content alignment candidate; confirm copy against current menu."
+      }
+    },
+    "q3": {
+      "area": "South Congress walk-in & slice corridor",
+      "hypothesis": "Pizza by the slice searches surface both the flagship dine-in profile (Home Slice Pizza, 1415 S Congress Ave) and the adjacent walk-up counter profile (More Home Slice Pizza, 1421 S Congress Ave).",
+      "checkedWebsiteFacts": [
+        "The website navigation lists South Congress and More Home Slice as distinct Austin locations.",
+        "The GBP description states: Thin-crust slices & pies for dining in or carry out, open late for takeaway on weekends."
+      ],
+      "nextChecks": [
+        "Compare origins where Home Slice Pizza (1415 S Congress) and More Home Slice Pizza (1421 S Congress) both appear in the top ten for pizza by the slice.",
+        "Verify that the South Congress and More Home Slice pages clearly explain the difference between full-service dine-in (1415) and counter slice/takeout service (1421).",
+        "Check late-night weekend slice hours across both profiles for consistency."
+      ],
+      "pages": [
+        {
+          "label": "South Congress location",
+          "url": "https://homeslicepizza.com/location/south-congress/"
+        },
+        {
+          "label": "Home Slice homepage",
+          "url": "https://homeslicepizza.com/"
+        }
+      ],
+      "success": "Clear customer routing between 1415 S Congress (dine-in) and 1421 S Congress (slice window & carry-out) with combined top-three slice visibility.",
+      "query": "pizza by the slice",
+      "actionBrief": {
+        "title": "Coordinate dine-in and walk-up slice window messaging on South Congress",
+        "observed": "Both 1415 S Congress Ave and 1421 S Congress Ave compete in local results for slice searches, giving the brand dual visibility on South Congress.",
+        "action": "Keep both verified profiles distinct and accurate, and ensure the South Congress location page clearly directs quick slice and carry-out guests to 1421 S Congress Ave next door.",
+        "reason": "Clarifying the two adjacent storefronts reduces walk-in wait friction while preserving both verified listings' distinct real-world roles.",
+        "nextChecks": [
+          "Verify hours and phone extensions across both South Congress profiles.",
+          "Check customer review mentions of slice window wait times vs dine-in seating.",
+          "Track combined top-three presence for both CIDs on slice queries."
+        ],
+        "success": "Reduced walk-up confusion and sustained top-three visibility for pizza by the slice across Central and South Austin.",
+        "existingUrl": "https://homeslicepizza.com/location/south-congress/",
+        "readiness": "Operational and profile clarity check; no profile merger recommended."
+      }
+    },
+    "q4": {
+      "area": "South & Central Austin carry-out catchment",
+      "hypothesis": "Pizza takeout has a tighter distance decay than specialty style searches because pickup customers optimize for drive time and hot food.",
+      "checkedWebsiteFacts": [
+        "The homepage features direct Order Online navigation and states pies are available for either dine in or carry out.",
+        "The verified GBP includes Pizza Takeout as an explicit additional category."
+      ],
+      "nextChecks": [
+        "Compare the 4-to-10 rank ring for pizza takeout (1.5 to 4 miles from South Congress) against online pickup order zip codes.",
+        "Check whether the Order Online flow is linked directly as the GBP order URL on both South Congress profiles.",
+        "Inspect Elizabeth Street church-lot parking notes and pickup instructions on the South Congress page."
+      ],
+      "pages": [
+        {
+          "label": "South Congress location",
+          "url": "https://homeslicepizza.com/location/south-congress/"
+        },
+        {
+          "label": "Home Slice homepage",
+          "url": "https://homeslicepizza.com/"
+        }
+      ],
+      "success": "Higher online carry-out conversion from South Austin (78704, 78745, 78701, 78702) and improved rank 4-to-10 progression within realistic pickup drive times.",
+      "query": "pizza takeout",
+      "actionBrief": {
+        "title": "Highlight online ordering and dedicated pickup parking within the 3-mile carry-out ring",
+        "observed": "Takeout visibility drops off faster with distance than NY-style specialty searches, leaving a near-top-three ring across East Austin, Zilker, and South Lamar.",
+        "action": "Surface direct online carry-out ordering and dedicated pickup parking details prominently on the South Congress location page and GBP order links.",
+        "reason": "Carry-out customers within 3 miles care about fast pickup parking on South Congress and accurate ready-time estimates.",
+        "nextChecks": [
+          "Confirm first-party online ordering links in GBP attributes.",
+          "Check pickup parking signage and instructions on the South Congress page.",
+          "Compare takeout order volume by distance band before pursuing outer-ring expansion."
+        ],
+        "success": "Increased completed online pickup orders and stronger top-three conversion in the 1.5-to-3.5-mile near-miss ring.",
+        "existingUrl": "https://homeslicepizza.com/location/south-congress/",
+        "readiness": "Conversion and local-page clarity candidate."
+      }
+    }
+  },
+  "sources": [
+    "https://homeslicepizza.com/",
+    "https://homeslicepizza.com/location/south-congress/"
+  ],
+  "limitations": [
+    "Checked website facts describe public pages captured on October 19, 2026; they do not establish Search Console impressions, online order conversion rates, or ranking causation.",
+    "Next checks are proposed investigations for the operator, not completed audits.",
+    "No private POS, Toast/online ordering, Search Console, or GBP Performance analytics were accessed.",
+    "A 10-mile radius grid measures regional search visibility across Greater Austin; practical pizza takeout catchment is constrained by drive time.",
+    "Unreturned positions beyond rank 30 are censored observations, not proof of zero awareness."
+  ],
+  "recommendation": "Prioritize the South Congress location-page content and carry-out pickup clarity within the 3-mile core, while letting North Loop (501 E 53rd St) serve North Austin neighborhoods.",
+  "campaignPlans": [
+    {
+      "id": "takeout-pickup-clarity",
+      "title": "Strengthen carry-out conversion in the 1.5-to-3.5-mile ring",
+      "area": "South Austin, Zilker & East Cesar Chavez · carry-out catchment",
+      "stage": "Ready for page review",
+      "baselineQuery": "pizza takeout",
+      "baselineLens": "advance",
+      "goal": "Convert near-top-three takeout searchers within realistic drive time into direct online pickup orders.",
+      "evidence": "Home Slice lists Pizza Takeout as a verified GBP category and offers online ordering, while the South Congress page notes additional parking in the church lot off Elizabeth Street. Takeout rankings transition from top-three near 1415 S Congress to ranks 4-10 across surrounding 78704/78702 neighborhoods.",
+      "steps": [
+        "Make direct online ordering and carry-out pickup instructions prominent above the fold on the South Congress location page.",
+        "Clearly explain quick pickup parking (including the Elizabeth Street lot) and counter pickup at More Home Slice (1421 S Congress Ave).",
+        "Verify that the Google Business Profile order/menu links point directly to first-party online ordering."
+      ],
+      "gate": "Confirm current online ordering URLs and pickup parking rules with South Congress store operations before editing page copy.",
+      "measure": "Direct online carry-out orders and pickup volume, tracked alongside fixed-origin rankings for pizza takeout in the 78704/78702 advance cohort.",
+      "boundary": "Do not target 8-to-10-mile suburban origins for hot pizza takeout; focus on the realistic 3.5-mile drive-time catchment.",
+      "sources": [
+        {
+          "label": "South Congress location page",
+          "url": "https://homeslicepizza.com/location/south-congress/"
+        },
+        {
+          "label": "Home Slice homepage",
+          "url": "https://homeslicepizza.com/"
+        }
+      ]
+    },
+    {
+      "id": "ny-style-location-copy",
+      "title": "Align the South Congress landing page with NY-style specialty searches",
+      "area": "Central & South Austin · specialty style discovery",
+      "stage": "Copy enrichment candidate",
+      "baselineQuery": "new york style pizza",
+      "baselineLens": "serviceGap",
+      "goal": "Support Home Slice's strongest regional discovery theme on the exact URL linked from Google Maps.",
+      "evidence": "The root homepage describes authentic NY-style pizza by the slice or pie, and GBP place topics show 452 mentions of ny style pizza, but the linked South Congress page has minimal descriptive text beyond hours and address.",
+      "steps": [
+        "Add a concise, factual description of Home Slice's hand-tossed NY-style whole pies, slices, garlic knots, and Italian subs to the South Congress page.",
+        "Preserve fast access to hours, phone (512-444-PIES), and directions for mobile visitors.",
+        "Benchmark organic and Maps performance at fixed origins before and after the update."
+      ],
+      "gate": "Verify all menu items and dietary/ordering notes against the live South Congress menu.",
+      "measure": "Organic landing-page impressions for NY-style queries and top-three stability across the 10-mile specialty footprint.",
+      "boundary": "Copy additions improve customer clarity and page relevance; they do not guarantee rank changes at distant origins.",
+      "sources": [
+        {
+          "label": "South Congress location page",
+          "url": "https://homeslicepizza.com/location/south-congress/"
+        },
+        {
+          "label": "Home Slice homepage",
+          "url": "https://homeslicepizza.com/"
+        }
+      ]
+    },
+    {
+      "id": "south-congress-sister-routing",
+      "title": "Coordinate 1415 S Congress (dine-in) and 1421 S Congress (More Home Slice)",
+      "area": "South Congress corridor · slice & walk-up discovery",
+      "stage": "Multi-profile coordination",
+      "baselineQuery": "pizza by the slice",
+      "baselineLens": "defend",
+      "goal": "Help walk-in slice and carry-out customers choose the right storefront while preserving both verified profiles.",
+      "evidence": "Both Home Slice Pizza (1415 S Congress Ave) and More Home Slice Pizza (1421 S Congress Ave) appear in Austin Maps results for pizza by the slice and pizza takeout.",
+      "steps": [
+        "Cross-link the South Congress and More Home Slice location pages with clear guidance on dine-in table service vs counter slices and carry-out.",
+        "Audit GBP hours, attributes, and photos on both listings so each reflects its real-world storefront experience.",
+        "Monitor both profiles together when evaluating South Congress visibility so sister-store wins are recognized as brand coverage."
+      ],
+      "gate": "Keep both profiles strictly compliant with Google Business Profile guidelines for distinct storefronts.",
+      "measure": "Combined top-three coverage across both South Congress CIDs and smoother walk-up vs dine-in guest flow.",
+      "boundary": "Never stuff location or service keywords into either profile title; both storefronts already use compliant real-world branding.",
+      "sources": [
+        {
+          "label": "South Congress location page",
+          "url": "https://homeslicepizza.com/location/south-congress/"
+        }
+      ]
+    },
+    {
+      "id": "north-austin-sister-handoff",
+      "title": "Use North Loop (501 E 53rd St) for North Austin campaigns",
+      "area": "North Loop, Hyde Park & North Austin · sister territory",
+      "stage": "Portfolio territory boundary",
+      "baselineQuery": "pizza restaurant",
+      "baselineLens": "frontier",
+      "goal": "Avoid wasting South Congress campaign effort in North Austin neighborhoods already served by the North Loop location.",
+      "evidence": "The 10-mile radius centered on South Congress extends north of UT Austin and Koenig Lane, where Home Slice's North Loop location (501 E 53rd St) is the closer storefront.",
+      "steps": [
+        "Treat northern frontier origins (beyond 4 miles north of Lady Bird Lake) as North Loop's primary catchment.",
+        "Run a dedicated North Loop center-point study before planning any North Austin local campaigns.",
+        "Ensure the main website Locations hub clearly routes North Austin searchers to 501 E 53rd St."
+      ],
+      "gate": "Confirm North Loop store capacity and operating hours before launching North Austin promotions.",
+      "measure": "North Loop dine-in and pickup volume measured against a North Loop-centered grid.",
+      "boundary": "A rank drop for the South Congress CID in North Austin is expected geographic handoff, not a South Congress SEO failure.",
+      "sources": [
+        {
+          "label": "Home Slice homepage",
+          "url": "https://homeslicepizza.com/"
+        }
+      ]
+    }
+  ]
+}

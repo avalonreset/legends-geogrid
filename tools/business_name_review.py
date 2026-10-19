@@ -71,19 +71,21 @@ def seed_from_study(study, include_cids=(), only_cids=()):
     """Select observed profiles; explicit historical IDs never alter an existing run."""
     raw = load(study)
     identities = {str(b["cid"]): b for b in raw["factions"] if b.get("cid")}
+    profile_dir = raw.get("profiles") or {}
     included, only = set(map(str, include_cids)), set(map(str, only_cids))
     if any(not re.fullmatch(r"\d+", cid) for cid in included | only):
         raise ValueError("Explicit profile IDs must be numeric CIDs")
     cases = {}
     def ensure(cid, item):
         b = identities.get(cid, {})
+        prof = profile_dir.get(cid, {})
         return cases.setdefault(cid, {
-            "id": b.get("faction_id") or f"cid:{cid}", "cid": cid,
-            "name": item.get("title") or b.get("name") or b.get("title") or f"Profile {cid}",
-            "address": item.get("address") or b.get("address"),
-            "lat": item.get("latitude") if item.get("latitude") is not None else b.get("lat"),
-            "lng": item.get("longitude") if item.get("longitude") is not None else b.get("lng"),
-            "domain": item.get("domain") or b.get("domain"), "target": bool(b.get("is_target")),
+            "id": b.get("faction_id") or prof.get("faction_id") or f"cid:{cid}", "cid": cid,
+            "name": item.get("title") or prof.get("title") or b.get("name") or b.get("title") or f"Profile {cid}",
+            "address": item.get("address") or prof.get("address") or b.get("address"),
+            "lat": item.get("latitude") if item.get("latitude") is not None else (prof.get("latitude") if prof.get("latitude") is not None else b.get("lat")),
+            "lng": item.get("longitude") if item.get("longitude") is not None else (prof.get("longitude") if prof.get("longitude") is not None else b.get("lng")),
+            "domain": item.get("domain") or prof.get("domain") or b.get("domain"), "target": bool(b.get("is_target")),
             "wins_by_query": {}, "total_wins": 0, "returned_observations": 0,
         })
     for p in raw["points"]:

@@ -117,7 +117,7 @@ def bank_study(plan_path, run_dir=None, report_dir=None, *, vault=None, stage='s
         files['research/'+src['file']]=path
     run=Path(run_dir).resolve() if run_dir else None
     if run and run.is_dir():
-        allowed={'dataforseo-response.raw.json','parsed-grid.json','dataforseo-request-tasks.json','collector-output.json','study-receipt.json','research-ledger.jsonl','cost-audit.json','sampling-review.json','report-config.json','observations.csv','analysis-summary.json','final-findings.md','acceptance-receipt.json'}
+        allowed={'dataforseo-response.raw.json','parsed-grid.json','dataforseo-request-tasks.json','collector-output.json','study-receipt.json','research-ledger.jsonl','cost-audit.json','sampling-review.json','query-review.json','query-review.md','report-config.json','observations.csv','analysis-summary.json','final-findings.md','acceptance-receipt.json'}
         for p in run.rglob('*'):
             enhancement_files={'enhancement-plan.json','enhancement-ledger.jsonl','enhancement-complete.json','enhanced-records.json','enhance.html'}
             if p.is_file() and p.name in allowed | enhancement_files:
@@ -126,6 +126,6 @@ def bank_study(plan_path, run_dir=None, report_dir=None, *, vault=None, stage='s
     if report_dir:
         report=Path(report_dir).resolve()
         for p in report.iterdir():
-            if p.is_file() and (p.name in {'report-model.json','report-qa.json','report.html','report.pdf','proposal.html','proposal.pdf','proposal-receipt.json','sampling-review.json','banner.png','legends-regular.ttf'} or p.name.startswith('map-') and p.suffix=='.png'):
+            if p.is_file() and (p.name in {'report-model.json','report-qa.json','report.html','report.pdf','proposal.html','proposal.pdf','proposal-receipt.json','sampling-review.json','query-review.json','query-review.md','banner.png','legends-regular.ttf'} or p.name.startswith('map-') and p.suffix=='.png'):
                 files['report/'+p.name]=p
     return save_checkpoint(files,vault=vault,plan=plan,run_id=run.name if run else sha(plan_path.read_bytes())[:16],stage=stage,parent_study=parent_study,relationship=relationship)

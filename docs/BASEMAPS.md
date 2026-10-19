@@ -1,5 +1,34 @@
 # Street maps and optional Google Maps
 
+## Interactive Google companion maps
+
+The companion map selector supports **Google Maps · Streets**, **Google Maps ·
+Dark**, and **Google Maps · Satellite + labels** as interactive basemaps.
+Panning, wheel zoom, ranking overlays, leader bases, and study selection work on
+the same map. Google is no longer a snapshot-only selector option.
+
+Enable **Map Tiles API** in a billing-enabled Google Cloud project. Set
+`GOOGLE_MAP_TILES_API_KEY` on the server, restricted to `tile.googleapis.com`.
+The adapter can fall back to `GOOGLE_MAPS_API_KEY` only if that key permits Map
+Tiles API; a working Static Maps key alone does not establish this. Keep server
+keys out of `VITE_*`, URLs shown to users, reports, and browser bundles.
+
+`pnpm dev` and `pnpm preview` install the same local-only adapter. For a hosted
+deployment, mount `createGoogleTilesMiddleware` behind an authenticated
+same-origin server boundary adapted for that host; static file hosting alone
+cannot provide paid Google maps. Never deploy a public unauthenticated billing
+proxy. Selecting a Google source (including reopening a saved Google selection)
+uses Google-billed tile requests. OSM remains the unconfigured default. There is
+no silent Static Maps substitute or switch to another provider on failure.
+
+Provider sessions are reused until expiry; browser URLs contain local opaque
+session IDs, not the API key or provider session token. Tiles are streamed with
+`no-store`, with no disk cache or offline collection. Viewport copyright and
+the official Google Maps logo remain visible. Dark mode uses Google's styling
+parameters, not an inversion filter. Existing Static Maps report support is
+unchanged. See Google's [Map Tiles documentation](https://developers.google.com/maps/documentation/tile/2d-tiles-overview)
+and [attribution policy](https://developers.google.com/maps/documentation/tile/policies).
+
 Real strategy reports now default to **OpenFreeMap street maps**, with no map API
 key or account. Ranking measurements still come from DataForSEO. Changing the
 background provider does not change ranking accuracy.

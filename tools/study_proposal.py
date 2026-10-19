@@ -32,7 +32,10 @@ def sections(plan, receipt):
             paragraphs.append('Offering evidence ['+ref['source_id']+']: '+ref['quote'])
         paragraphs.append('Demand source: '+q['demand_source']+'. Pilot sources: '+', '.join(q['pilot_sources']))
         result.append((t['label'], paragraphs))
-    rejected = [q['query']+': '+q.get('reason','No reason supplied') for q in plan['queries'] if not q['selected']]
+    rejected = [
+        q['query'] + (' [deferred]: ' if str(q.get('disposition','')).lower()=='deferred' else ': ') + q.get('reason','No reason supplied')
+        for q in plan['queries'] if not q['selected']
+    ]
     if rejected:
         result.append(('Queries not selected', rejected))
     result.append(('Shared measurement geography', [s['geography_reason'],
@@ -45,8 +48,15 @@ def sections(plan, receipt):
         'Estimates are advisory, not provider-enforced billing caps. Rendering this proposal makes no provider calls and does not authorize collection.',
         'Deliverables: comparable street maps, observed rankings, evidence limitations, and supported next steps in HTML and PDF.',
         receipt['qualification']]))
-    result.append(('Sources and provenance', [f"[{x['id']}] {x['kind']} | {x['observed_at']} | {x['url']}" for x in plan['sources']]))
-    return result
+    qr = receipt.get('query_review') or {}
+    sf = qr.get('source_freshness') or {}
+    source_lines = [f"[{x['id']}] {x['kind']} | {x['observed_at']} | {x['url']}" for x in plan['sources']]
+    if sf:
+        source_lines.append(
+            f"Freshness review: newest {sf.get('newest_age_days', 0):.2f}d, oldest {sf.get('oldest_age_days', 0):.2f}d, "
+            f"spread {sf.get('age_spread_days', 0):.2f}d. {sf.get('certainty_note', '')}"
+        )
+    return result[:-1] + [result[-1], ('Sources and provenance', source_lines)]
 
 
 def render_proposal(plan_path, output_dir, theme='geogrid'):

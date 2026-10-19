@@ -4,7 +4,7 @@ Version: `legends-editorial-v5`. Tokens and HTML rules live in
 `tools/report_design.py`; PDF and HTML consume the same normalized model in
 `tools/strategy_report.py`. Do not write customer-specific CSS or renderer branches.
 
-The supplied Alpha Mechanical v7 reference establishes the editorial direction:
+The supplied HVAC v7 reference report establishes the editorial direction:
 decision first, explicit measurement geography, repeatable map sections, supported
 actions, method and traceable evidence. It is a visual reference, not a source of
 facts, recommendations, fonts or imagery for other customers.

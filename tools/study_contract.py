@@ -196,10 +196,12 @@ def validate(path, now=None):
         for ref in refs:cite(ref,{'website','gbp','demand','maps_probe','organic_probe'})
     from profile_review import build as profile_context
     profile = profile_context(plan, item, sources[identity['source_id']])
+    from query_review import review_plan
+    qreview = review_plan(path, now=now)
     from local_heatmap_poc import estimate_scan_cost
     estimate=estimate_scan_cost(settings['grid_size']**2*len(selected),settings['depth'],settings['method'])
     return plan,{'status':'plan_ready','plan_sha256':digest(path),'selected_queries':[q['query'] for q in selected],
-                 'profile_review':profile,
+                 'profile_review':profile,'query_review':qreview,
                  'selected_themes':[dict(q['theme'],query=q['query']) for q in selected],
                  'scope':'focused' if len(selected)<3 else 'standard','selection':selection,
                  'evidence_mode':mode,'website_limitation':plan.get('website_limitation') if restricted else None,

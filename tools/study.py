@@ -23,7 +23,7 @@ def write_new(path,value):
     with path.open('x',encoding='utf-8') as stream:json.dump(value,stream,indent=2,ensure_ascii=False,allow_nan=False)
 
 
-def research(request_path,output,execute=False,ceiling=0):
+def research(request_path,output,execute=False,ceiling=0,allow_live=False):
     """One request per invocation; persist reservation before HTTP, never auto-retry."""
     request=json.loads(Path(request_path).read_text(encoding='utf-8-sig'))
     kind=request.get('kind');require(kind in ROUTES,'unknown research kind')
@@ -39,6 +39,7 @@ def research(request_path,output,execute=False,ceiling=0):
     receipt={'kind':kind,'endpoint':ROUTES[kind],'estimated_cost_usd':estimate,
              'cumulative_reserved_usd':reserved+overage+estimate,'request_sha256':fingerprint}
     if not execute:return {'status':'estimate_only',**receipt}
+    require(allow_live,f'Live {kind} research ({ROUTES[kind]}) requires explicit user choice and --allow-live; use Standard queue collection (Google Ads, GBP, and SERP Standard task_post/task_get) and ingest saved evidence files by default')
     number(ceiling,0.000001,100,'research ceiling')
     require(receipt['cumulative_reserved_usd']<=ceiling,'research budget exceeded')
     output.mkdir(parents=True,exist_ok=True)
@@ -93,6 +94,8 @@ def website(url,output):
 
 def run(plan_path,output,execute=False,ceiling=0,checkpoint=None):
     plan,receipt=validate(plan_path)
+    from visibility_policy import validate_visibility_policy
+    validate_visibility_policy(plan['settings'], plan.get('collection_policy'), plan.get('diagnostic'))
     if not execute:return receipt
     number(ceiling,0.000001,1000000,'grid ceiling')
     require(receipt['estimated_grid_cost_usd']<=ceiling,'grid estimate exceeds ceiling')
@@ -190,10 +193,15 @@ def main(argv=None):
     bank=sub.add_parser('bank');bank.add_argument('--plan',required=True);bank.add_argument('--run-dir');bank.add_argument('--report-dir');bank.add_argument('--stage',default='saved');bank.add_argument('--parent-study');bank.add_argument('--relationship',choices=('baseline','expansion','monitoring'),default='baseline')
     p=sub.add_parser('proposal');p.add_argument('--plan',required=True);p.add_argument('--output-dir',required=True)
     p.add_argument('--theme',choices=('geogrid','light'),default='geogrid')
+    bf=sub.add_parser('battlefield');bf.add_argument('--run-dir','--input',dest='run_dir',required=True);bf.add_argument('--output-dir',required=True)
+    bf.add_argument('--theme',choices=('geogrid','light'),default='geogrid');bf.add_argument('--no-pdf',action='store_true');bf.add_argument('--no-console',action='store_true')
     a=sub.add_parser('assemble');a.add_argument('--run-dir',required=True);a.add_argument('--output-config',required=True)
     w=sub.add_parser('website');w.add_argument('--url',required=True);w.add_argument('--output',required=True)
     r=sub.add_parser('research');r.add_argument('--request',required=True);r.add_argument('--output-dir',required=True)
     r.add_argument('--execute',action='store_true');r.add_argument('--confirm-cost-usd',type=float,default=0)
+    r.add_argument('--allow-live',action='store_true',help='Explicit user opt-in for Live research routes (Standard queue ingest is default)')
+    qr=sub.add_parser('query-review');qr.add_argument('--plan');qr.add_argument('--competitive-plan');qr.add_argument('--refresh-dir');qr.add_argument('--output');qr.add_argument('--markdown')
+    qr.add_argument('--warn-age-days',type=float,default=14.0);qr.add_argument('--max-age-days',type=float,default=30.0)
     for name in ('validate','run'):
         s=sub.add_parser(name);s.add_argument('--plan',required=True)
         if name=='run':
@@ -205,6 +213,12 @@ def main(argv=None):
         if args.command=='enhance':
             from study_enhance import run as enhance
             result=enhance(args.run_dir,args.output_dir,args.execute,args.confirm_cost_usd,args.vault_dir,args.max_age_hours,args.target_spacing_km)
+        elif args.command=='battlefield':
+            import battlefield
+            bf_argv=['--input',args.run_dir,'--output-dir',args.output_dir,'--theme',args.theme]
+            if args.no_pdf:bf_argv.append('--no-pdf')
+            if args.no_console:bf_argv.append('--no-console')
+            return battlefield.main(bf_argv)
         elif args.command=='library-init':
             from study_library import configure
             result=configure(args.vault_dir)
@@ -221,10 +235,18 @@ def main(argv=None):
             result=website(args.url,args.output)
             result['library']=save_checkpoint({'research/'+Path(args.output).name:args.output},vault=args.vault_dir,run_id=Path(args.output).parent.name,stage='website')
         elif args.command=='research':
-            result=research(args.request,args.output_dir,args.execute,args.confirm_cost_usd)
+            result=research(args.request,args.output_dir,args.execute,args.confirm_cost_usd,args.allow_live)
             if args.execute:
                 directory=Path(args.output_dir);source=result['source']
                 result['library']=save_checkpoint({'research/'+source['file']:directory/source['file'],'research/research-ledger.jsonl':directory/'research-ledger.jsonl'},vault=args.vault_dir,run_id=directory.name,stage='research')
+        elif args.command=='query-review':
+            from query_review import review_plan, format_markdown
+            result=review_plan(args.plan,competitive_plan_path=args.competitive_plan,refresh_dir=args.refresh_dir,warn_age_days=args.warn_age_days,max_age_days=args.max_age_days)
+            if args.output:
+                write_new(args.output,result)
+            if args.markdown:
+                md_path=Path(args.markdown);md_path.parent.mkdir(parents=True,exist_ok=True)
+                with md_path.open('x',encoding='utf-8') as f:f.write(format_markdown(result))
         elif args.command=='validate':result=validate(args.plan)[1]
         else:
             checkpoint=lambda stage:bank_study(args.plan,args.output_dir,vault=args.vault_dir,stage=stage)

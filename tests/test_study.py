@@ -29,6 +29,7 @@ def fixture(root):
         settings=dict(method='standard',grid_size=3,radius_km=1,depth=20,zoom=15,device='desktop',search_this_area=True,language_code='en',se_domain='google.com',geography_reason='Local catchment baseline, not a service boundary.',decision='Measure nearby discovery for pizza.'),
         queries=[dict(query='pizza restaurant',selected=True,role='category',reason='Verified category and offering.',offering_evidence=[ref('site','/text','Pizza delivery')],demand_source='demand',demand_scope='US monthly, not town-level demand.',intent_assessment='Pilot returns pizza restaurants.',limitations='National demand cannot establish local conversion.',pilot_sources=['pilot0','pilot1','pilot2'],intent_evidence=[ref('pilot0','/tasks/0/result/0/items/0/category','Pizza restaurant')])])
     plan['queries'][0]['theme']=dict(id='category',label='Pizza category',customer_need='Find a pizza restaurant nearby',distinct_value='Broad category discovery')
+    plan['collection_policy']=dict(intent='viewport',rationale='Explicit restricted-window fixture with matching saved pilots.')
     plan['selection']=dict(coverage_summary='Focused fixture for category discovery; service lanes not piloted.',evidence=[ref('site','/text','Pizza delivery'),ref('gbp','/tasks/0/result/0/items/0/category','Pizza restaurant')],fewer_themes=dict(reason='Only the category pilot is available in this bounded fixture; not a complete business study.',evidence=[ref('gbp','/tasks/0/result/0/items/0/category','Pizza restaurant')]))
     path=root/'plan.json';path.write_text(json.dumps(plan));return path,plan
 
@@ -171,9 +172,23 @@ class StudyTests(unittest.TestCase):
     def test_research_preview_does_not_import_or_call_transport(self):
         request=self.root/'request.json';request.write_text(json.dumps(dict(kind='demand',body=[{'keywords':['pizza']}],estimated_cost_usd=.02)))
         result=research(request,self.root/'research');self.assertEqual(result['status'],'estimate_only');self.assertFalse((self.root/'research').exists())
+    def test_live_research_requires_allow_live_for_all_kinds_while_preview_allowed(self):
+        from study import ROUTES
+        for kind in ('gbp','demand','maps_probe','organic_probe'):
+            self.assertIn(kind,ROUTES)
+            request=self.root/f'req-{kind}.json'
+            request.write_text(json.dumps(dict(kind=kind,body=[{'keyword':'pizza'}],estimated_cost_usd=.01)))
+            out=self.root/f'research-{kind}'
+            preview=research(request,out,execute=False)
+            self.assertEqual(preview['status'],'estimate_only')
+            self.assertEqual(preview['endpoint'],ROUTES[kind])
+            self.assertFalse(out.exists())
+            with self.assertRaisesRegex(ValueError,r'--allow-live.*Standard'):
+                research(request,out,execute=True,ceiling=1)
+            self.assertFalse(out.exists())
     def test_research_budget_before_http(self):
         request=self.root/'request.json';request.write_text(json.dumps(dict(kind='demand',body=[{}],estimated_cost_usd=.02)))
-        with self.assertRaisesRegex(ValueError,'budget exceeded'):research(request,self.root/'research',True,.01)
+        with self.assertRaisesRegex(ValueError,'budget exceeded'):research(request,self.root/'research',True,.01,allow_live=True)
     def test_ambiguous_request_never_retried(self):
         request=self.root/'request.json';request.write_text(json.dumps(dict(kind='demand',body=[{}],estimated_cost_usd=.02)))
         out=self.root/'research'
@@ -182,8 +197,8 @@ class StudyTests(unittest.TestCase):
         def fail(*a,**kw):raise OSError('connection lost')
         fake.api_request=fail
         with patch.dict(sys.modules,legends_dataforseo=fake):
-            with self.assertRaises(OSError):research(request,out,True,1)
-            with self.assertRaisesRegex(ValueError,'already reserved'):research(request,out,True,1)
+            with self.assertRaises(OSError):research(request,out,True,1,allow_live=True)
+            with self.assertRaisesRegex(ValueError,'already reserved'):research(request,out,True,1,allow_live=True)
         self.assertFalse((out/'.research-lock').exists())
 
 if __name__=='__main__':unittest.main()

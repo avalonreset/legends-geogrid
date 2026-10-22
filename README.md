@@ -22,12 +22,12 @@ Part of the [CTO Legends](https://github.com/avalonreset/cto-legends) ecosystem.
 Install with `cto-legends install legends-geogrid`, then follow the module recipe the router loads. Do not register this module as its own skill.
 
 <p align="left">
-  <a href="https://www.youtube.com/shorts/4RYY_gh6b70">
-    <img src="assets/why-have-we-never-met-before.png" alt="why have we never met before?: watch on YouTube" width="560" height="560">
+  <a href="https://www.youtube.com/watch?v=0G7IF3yBxcM">
+    <img src="assets/youtube-walkthrough.webp" alt="open source + up to 80x cheaper than local falcon for local seo: watch full walkthrough on YouTube" width="840">
   </a>
 </p>
 <p align="left">
-  <a href="https://www.youtube.com/shorts/4RYY_gh6b70"><em>why have we never met before?</em></a>
+  <a href="https://www.youtube.com/watch?v=0G7IF3yBxcM"><strong>▶ Watch the full 31-minute walkthrough on YouTube:</strong> <em>open source + up to 80x cheaper than local falcon for local seo</em></a>
 </p>
 
 ---
@@ -160,3 +160,14 @@ Fresh run folders (`runs/`, `bulk-runs/`) are ignored by Git by default. The bun
 ### Contributing, security, and license
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) and [SECURITY.md](SECURITY.md). `legends-geogrid` is MIT licensed ([LICENSE](LICENSE)) and is independent software not affiliated with or endorsed by DataForSEO, Google, OpenStreetMap, Leaflet, Local Falcon, Search Atlas, LeadSnap, or BrightLocal.
+
+---
+
+<p align="left">
+  <a href="https://www.youtube.com/shorts/4RYY_gh6b70">
+    <img src="assets/why-have-we-never-met-before.png" alt="why have we never met before?: watch on YouTube" width="320" height="320">
+  </a>
+</p>
+<p align="left">
+  <a href="https://www.youtube.com/shorts/4RYY_gh6b70"><em>why have we never met before?</em></a>
+</p>

@@ -4,7 +4,7 @@ import sample from './data/home-slice-study.json'
 import sampleResearch from './data/home-slice-campaign-research.json'
 import sampleNameReview from './data/home-slice-name-review.json'
 import { normalizeStudy, observationFor, businessMetrics, businessLeaderboard, businessPage, rankPresentation, RANK_COLORS, RANK_OPACITIES, rankFillOpacity } from './study-model.js'
-import { cellSpacings, destination, blendColor, latticeIntersections } from './map-geometry.js'
+import { cellSpacings, destination, blendColor, latticeIntersections, territoryOutlines } from './map-geometry.js'
 import { installWheelZoom } from './wheel-zoom.js'
 import { BASEMAPS, createBasemapSwitcher } from './basemap-switcher.js'
 import { RankCanvasLayer } from './rank-canvas.js'
@@ -28,7 +28,7 @@ const formatDate = value => value && Number.isFinite(Date.parse(value)) ? new Da
 const params = new URLSearchParams(location.search)
 const initialParams = new URLSearchParams(location.search)
 let model = normalizeStudy(sample)
-const state = { query: 'q1', business: 'TARGET', point: null, view: 'visibility', tab: 'factions', region: 'all', rival: null, rings: true, translucent: false, blends: true, coverage: true, units: 'mi', leaderMinimum: initialParams.get('leaders') === 'all' ? 1 : 3 }
+const state = { query: 'q1', business: 'TARGET', point: null, view: 'visibility', tab: 'factions', region: 'all', rival: null, rings: true, translucent: false, blends: true, coverage: true, clipCircle: false, units: 'mi', leaderMinimum: 1 }
 const fieldBrowser = { scope: 'shortlist', search: '', page: 0 }
 const campaign = { lens: 'overview', area: null, research: null }
 let investigationIds = null
@@ -43,11 +43,12 @@ state.basemap = BASEMAPS.some(s => s.id === initialParams.get('basemap')) ? init
   BASEMAPS.some(s => s.id === preferredBasemap) ? preferredBasemap : 'osm-legends'
 let spacing = 0, gridCorners = [], cancelWheelZoom = () => {}
 let followStudyBounds = true, fittingStudy = false
+let hoveredLeaderId = null, leaderBaseEntries = [], cameraFrame = 0
 const colorFor = id => profileColor(model, id)
 const names = { visibility: 'Rankings', factions: 'Local leaders', strike: 'Strike zones', campaigns: 'Campaigns', 'keyword-stuffing': 'Keyword stuffing', matchup: 'Head-to-head' }
 const explanations = {
   'keyword-stuffing': 'Investigate profile names. Compare evidence and prepare a review.',
-  visibility: 'Rank by color. Hover for rank; click for results.',
+  visibility: 'Rank by color. Hover any location to inspect its rank.',
   factions: 'Who ranks first. Colors identify businesses.',
   strike: 'Ranks 4–10: opportunities to investigate.',
   campaigns: 'Find a measured foothold, compare opponents, choose a next check.',
@@ -55,32 +56,34 @@ const explanations = {
 }
 
 $('#app').innerHTML = `
-  <header class="app-bar"><a class="wordmark" href="./"><span class="brand-symbol" aria-hidden="true">✳</span> legends-geogrid <span class="edition">FIELD NOTES</span></a>
-    <div class="app-actions"><button id="open-strategy" class="strategy-launch" aria-expanded="false" aria-controls="strategy-room">Strategy room</button><button id="open-study" class="quiet-button">Open study <span aria-hidden="true">↗</span></button></div>
+  <header class="app-bar">
+    <div class="brand-cluster">
+      <div class="wordmark"><span class="brand-symbol" aria-hidden="true">✳</span><div class="brand-text"><span>legends-geogrid</span><small class="eyebrow">LOCAL SEARCH EXPLORER</small></div></div>
+      <div class="study-heading">
+        <div class="study-title-row"><h1 id="study-name"></h1><span class="study-stamp"><span class="status-dot"></span><span id="study-kind"></span></span></div>
+        <div class="study-sub-row"><p id="study-location"></p><small id="study-date"></small></div>
+      </div>
+    </div>
+    <section class="query-bar"><label for="query">Query</label><select id="query"></select><select id="sampling-view" aria-label="Study footprint" hidden></select><span id="query-scope"></span></section>
+    <div class="app-actions"><button id="evidence-toggle" class="quiet-button" aria-expanded="false">Details</button><button id="copy-brief" class="quiet-button">Copy context</button><button id="open-study" class="quiet-button">Open study <span aria-hidden="true">↗</span></button><button id="open-strategy" class="strategy-launch" aria-expanded="false" aria-controls="strategy-room">Strategy room</button></div>
     <input id="study-file" type="file" accept=".json,application/json" hidden>
   </header>
   <main>
-    <section class="study-heading">
-      <div><div class="eyebrow">LOCAL SEARCH · COMPETITIVE EXPLORER</div><h1 id="study-name"></h1><p id="study-location"></p></div>
-      <div class="study-stamp"><span class="status-dot"></span><span id="study-kind"></span><small id="study-date"></small></div>
-    </section>
-    <section class="query-bar"><label for="query">Search query</label><select id="query"></select><select id="sampling-view" aria-label="Study footprint" hidden></select><span id="query-scope"></span><button id="evidence-toggle" class="quiet-button" aria-expanded="false">Details</button><button id="copy-brief" class="quiet-button">Copy context</button></section>
     <section class="workspace">
       <div class="map-column">
         <div class="map-heading"><div class="view-tabs" role="group" aria-label="Map lens">
           <button data-view="visibility">Rankings</button><button data-view="factions">Local leaders</button><button data-view="campaigns">Campaigns</button><button data-view="keyword-stuffing" aria-controls="name-review-host">Keyword stuffing</button><button data-view="matchup" hidden>Head-to-head</button>
-        </div><div class="map-heading-actions"><select id="basemap" aria-label="Map source">${BASEMAPS.map(s => `<option value="${s.id}">${s.name}</option>`).join('')}</select><button id="fit" class="quiet-button" title="Show every sampled location">Fit study</button></div></div>
-        <div class="map-description" id="view-description"></div>
+        </div><div class="map-description" id="view-description"></div><div class="map-heading-actions"><select id="basemap" aria-label="Map source">${BASEMAPS.map(s => `<option value="${s.id}">${s.name}</option>`).join('')}</select><button id="fit" class="quiet-button" title="Show every sampled location">Fit study</button></div></div>
         <div id="name-review-host" hidden></div>
         <div id="map"><div class="map-badge"><span id="map-business"></span><small id="map-subtitle">Organic Maps rankings</small></div>
-          <div id="basemap-status" class="basemap-status" role="status" hidden><p></p><div><button id="retry-basemap">Retry map</button><button id="use-default-basemap">Use OpenStreetMap</button></div></div>
-          <div class="map-options" role="group" aria-label="Map appearance"><button id="coverage-dots" aria-pressed="true">Coverage dots</button><button id="distance-rings" aria-pressed="true">Distance rings</button><button id="translucent" aria-pressed="false">Translucent markers</button><button id="corner-blends" aria-pressed="true">Gradient diamonds</button></div>
+          <div id="basemap-status" class="basemap-status" role="status" hidden><p></p><div><button id="retry-basemap">Retry map</button><button id="use-default-basemap">Use OpenStreetMap</button><button id="dismiss-basemap">Dismiss</button></div></div>
+          <div class="map-options" role="group" aria-label="Map appearance"><button id="coverage-dots" aria-pressed="true">coverage dots</button><button id="distance-rings" aria-pressed="true">distance rings</button><button id="translucent" aria-pressed="false">translucent markers</button><button id="corner-blends" aria-pressed="true">gradient diamonds</button><button id="clip-circle" aria-pressed="false">clip to circle</button></div>
         </div>
         <div class="map-legend" id="legend"></div>
-        <div class="finding-strip"><span class="eyebrow">READ THE MAP</span><p id="finding"></p><button id="inspect-near" class="text-button">Inspect a near miss →</button></div>
+        <div class="finding-strip"><span class="eyebrow">READ THE MAP</span><p id="finding"></p><button id="inspect-near" class="text-button">Explore campaign areas →</button></div>
       </div>
       <aside class="sidebar">
-        <div class="side-tabs" role="group" aria-label="Study details"><button data-tab="strategy" hidden>Area</button><button data-tab="campaigns">Campaigns</button><button data-tab="factions">Businesses</button><button data-tab="location">Location</button><button data-tab="study">Study</button></div>
+        <div class="side-tabs" role="group" aria-label="Study details"><button data-tab="strategy" hidden>Area</button><button data-tab="campaigns">Campaigns</button><button data-tab="factions">Businesses</button><button data-tab="study">Study</button></div>
         <div id="side-content"></div>
       </aside>
     </section>
@@ -102,6 +105,7 @@ function syncURL() {
   params.set('translucent', state.translucent ? '1' : '0')
   params.set('blends', state.blends ? '1' : '0')
   params.set('coverage', state.coverage ? '1' : '0')
+  params.set('clip', state.clipCircle ? '1' : '0')
   params.set('units', state.units)
   params.set('leaders', state.leaderMinimum === 1 ? 'all' : 'recurring')
   params.set('basemap', state.basemap)
@@ -136,7 +140,7 @@ function selectPoint(id) {
   if (state.region !== 'all' && workbench.classList.contains('strategy-docked')) {
     state.region = strategyIntelligence(model).regions.find(r => r.id !== 'all' && r.originIds.includes(id))?.id || 'all'
   }
-  state.tab = 'location'
+  if (state.view === 'factions') { const p = model.points.find(pt => pt.id === id), top = winnerAt(p?.observations?.[state.query]); if (top && model.businesses.some(b => b.id === top.id)) { selectBusiness(top.id); return } }
   workbench.classList.add('evidence-open')
   render()
 }
@@ -182,7 +186,7 @@ function focusCampaignArea(id) {
   render()
   const members = new Set(area.originIds)
   const points = model.points.filter(p => members.has(p.id))
-  if (points.length) map.fitBounds(points.map(p => [p.lat, p.lng]), { padding: [65, 70], maxZoom: 14, animate: false })
+  if (points.length) animateToBounds(points.map(p => [p.lat, p.lng]), { padding: [65, 70], maxZoom: 12.8 })
 }
 
 function selectedRegion() {
@@ -195,7 +199,7 @@ function fitOrigins(ids) {
   if (!points.length) return
   cancelWheelZoom()
   followStudyBounds = false
-  map.fitBounds(points.map(p => [p.lat, p.lng]), { padding: [55, 60], maxZoom: 14, animate: false })
+  animateToBounds(points.map(p => [p.lat, p.lng]), { padding: [55, 60], maxZoom: 12.8 })
 }
 
 function inspectRegion({ regionId = 'all', queryId = state.query, rivalId = null }) {
@@ -270,60 +274,46 @@ function renderBusinesses() {
 }
 
 function renderLeaders() {
-  const leaders = localLeaders(model, state.query, state.leaderMinimum)
-  const rows = leaders.rows.filter(r => r.major || r.business.id === state.business)
-  const selectedExtra = rows.find(r => !r.major)
-  const coloredPoints = leaders.coloredPoints + (selectedExtra?.wins || 0)
-  return `<div class="side-intro"><div class="eyebrow">LOCAL LEADERS</div><h2>${rows.length} highlighted winners</h2>
-    <div class="field-scope" role="group" aria-label="Leader coverage"><button data-leader-minimum="3" aria-pressed="${state.leaderMinimum === 3}">Recurring · 3+ wins</button><button data-leader-minimum="1" aria-pressed="${state.leaderMinimum === 1}">All winners</button></div>
-    <p>Neighboring groups get contrasting colors. Matching IDs identify each business across queries. Bases can be outside the circle.</p>
+  const leaders = localLeaders(model, state.query, 1)
+  const rows = leaders.rows
+  const coloredPoints = leaders.coloredPoints
+  return `<div class="side-intro"><div class="eyebrow">LOCAL LEADERS</div><h2>${rows.length} first-place winners</h2>
+    <p>Every first-place winner is colored. Neighboring territories get contrasting colors; matching IDs identify each business across queries.</p>
     <div class="leader-actions"><button class="text-button" data-fit-leaders>Fit circle + leader bases</button>
     <button class="text-button" data-open-name-review>Review business titles →</button></div>
-    <p>${coloredPoints}/${model.points.length} points colored (${(100 * coloredPoints / model.points.length).toFixed(1)}%). ${state.leaderMinimum === 3 ? `One- and two-point winners stay hollow${selectedExtra ? ', except the selected business' : ''}; All winners reveals them.` : 'Every identified winner is colored. Dashed points lack usable first-place evidence.'}</p></div>
+    <p>${coloredPoints}/${model.points.length} points colored (${(100 * coloredPoints / model.points.length).toFixed(1)}%). Dashed points lack usable first-place evidence.</p></div>
     <div class="business-list">${rows.map(r => `<button class="business-row ${r.business.target ? 'primary' : ''} ${r.business.id === state.business ? 'selected' : ''}" data-leader="${escape(r.business.id)}">
       <span class="leader-id" style="--business-color:${r.color}">${r.badge}</span>
       <span class="business-info"><span class="business-name">${escape(r.business.name)}</span>
       <span class="business-address">${escape(r.business.address || 'Address not supplied')}</span>
-      <span class="business-location-status">${r.hasBase ? r.outside ? 'Base outside circle' : 'Supplied base' : 'Base coordinates unavailable'}${!r.major ? ' · selected exception' : ''}</span></span>
+      <span class="business-location-status">${r.hasBase ? r.outside ? 'Base outside circle' : 'Supplied base' : 'Base coordinates unavailable'}</span></span>
       <span class="business-score">${r.wins}<small> wins</small></span></button>`).join('')}</div>
-    <p class="list-caption">Select a leader to fit its base and strongest winning cluster. Only bases more than 2 miles beyond the circle get a matching connector. Lines are not routes or territory boundaries. Colors identify profiles, not ranking strength.</p>`
+    <p class="list-caption">Select a leader to smoothly frame its full territory and base. Only bases more than 2 miles beyond the circle get a matching connector. Lines are not routes or territory boundaries. Colors identify profiles, not ranking strength.</p>`
 }
 
 function fitLeaders(id = null) {
-  const leaders = localLeaders(model, state.query, state.leaderMinimum)
+  const leaders = localLeaders(model, state.query, 1)
   const rows = leaders.rows.filter(r => id ? r.business.id === id : r.major)
   const locations = id ? [] : model.points.map(p => [p.lat, p.lng])
   for (const r of rows) {
+    if (id && r.points?.length) {
+      for (const p of r.points) locations.push([p.lat, p.lng])
+    }
     if (r.hasBase) locations.push([r.business.lat, r.business.lng])
     if (r.center) locations.push([r.center.lat, r.center.lng])
   }
   if (!locations.length) return
   cancelWheelZoom()
   followStudyBounds = false
-  map.fitBounds(locations, { padding: [70, 70], maxZoom: 13, animate: false })
+  animateToBounds(locations, { padding: id ? [76, 76] : [65, 65], maxZoom: id ? 11.6 : 12.6 })
 }
 
-function renderLocation() {
-  const p = model.points.find(p => p.id === state.point)
-  if (!p) return `<div class="side-intro empty"><span class="empty-icon">⌖</span><h2>Start with a location</h2><p>Select any map point to see who appeared there and compare the actual returned rankings.</p></div>`
-  const o = p.observations[state.query]
-  const selected = model.businesses.find(b => b.id === state.business)
-  const rank = observationFor(model, p, state.query, state.business)
-  return `<div class="side-intro"><div class="eyebrow">SEARCH LOCATION ${escape(p.id)}</div><h2>${p.distance != null ? `${distanceLabel(p.distance, state.units)} from primary` : 'Measured search origin'}</h2>
-    <p class="coordinates">${p.lat.toFixed(5)}, ${p.lng.toFixed(5)}</p><p>Observed ${escape(formatDate(o?.sampledAt))}${o?.collectionMethod ? ` · ${o.collectionMethod === 'standard' ? 'Standard queue' : 'Earlier Live archive'}` : ''}</p></div>
-    <div class="location-result"><span class="eyebrow">${escape(selected.name)}</span><strong>${escape(rank.label)}</strong></div>
-    <div class="query-comparison"><span class="eyebrow">SAME LOCATION · ALL QUERIES</span>${model.queries.map(q => `<button data-location-query="${escape(q.id)}" aria-pressed="${q.id === state.query}"><span>${escape(q.name)}</span><strong>${escape(observationFor(model, p, q.id, state.business).label)}</strong></button>`).join('')}</div>
-    <div class="results-heading">Returned organic results <span>${o?.items.length ?? 0}</span></div>
-    <ol class="result-list">${(o?.items || []).map(i => `<li class="${i.id === state.business ? 'highlight' : ''}"><span class="result-rank">${i.rank}</span>
-      <div><strong>${escape(i.name)}</strong><small>${i.address ? `${escape(i.address)}<br>` : ''}${i.rating ? `${escape(i.rating)} ★ · ${escape(i.reviews ?? '?')} reviews` : 'Saved result'}</small></div></li>`).join('')}</ol>
-    <p class="list-caption">Ranks describe this query at this location. Reviews and distance alone do not explain why a business ranks.</p>`
-}
 
 function renderStudy() {
   const m = businessMetrics(model, state.query, state.business)
   return `<div class="side-intro"><div class="eyebrow">EVIDENCE & DEFINITIONS</div><h2>What this map tells us</h2></div>
     <div class="study-notes">
-      <h3>Rankings</h3><p>Ten bright shades run from pure cyan at rank 1 through green to pure yellow at rank 10. Opacity falls evenly from 100% at rank 1 to 75% at rank 10. Rank 11 switches to pure red at 25% opacity. Ranks 12–30 retain pure red and fade evenly to 2% opacity at rank 30. Translucent markers multiplies top-ten opacity by 45% (45% at rank 1 to 33.75% at rank 10); the red opacity scale stays unchanged. Rank-one cells have a prominent pulsing cyan halo and eight staggered white sparkles around their edges, marking the highest possible position at that location. Reduced motion keeps a static halo and sparkles. Gradient diamonds blend both color and opacity. Hollow stop signs indicate absence from the top 30; dashed outlines indicate incomplete evidence. Hover for rank and click for returned results.</p>
+      <h3>Rankings</h3><p>Ten bright shades run from pure cyan at rank 1 through green to pure yellow at rank 10. Opacity falls evenly from 100% at rank 1 to 75% at rank 10. Rank 11 switches to pure red at 25% opacity. Ranks 12–30 retain pure red and fade evenly to 2% opacity at rank 30. Translucent markers multiplies top-ten opacity by 45% (45% at rank 1 to 33.75% at rank 10); the red opacity scale stays unchanged. Rank-one cells have a prominent pulsing cyan halo and eight staggered white sparkles around their edges, marking the highest possible position at that location. Reduced motion keeps a static halo and sparkles. Gradient diamonds blend both color and opacity. Hollow stop signs indicate absence from the top 30; dashed outlines indicate incomplete evidence. Hover any point to inspect its exact rank.</p>
       <h3>Gradient diamonds</h3><p>Diamonds blend neighboring stop-sign colors, including intersections with two or three measured corners along a radial edge. Missing corners and incomplete results contribute transparency. Diamonds are clipped to the study circle. They are visual blends, not additional searches or predicted ranks. Translucent markers reveals more of the streets.</p>
       <h3>Distance rings</h3><p>Rings measure straight-line distance from the primary business, which anchors the study footprint. Selecting a rival changes rankings without moving the study center. Distances and guides are shown in miles; measured locations stay fixed. Rings are reference distances, not ranking or service-area boundaries.</p>
       <h3>Local leaders</h3><p>Recurring winners have at least three first places; All winners also includes one- and two-point profiles. Both ignore shortlist and base distance. Colors maximize separation between neighboring winners across all queries; matching IDs distinguish profiles when colors recur. Smaller winners remain hollow in Recurring mode, except the selected profile. Only bases more than 2 miles beyond the circle get a dashed connector to their largest connected winning cluster. Missing base coordinates are never inferred from rankings. This view measures first place, not market share.</p>
@@ -377,7 +367,9 @@ function render() {
   $('#distance-rings').setAttribute('aria-pressed', state.rings)
   $('#translucent').setAttribute('aria-pressed', state.translucent)
   $('#corner-blends').setAttribute('aria-pressed', state.blends)
-  $('#corner-blends').disabled = !gridCorners.length || state.view !== 'visibility'
+  $('#corner-blends').disabled = !gridCorners.length || !['visibility', 'factions', 'campaigns'].includes(state.view)
+  $('#clip-circle').setAttribute('aria-pressed', state.clipCircle)
+  $('#clip-circle').disabled = model.geometry !== 'radius_grid'
   $('#map').classList.toggle('translucent-cells', state.translucent)
   document.querySelectorAll('[data-view]').forEach(b => b.setAttribute('aria-pressed', b.dataset.view === state.view))
   document.querySelectorAll('[data-tab]').forEach(b => b.setAttribute('aria-pressed', b.dataset.tab === state.tab))
@@ -385,17 +377,17 @@ function render() {
   $('[data-tab="strategy"]').hidden = state.region === 'all' && state.view !== 'matchup' && state.tab !== 'strategy'
   $('#side-content').innerHTML = state.tab === 'strategy'
     ? state.view === 'matchup' ? matchupPanelHTML(strategyMatchup(model, state.query, state.rival, state.region), model, state.query) : regionPanelHTML(model, selectedRegion(), state.query)
-    : state.tab === 'campaigns' ? campaignPanelHTML(territoryIntelligence(model, state.query), campaign.lens, campaign.area, model.name, campaign.research, state.query) : state.tab === 'factions' ? renderBusinesses() : state.tab === 'location' ? renderLocation() : renderStudy()
+    : state.tab === 'campaigns' ? campaignPanelHTML(territoryIntelligence(model, state.query), campaign.lens, campaign.area, model.name, campaign.research, state.query) : state.tab === 'factions' ? renderBusinesses() : renderStudy()
   $('#finding').textContent = `${selected.name} appears in the top 3 at ${m.top3} of ${model.points.length} sampled locations for “${model.queries.find(q => q.id === state.query).name}”. ${m.near} locations rank 4–10${m.unknown ? `; ${m.unknown} have incomplete evidence` : ''}.`
-  $('#inspect-near').disabled = !m.near
+  $('#inspect-near').disabled = false
   if (state.view === 'factions') {
     const leaders = localLeaders(model, state.query, state.leaderMinimum)
     const highlighted = leaders.rows.filter(r => r.major || r.business.id === state.business).length
-    $('#finding').textContent = `${highlighted} highlighted first-place profiles, including bases outside the study circle. Select a leader in Businesses to trace its strongest cluster.`
+    $('#finding').textContent = `${leaders.rows.length} first-place profiles across ${leaders.coloredPoints} of ${model.points.length} locations. Select any leader in Businesses to frame its full territory and base.`
   }
   $('#legend').innerHTML = state.view === 'factions'
-    ? `<span>Winners: ${localLeaders(model, state.query, state.leaderMinimum).threshold}+ first places</span><span><i class="hollow-key"></i> Smaller winner</span><span><i class="unknown-key"></i> Leader unavailable</span><span>◇ Base · dashed line to strongest cluster</span>`
-    : `<span class="rank-scale" aria-label="Ranking color scale, cyan through green to yellow for 1 through 10; fading red for 11 through 30">${RANK_COLORS.map((c, i) => `<span title="Rank ${i + 1} · ${Math.round(RANK_OPACITIES[i] * 100)}% opacity" style="background:${c}${Math.round(RANK_OPACITIES[i] * 255).toString(16).padStart(2, '0')};color:${i >= 10 ? '#eee' : '#050507'}">${i + 1}</span>`).join('')}</span><span><i class="hollow-key"></i> Outside top 30</span><span><i class="unknown-key"></i> Incomplete result set</span><span class="coverage-key">${state.blends && gridCorners.length && state.view === 'visibility' ? '◇ Blended colors · ' : ''}${model.geometry === 'radius_grid' ? 'Outside radius: excluded' : model.geometry === 'square_grid' ? 'Outside window: unmeasured' : 'Exploratory archive · irregular origins'}</span>`
+    ? `<span>All #1 winners colored (${localLeaders(model, state.query, 1).rows.length} profiles)</span><span><i class="unknown-key"></i> Leader unavailable</span><span>◇ Base · dashed line to strongest cluster</span>`
+    : `<span class="rank-scale" aria-label="Ranking color scale, cyan through green to yellow for 1 through 10; fading red for 11 through 30">${RANK_COLORS.map((c, i) => `<span title="Rank ${i + 1} · ${Math.round(RANK_OPACITIES[i] * 100)}% opacity" style="background:${c}${Math.round(RANK_OPACITIES[i] * 255).toString(16).padStart(2, '0')};color:${i >= 10 ? '#eee' : '#050507'}">${i + 1}</span>`).join('')}</span><span><i class="hollow-key"></i> Outside top 30</span><span><i class="unknown-key"></i> Incomplete result set</span>`
   if (state.view === 'campaigns') {
     const intel = territoryIntelligence(model, state.query)
     const area = campaignAreas(intel, campaign.lens).find(a => a.id === campaign.area)
@@ -406,7 +398,7 @@ function render() {
   } else if (state.view === 'factions') {
     $('#inspect-near').textContent = 'Explore leader bases →'
     $('#inspect-near').disabled = false
-  } else $('#inspect-near').textContent = 'Inspect a near miss →'
+  } else $('#inspect-near').textContent = 'Explore campaign areas →'
   if (state.region !== 'all') {
     const region = selectedRegion()
     $('#map-subtitle').textContent = `${region.label} · ${region.count} locations · outside area dimmed`
@@ -430,6 +422,35 @@ function render() {
   })
   $('#evidence-toggle').setAttribute('aria-expanded', workbench.classList.contains('evidence-open'))
   syncURL()
+}
+
+function syncHoveredLeaderDOM() {
+  for (const entry of leaderBaseEntries) {
+    const isHovered = hoveredLeaderId && entry.id === hoveredLeaderId
+    const isDimmed = hoveredLeaderId && !isHovered
+    const el = entry.marker.getElement()
+    if (el) {
+      el.classList.toggle('leader-hovered', !!isHovered)
+      el.classList.toggle('leader-dimmed', !!isDimmed)
+    }
+    entry.marker.setZIndexOffset(isHovered ? 2600 : entry.id === state.business ? 1500 : 1100)
+    if (entry.polyline) entry.polyline.setStyle({ opacity: isHovered ? 1 : isDimmed ? .36 : .75, weight: isHovered ? 3 : 2 })
+    if (entry.clusterCircle) entry.clusterCircle.setStyle({ opacity: isHovered ? 1 : isDimmed ? .36 : 1, weight: isHovered ? 3 : 2 })
+  }
+  document.querySelectorAll('#side-content [data-leader]').forEach(row => {
+    row.classList.toggle('leader-row-hovered', !!(hoveredLeaderId && row.dataset.leader === hoveredLeaderId))
+  })
+}
+
+function setHoveredLeader(id) {
+  const next = state.view === 'factions' && id ? id : null
+  if (hoveredLeaderId === next) {
+    syncHoveredLeaderDOM()
+    return
+  }
+  hoveredLeaderId = next
+  pointsLayer?.setHoverLeader(hoveredLeaderId)
+  syncHoveredLeaderDOM()
 }
 
 function drawMap() {
@@ -458,7 +479,6 @@ function drawMap() {
       }).addTo(rangeLayer)
     }
   }
-  const diamonds = state.blends && state.view === 'visibility' && state.region === 'all' ? drawBlends() : []
   const tactical = state.view === 'campaigns' ? territoryIntelligence(model, state.query) : null
   const tacticalCells = new Map((tactical?.cells || []).map(c => [c.id, c]))
   const focusedArea = tactical && campaignAreas(tactical, campaign.lens).find(a => a.id === campaign.area)
@@ -487,6 +507,7 @@ function drawMap() {
     const comparison = matchupCells?.get(p.id)
     const comparisonStyle = comparison && MATCHUP_STYLES[comparison.state]
     cells.push({ id: p.id, lat: p.lat, lng: p.lng, x: projected.x, y: projected.y,
+      leaderId: state.view === 'factions' && highlightedLeader ? top.id : null,
       color, opacity: tactical ? (state.translucent ? .45 : .9) : state.view === 'factions' ? (state.translucent ? .45 : 1) : rankFillOpacity(presentation.rank, state.translucent),
       kind: tactical ? (!tacticalCell || tacticalCell.band === 'unknown' ? 'unknown' : tacticalCell.band === 'outside30' ? 'nr' : 'ranked') : state.view === 'factions' ? (highlightedLeader ? 'ranked' : top ? 'other' : 'unknown') : presentation.kind, active, muted, coverage: state.coverage,
       dominant: state.view === 'visibility' && presentation.rank === 1,
@@ -500,39 +521,77 @@ function drawMap() {
       const [lat, lng] = destination(anchor.lat, anchor.lng, model.sampling.radius_km, i * 2)
       return map.project([lat, lng], 0)
     }) : null
-  pointsLayer.setData(cells, diamonds, spacing, state.translucent, blendBoundary)
+  const cellMap = new Map(cells.map(c => [c.id, c]))
+  const diamonds = state.blends && ['visibility', 'factions', 'campaigns'].includes(state.view) ? drawBlends(cells, cellMap) : []
+  const territories = state.view === 'factions' ? territoryOutlines(model.points, cellMap, ll => map.project(ll, 0)) : []
+  if (state.view !== 'factions' && hoveredLeaderId) { hoveredLeaderId = null; pointsLayer.setHoverLeader(null) }
+  pointsLayer.setData(cells, diamonds, spacing, state.translucent, blendBoundary, territories, state.clipCircle)
+  leaderBaseEntries = []
   for (const b of model.businesses) {
     if (state.view === 'factions' && !leaders.majorIds.has(b.id) && b.id !== state.business) continue
     if (typeof b.lat !== 'number' || typeof b.lng !== 'number' || !Number.isFinite(b.lat) || !Number.isFinite(b.lng)) continue
     if (state.view !== 'factions' && b.id !== state.business) continue
     const isLeaderView = state.view === 'factions'
     const leader = leaders.byId.get(b.id)
+    let polyline = null, clusterCircle = null
     if (isLeaderView && leader?.connector) {
-      L.polyline([[b.lat, b.lng], [leader.center.lat, leader.center.lng]], {
+      polyline = L.polyline([[b.lat, b.lng], [leader.center.lat, leader.center.lng]], {
         color: colorFor(b.id), weight: 2, opacity: .75, dashArray: '6 7', interactive: false,
       }).addTo(basesLayer)
-      L.circleMarker([leader.center.lat, leader.center.lng], {
+      clusterCircle = L.circleMarker([leader.center.lat, leader.center.lng], {
         radius: 5, color: colorFor(b.id), weight: 2, fill: false,
       }).bindTooltip(`${escape(b.name)} · strongest cluster: ${leader.clusterSize} first places`).addTo(basesLayer)
     }
     const baseSize = isLeaderView ? 28 : 16
-    L.marker([b.lat, b.lng], {
+    const marker = L.marker([b.lat, b.lng], {
       icon: L.divIcon({ className: `base-marker ${isLeaderView ? '' : 'base-ring'}`, html: isLeaderView ? `<span class="leader-diamond" style="--business-color:${colorFor(b.id)}"><b>${leader?.badge || "◎"}</b></span>` : '<span class="business-crosshair"></span>', iconSize: [baseSize, baseSize], iconAnchor: [baseSize / 2, baseSize / 2] }),
-      title: `${b.name}: supplied business location`, zIndexOffset: 1100,
-    }).bindTooltip(`${escape(b.name)} · supplied location${leader?.outside ? ' · outside study circle' : ''}`).on('click', () => selectBusiness(b.id)).addTo(basesLayer)
+      title: `${b.name}: supplied business location`, zIndexOffset: b.id === state.business ? 1500 : 1100,
+    }).bindTooltip(`${escape(leader?.badge ? `${leader.badge} · ` : '')}${escape(b.name)} · supplied base${leader?.wins ? ` · ${leader.wins} wins` : ''}${leader?.outside ? ' · outside circle' : ''}`, { direction: 'top', offset: [0, -14] }).on('click', () => { selectBusiness(b.id); if (isLeaderView) fitLeaders(b.id) })
+    if (isLeaderView) {
+      marker.on('mouseover', () => { pointsLayer?.hideTooltip(); setHoveredLeader(b.id) }).on('mouseout', () => setHoveredLeader(null))
+    }
+    marker.addTo(basesLayer)
+    if (isLeaderView) leaderBaseEntries.push({ id: b.id, lat: b.lat, lng: b.lng, wins: leader?.wins || 0, marker, polyline, clusterCircle })
   }
   updateZoomPresentation()
+  syncHoveredLeaderDOM()
 }
 
-function drawBlends() {
+function drawBlends(cells, cellById = new Map(cells.map(c => [c.id, c]))) {
   const canvas = document.createElement('canvas')
   canvas.width = canvas.height = 32
   const ctx = canvas.getContext('2d')
   const textures = new Map()
   const diamonds = []
+  const isFactions = state.view === 'factions'
   for (const intersection of gridCorners) {
-    const presentations = intersection.corners.map(p => p ? rankPresentation(model, p, state.query, state.business) : null)
-    const rgba = presentations.map(p => !p || p.kind === 'nr' || p.kind === 'unknown' ? [0, 0, 0, 0] : [1, 3, 5].map(i => parseInt(p.color.slice(i, i + 2), 16)).concat(Math.round(255 * rankFillOpacity(p.rank, state.translucent))))
+    const cornerCells = intersection.corners.map(p => p ? cellById.get(p.id) : null)
+    let dominantLeaderId = null
+    if (isFactions) {
+      const counts = new Map()
+      for (const c of cornerCells) {
+        if (c && c.kind === 'ranked' && c.leaderId) counts.set(c.leaderId, (counts.get(c.leaderId) || 0) + 1)
+      }
+      if (!counts.size) continue
+      const sorted = [...counts.entries()].sort((a, b) => b[1] - a[1])
+      const [topId, topCount] = sorted[0]
+      const secondCount = sorted[1]?.[1] || 0
+      // In Local leaders, only fill a gradient diamond when all 4 surrounding cells belong to the same leader
+      // so diamonds never bleed across territory borders or enclave corners.
+      if (topCount === 4 && secondCount === 0) {
+        dominantLeaderId = topId
+      } else {
+        continue
+      }
+    }
+    const rgba = cornerCells.map(cell => {
+      if (!cell || ['nr', 'unknown', 'other'].includes(cell.kind) || !cell.color?.startsWith('#')) return [0, 0, 0, 0]
+      if (isFactions && cell.leaderId !== dominantLeaderId) return [0, 0, 0, 0]
+      const baseOpacity = isFactions ? (state.translucent ? .35 : .68) : (cell.opacity ?? 1)
+      const alpha = baseOpacity * (cell.muted ? .15 : 1)
+      return [1, 3, 5].map(i => parseInt(cell.color.slice(i, i + 2), 16)).concat(Math.round(255 * alpha))
+    })
+    if (rgba.every(c => c[3] === 0)) continue
     const key = JSON.stringify(rgba)
     if (!textures.has(key)) {
       const image = ctx.createImageData(32, 32)
@@ -548,13 +607,19 @@ function drawBlends() {
     const a = map.project([intersection.north, intersection.west], 0)
     const b = map.project([intersection.south, intersection.east], 0)
     const center = a.add(b).divideBy(2)
-    diamonds.push({ x: center.x, y: center.y, texture: textures.get(key) })
+    diamonds.push({ x: center.x, y: center.y, texture: textures.get(key), leaderId: dominantLeaderId })
   }
   return diamonds
 }
 
 function updateZoomPresentation() {
   if (!map || !pointsLayer) return
+  const stepPx = spacing * (2 ** map.getZoom())
+  if (Number.isFinite(stepPx) && stepPx > 0) {
+    $('#map').style.setProperty('--grid-step-px', `${stepPx.toFixed(2)}px`)
+    $('#map').classList.toggle('leaders-compact', stepPx < 15.5)
+    $('#map').classList.toggle('leaders-mini', stepPx < 10.5)
+  }
   rangeLayer.eachLayer(layer => {
     if (!layer.options.ringKm) return
     const pixels = map.project(layer.options.ringCenter, map.getZoom()).distanceTo(map.project(layer.getLatLng(), map.getZoom()))
@@ -563,15 +628,46 @@ function updateZoomPresentation() {
   })
 }
 
-function fitStudy() {
+function cancelCameraAnimation() {
+  if (cameraFrame) { cancelAnimationFrame(cameraFrame); cameraFrame = 0 }
+}
+
+function animateToBounds(latlngs, { padding = [65, 65], maxZoom = 12.6, animate = true, duration = 520 } = {}) {
+  cancelCameraAnimation()
+  if (!map || !latlngs?.length) return
+  const bounds = L.latLngBounds(latlngs)
+  if (!bounds.isValid()) return
+  const target = map._getBoundsCenterZoom(bounds, { padding, maxZoom })
+  if (!animate || matchMedia('(prefers-reduced-motion: reduce)').matches || !Number.isFinite(target?.zoom)) {
+    fittingStudy = true
+    try { map.fitBounds(bounds, { padding, maxZoom, animate: false }) } finally { fittingStudy = false }
+    return
+  }
+  const startZoom = map.getZoom()
+  const startPt = map.project(map.getCenter(), 0)
+  const targetPt = map.project(target.center, 0)
+  const distPx = startPt.distanceTo(targetPt) * (2 ** startZoom)
+  if (distPx < 2 && Math.abs(target.zoom - startZoom) < .01) return
+  const t0 = performance.now()
+  const step = now => {
+    const t = Math.min(1, Math.max(0, (now - t0) / duration))
+    // Smooth cubic-bezier ease-in-out S-curve
+    const ease = t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2
+    const curPt = L.point(startPt.x + (targetPt.x - startPt.x) * ease, startPt.y + (targetPt.y - startPt.y) * ease)
+    const curLatLng = map.unproject(curPt, 0)
+    const curZoom = startZoom + (target.zoom - startZoom) * ease
+    fittingStudy = true
+    try { map.setView(curLatLng, curZoom, { animate: false }) } finally { fittingStudy = false }
+    if (t < 1) cameraFrame = requestAnimationFrame(step)
+    else cameraFrame = 0
+  }
+  cameraFrame = requestAnimationFrame(step)
+}
+
+function fitStudy(animate = false) {
   cancelWheelZoom()
   followStudyBounds = true
-  fittingStudy = true
-  try {
-    map.fitBounds(L.latLngBounds(model.points.map(p => [p.lat, p.lng])), { padding: [35, 40], animate: false })
-  } finally {
-    fittingStudy = false
-  }
+  animateToBounds(model.points.map(p => [p.lat, p.lng]), { padding: [35, 40], maxZoom: 13.5, animate })
 }
 
 function loadStudy(input, restore = false) {
@@ -619,8 +715,9 @@ function loadStudy(input, restore = false) {
     state.translucent = initialParams.get('translucent') === '1'
     state.blends = initialParams.get('blends') !== '0'
     state.coverage = initialParams.get('coverage') !== '0'
+    state.clipCircle = initialParams.get('clip') === '1'
   }
-  state.tab = state.point ? 'location' : state.view === 'campaigns' ? 'campaigns' : 'factions'
+  state.tab = state.view === 'campaigns' ? 'campaigns' : 'factions'
   if (!state.point && (state.region !== 'all' || state.view === 'matchup')) state.tab = 'strategy'
   fieldBrowser.scope = model.businesses.find(b => b.id === state.business)?.shortlisted === false ? 'all' : 'shortlist'
   fieldBrowser.search = ''
@@ -669,6 +766,8 @@ const basemaps = createBasemapSwitcher(map, { announce, onStatus(status) {
   if (status.phase === 'error') {
     failedBasemap = status.id
     $('#basemap-status p').textContent = status.message
+  } else if (status.phase === 'ready') {
+    failedBasemap = null
   }
 }, onChange(id) {
   state.basemap = id
@@ -684,20 +783,35 @@ function ensureBasemap() {
 $('#basemap').value = state.basemap
 L.DomEvent.disableClickPropagation($('#basemap-status'))
 L.DomEvent.disableScrollPropagation($('#basemap-status'))
-$('#retry-basemap').addEventListener('click', () => { if (failedBasemap) basemaps.set(failedBasemap) })
-$('#use-default-basemap').addEventListener('click', () => basemaps.set('osm-legends'))
+$('#retry-basemap').addEventListener('click', () => { if (failedBasemap) void basemaps.set(failedBasemap) })
+$('#use-default-basemap').addEventListener('click', () => {
+  $('#basemap-status').hidden = true
+  failedBasemap = null
+  void basemaps.set('osm-legends')
+})
+$('#dismiss-basemap').addEventListener('click', () => {
+  $('#basemap-status').hidden = true
+  failedBasemap = null
+  $('#basemap').value = state.basemap
+})
 $('#basemap').addEventListener('change', async e => {
   const choice = e.target.value
+  $('#basemap-status').hidden = true
   $('#basemap').disabled = true
   try { await basemaps.set(choice) }
-  finally { $('#basemap').disabled = false; $('#basemap').value = state.basemap }
+  finally {
+    $('#basemap').disabled = false
+    $('#basemap').value = $('#basemap-status').hidden ? state.basemap : (failedBasemap || state.basemap)
+  }
 })
-pointsLayer = new RankCanvasLayer({ onSelect: selectPoint }).addTo(map)
+pointsLayer = new RankCanvasLayer({ onSelect: selectPoint, onHoverLeader: setHoveredLeader }).addTo(map)
 basesLayer = L.layerGroup().addTo(map)
 map.on('zoom', updateZoomPresentation)
 map.on('movestart', () => {
-  if (!fittingStudy) followStudyBounds = false
+  if (!fittingStudy) { cancelCameraAnimation(); followStudyBounds = false }
 })
+$('#map').addEventListener('wheel', cancelCameraAnimation, { passive: true })
+$('#map').addEventListener('pointerdown', cancelCameraAnimation, { passive: true })
 new ResizeObserver(() => {
   map.invalidateSize({ pan: false })
   if (followStudyBounds) fitStudy()
@@ -709,6 +823,7 @@ $('#distance-rings').addEventListener('click', () => { state.rings = !state.ring
 $('#coverage-dots').addEventListener('click', () => { state.coverage = !state.coverage; render() })
 $('#translucent').addEventListener('click', () => { state.translucent = !state.translucent; render() })
 $('#corner-blends').addEventListener('click', () => { state.blends = !state.blends; render() })
+$('#clip-circle').addEventListener('click', () => { state.clipCircle = !state.clipCircle; render() })
 $('#sampling-view').addEventListener('change', async e => {
   try {
     const url = new URL(e.target.value, location.href)
@@ -721,15 +836,24 @@ $('#sampling-view').addEventListener('change', async e => {
     loadStudy(input)
   } catch (error) { announce(`Could not load footprint: ${error.message}`) }
 })
-$('#fit').addEventListener('click', () => { state.region = 'all'; campaign.area = null; investigationIds = null; render(); fitStudy() })
+$('#fit').addEventListener('click', () => { state.region = 'all'; campaign.area = null; investigationIds = null; render(); fitStudy(true) })
 document.querySelectorAll('[data-view]').forEach(b => b.addEventListener('click', () => setView(b.dataset.view)))
 document.querySelectorAll('[data-tab]').forEach(b => b.addEventListener('click', () => { if (b.dataset.tab === 'campaigns') setView('campaigns'); else { state.tab = b.dataset.tab; render() } }))
+$('#side-content').addEventListener('pointerover', e => {
+  const leader = e.target.closest('[data-leader]')
+  if (leader) setHoveredLeader(leader.dataset.leader)
+})
+$('#side-content').addEventListener('pointerout', e => {
+  const leader = e.target.closest('[data-leader]')
+  if (!leader || !leader.isConnected) return
+  if (!leader.contains(e.relatedTarget)) setHoveredLeader(null)
+})
 $('#side-content').addEventListener('click', e => {
   const coverageChoice = e.target.closest('[data-leader-minimum]')
   if (coverageChoice) { state.leaderMinimum = Number(coverageChoice.dataset.leaderMinimum); render(); return }
   if (e.target.closest('[data-fit-leaders]')) { fitLeaders(); return }
   const leader = e.target.closest('[data-leader]')
-  if (leader) { selectBusiness(leader.dataset.leader); fitLeaders(leader.dataset.leader); return }
+  if (leader) { const id = leader.dataset.leader; hoveredLeaderId = id; pointsLayer?.setHoverLeader(id); selectBusiness(id); setHoveredLeader(id); fitLeaders(id); return }
   if (e.target.closest('[data-open-strategy]')) { strategyRoom.open(); return }
   const planBaseline = e.target.closest('[data-campaign-baseline]')
   if (planBaseline) {
@@ -746,7 +870,7 @@ $('#side-content').addEventListener('click', e => {
   if (focus) { focusCampaignArea(focus.dataset.focusArea); return }
   const evidence = e.target.closest('[data-area-evidence]')
   if (evidence) { selectPoint(evidence.dataset.areaEvidence); return }
-  if (e.target.closest('[data-clear-area]')) { campaign.area = null; render(); fitStudy(); return }
+  if (e.target.closest('[data-clear-area]')) { campaign.area = null; render(); fitStudy(true); return }
   const rival = e.target.closest('[data-campaign-rival]')
   if (rival) { selectBusiness(rival.dataset.campaignRival); return }
   const query = e.target.closest('[data-location-query]')

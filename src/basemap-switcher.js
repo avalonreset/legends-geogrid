@@ -16,12 +16,32 @@ export const BASEMAPS = [
 const openCredit = '<a href="https://openfreemap.org/">OpenFreeMap</a> · © <a href="https://openmaptiles.org/">OpenMapTiles</a> · © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>'
 
 export function createBasemapSwitcher(map, { announce, onChange, onStatus = () => {} }) {
-  let current, version = 0
+  let current, currentSource = null, version = 0
   return {
     async set(id) {
       const source = BASEMAPS.find(s => s.id === id)
       if (!source) throw new Error('Unknown basemap')
       const revision = ++version
+      // If the requested basemap is already active (or another OSM style shares the active OSM tile layer),
+      // switch/confirm immediately so returning from a failed Google attempt never hangs or stays stuck.
+      if (current && map.hasLayer(current)) {
+        if (currentSource?.id === id) {
+          onChange(id)
+          onStatus({ phase: 'ready', id })
+          return
+        }
+        if (currentSource?.kind === 'osm' && source.kind === 'osm') {
+          const container = current.getContainer()
+          if (container) {
+            container.classList.toggle('osm-inverted', !!source.dark)
+            container.classList.toggle('osm-legends', !!source.muted)
+          }
+          currentSource = source
+          onChange(id)
+          onStatus({ phase: 'ready', id })
+          return
+        }
+      }
       onStatus({ phase: 'loading', id })
       let layer
       try {
@@ -48,29 +68,41 @@ export function createBasemapSwitcher(map, { announce, onChange, onStatus = () =
           })
         }
         const previous = current
-        layer.addTo(map)
-        const container = layer.getContainer()
-        container.style.opacity = '0'
-        if (source.style) {
-          await new Promise((resolve, reject) => {
+        const readyPromise = source.style
+          ? new Promise((resolve, reject) => {
+            layer.addTo(map)
             const gl = layer.getMaplibreMap()
             const timer = setTimeout(() => reject(new Error('Map loading timed out')), 25000)
             gl.once('load', () => { clearTimeout(timer); resolve() })
             gl.once('error', () => { clearTimeout(timer); reject(new Error('Map resources could not load')) })
           })
-        } else {
-          await new Promise((resolve, reject) => {
+          : source.google
+          ? new Promise((resolve, reject) => {
             const timer = setTimeout(() => reject(new Error('Map loading timed out')), 20000)
             layer.once('load', () => { clearTimeout(timer); resolve() })
             layer.once('tileerror', () => { clearTimeout(timer); reject(new Error('Street tiles could not load')) })
+            layer.addTo(map)
           })
-        }
+          : new Promise(resolve => {
+            const done = () => { clearTimeout(timer); resolve() }
+            const timer = setTimeout(done, 1200)
+            layer.once('load', done)
+            layer.once('tileload', done)
+            layer.addTo(map)
+            if (!layer.isLoading?.()) done()
+          })
+        const container = layer.getContainer()
+        if (container) container.style.opacity = '0'
+        await readyPromise
         if (revision !== version) { map.removeLayer(layer); return }
         current = layer
+        currentSource = source
         const duration = matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 300
-        container.style.transition = `opacity ${duration}ms ease`
-        container.style.opacity = '1'
-        if (previous) setTimeout(() => { if (map.hasLayer(previous)) map.removeLayer(previous) }, duration)
+        if (container) {
+          container.style.transition = `opacity ${duration}ms ease`
+          container.style.opacity = '1'
+        }
+        if (previous && previous !== layer) setTimeout(() => { if (map.hasLayer(previous)) map.removeLayer(previous) }, duration)
         onChange(id)
         onStatus({ phase: 'ready', id })
       } catch (error) {

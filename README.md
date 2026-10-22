@@ -31,9 +31,9 @@ Install with `cto-legends install legends-geogrid`, then follow the module recip
   <a href="https://www.youtube.com/shorts/4RYY_gh6b70"><em>why have we never met before?</em></a>
 </p>
 
-## What 0.2.0 adds
+## What 0.2.1 adds
 
-A ranking grid should help answer a decision: where does a business appear, which services are weaker, who actually wins each neighborhood, and what should be investigated or changed next? Version 0.2.0 pairs a full-field competitive map companion with circular-lattice sampling, a business-name review workbench, researched study planning, multi-query PDF/HTML reports, a persistent study library, and a complete 10-mile Austin starter case study out of the box.
+A ranking grid should help answer a decision: where does a business appear, which services are weaker, who actually wins each neighborhood, and what should be investigated or changed next? Version 0.2.1 pairs a full-bleed competitive map companion with circular-lattice sampling, a business-name review workbench with multi-vantage Street View and optional Jev 1.14 optical signage verification, researched study planning, multi-query PDF/HTML reports, a persistent study library, and a complete 10-mile Austin starter case study out of the box.
 
 | Capability | What it gives you |
 | --- | --- |
@@ -41,7 +41,7 @@ A ranking grid should help answer a decision: where does a business appear, whic
 | [Local leaders & neighbor coloring](docs/COMPANION.md) | Recurring (`3+` wins) and all-winner views with neighbor-aware contrasting colors, stable study-wide `L`-number IDs across queries, and outside-circle competitor base connectors. |
 | [Strategy room & head-to-head matchups](docs/BATTLEFIELD_INTELLIGENCE.md) | Split-screen regional and service comparison matrix plus direct two-profile head-to-head (`matchup`) map overlays. |
 | [Territory campaigns](docs/BATTLEFIELD_INTELLIGENCE.md) | Measured footholds, advance zones (ranks 4-10), defended areas, and study-bound `campaign-research.json` action briefs. |
-| [Keyword stuffing & title review](docs/BUSINESS_NAME_REVIEW.md) | Read-only agent-owned dossier for Google Business Profile name discrepancies, combining Standard-queue exact-CID profile refreshes, website branding captures, historical report reconciliation, counterevidence, and an explained `0-5` `title-evidence-v1` concern confidence scale. |
+| [Keyword stuffing & title review](docs/BUSINESS_NAME_REVIEW.md) | Read-only agent-owned dossier for Google Business Profile name discrepancies, combining Standard-queue exact-CID profile refreshes, multi-vantage Street View captures (`v0`, `v1`, `v2`), optional `legends-jev` 1.14 optical signage verification, website branding captures, historical report reconciliation, counterevidence, in-app photo Lightbox inspection, and an explained `0-5` `title-evidence-v1` concern confidence scale. |
 | [Search-window & lattice discipline](docs/SEARCH_WINDOW_POLICY.md) | Unbiased regional sampling (`search_this_area=false`), nested radius composition, and explicit distinction between evidenced top-30 absence and incomplete responses. |
 | [10-mile starter case study](examples/starter-home-slice/README.md) | Pre-loaded Home Slice Pizza (`1415 S Congress Ave, Austin, TX`) 10-mile, 0.5-mile spacing (`1,249` origins x `4` queries = `4,996` tasks, `depth=30`) companion study (`src/data/home-slice-study.json`), campaign research (`src/data/home-slice-campaign-research.json`), 165-profile name review (`src/data/home-slice-name-review.json`), and completed 18-page PDF/HTML report (`examples/starter-home-slice/report/`). |
 | Research, reports & study library | Website/public-profile evidence, [3-5 justified search themes](docs/QUERY_SELECTION_POLICY.md), Letter PDF/HTML strategy reports, [incremental study enhancement](docs/ENHANCE.md), and hashed Markdown/JSON study banking. |

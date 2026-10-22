@@ -76,3 +76,109 @@ export function destination(lat, lng, km, bearing) {
   const endLng = b + Math.atan2(Math.sin(heading) * Math.sin(angle) * Math.cos(a), Math.cos(angle) - Math.sin(a) * Math.sin(endLat))
   return [endLat / rad, endLng / rad]
 }
+
+// Trace closed orthogonal grid-cell boundary loops for contiguous leader clusters.
+export function territoryOutlines(points, cellById, project) {
+  const rows = [...new Set(points.map(p => p.lat))].sort((a, b) => b - a)
+  const columns = [...new Set(points.map(p => p.lng))].sort((a, b) => a - b)
+  if (rows.length < 2 || columns.length < 2) return []
+  const rowIndex = new Map(rows.map((lat, i) => [lat, i]))
+  const colIndex = new Map(columns.map((lng, i) => [lng, i]))
+  const colCenter = columns.map(lng => project([rows[0], lng]).x)
+  const rowCenter = rows.map(lat => project([lat, columns[0]]).y)
+  const colX = new Array(columns.length + 1)
+  const rowY = new Array(rows.length + 1)
+  colX[0] = colCenter[0] - (colCenter[1] - colCenter[0]) / 2
+  for (let c = 1; c < columns.length; c++) colX[c] = (colCenter[c - 1] + colCenter[c]) / 2
+  colX[columns.length] = colCenter.at(-1) + (colCenter.at(-1) - colCenter.at(-2)) / 2
+  rowY[0] = rowCenter[0] - (rowCenter[1] - rowCenter[0]) / 2
+  for (let r = 1; r < rows.length; r++) rowY[r] = (rowCenter[r - 1] + rowCenter[r]) / 2
+  rowY[rows.length] = rowCenter.at(-1) + (rowCenter.at(-1) - rowCenter.at(-2)) / 2
+
+  const grid = new Map()
+  for (const p of points) {
+    const cell = cellById.get(p.id)
+    if (!cell || !cell.leaderId || cell.kind !== 'ranked') continue
+    const r = rowIndex.get(p.lat), c = colIndex.get(p.lng)
+    if (r !== undefined && c !== undefined) grid.set(`${r},${c}`, { r, c, leaderId: cell.leaderId, color: cell.color })
+  }
+
+  const visited = new Set()
+  const outlines = []
+  for (const [startKey, startNode] of grid) {
+    if (visited.has(startKey)) continue
+    const comp = [startNode]
+    visited.add(startKey)
+    for (let i = 0; i < comp.length; i++) {
+      const { r, c, leaderId } = comp[i]
+      for (const [nr, nc] of [[r - 1, c], [r + 1, c], [r, c - 1], [r, c + 1]]) {
+        const k = `${nr},${nc}`
+        const neighbor = grid.get(k)
+        if (neighbor && !visited.has(k) && neighbor.leaderId === leaderId) {
+          visited.add(k)
+          comp.push(neighbor)
+        }
+      }
+    }
+    const inComp = new Set(comp.map(n => `${n.r},${n.c}`))
+    // Build directed boundary edges around component cells (clockwise in c,r space)
+    const outgoing = new Map()
+    const addEdge = (c1, r1, c2, r2, dir) => {
+      const k = `${c1},${r1}`
+      if (!outgoing.has(k)) outgoing.set(k, [])
+      outgoing.get(k).push({ c1, r1, c2, r2, dir, used: false })
+    }
+    for (const { r, c } of comp) {
+      if (!inComp.has(`${r - 1},${c}`)) addEdge(c, r, c + 1, r, 0)         // N edge -> East
+      if (!inComp.has(`${r},${c + 1}`)) addEdge(c + 1, r, c + 1, r + 1, 1) // E edge -> South
+      if (!inComp.has(`${r + 1},${c}`)) addEdge(c + 1, r + 1, c, r + 1, 2) // S edge -> West
+      if (!inComp.has(`${r},${c - 1}`)) addEdge(c, r + 1, c, r, 3)         // W edge -> North
+    }
+    const nx = [0, -1, 0, 1], ny = [1, 0, -1, 0]
+    const rings = []
+    for (const edges of outgoing.values()) {
+      for (const startEdge of edges) {
+        if (startEdge.used) continue
+        const loop = []
+        let curr = startEdge
+        while (curr && !curr.used) {
+          curr.used = true
+          loop.push(curr)
+          const nextKey = `${curr.c2},${curr.r2}`
+          const candidates = (outgoing.get(nextKey) || []).filter(e => !e.used)
+          if (!candidates.length) break
+          // Right-hand turn preference keeps diagonal saddle points separate
+          const pref = [(curr.dir + 1) % 4, curr.dir, (curr.dir + 3) % 4, (curr.dir + 2) % 4]
+          candidates.sort((a, b) => pref.indexOf(a.dir) - pref.indexOf(b.dir))
+          curr = candidates[0]
+        }
+        if (loop.length < 4) continue
+        // Keep only corner vertices where direction changes, with inward normal & turn convexity
+        const corners = []
+        for (let i = 0; i < loop.length; i++) {
+          const prev = loop[(i - 1 + loop.length) % loop.length]
+          const edge = loop[i]
+          if (prev.dir !== edge.dir) {
+            corners.push({
+              x: colX[edge.c1],
+              y: rowY[edge.r1],
+              ix: nx[prev.dir] + nx[edge.dir],
+              iy: ny[prev.dir] + ny[edge.dir],
+              convex: ((prev.dir + 1) % 4) === edge.dir,
+            })
+          }
+        }
+        if (corners.length >= 4) rings.push(corners)
+      }
+    }
+    if (rings.length) {
+      outlines.push({
+        leaderId: startNode.leaderId,
+        color: startNode.color,
+        size: comp.length,
+        rings,
+      })
+    }
+  }
+  return outlines
+}

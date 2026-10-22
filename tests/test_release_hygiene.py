@@ -129,7 +129,7 @@ class ReleaseHygieneTests(unittest.TestCase):
             if path.suffix.lower() not in TEXT_SUFFIXES:
                 continue
             text = path.read_text(encoding="utf-8", errors="ignore")
-            if "Legends" + " GeoGrid" in text:
+            if any(b in text for b in ("Legends" + " GeoGrid", "CTO" + " Legends", "CTO" + "-Legends")):
                 offenders.append(str(path.relative_to(ROOT)))
         self.assertEqual([], offenders)
 

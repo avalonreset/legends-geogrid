@@ -17,7 +17,7 @@ Instead of paying a monthly rank-tracking subscription to stare at square grids 
 
 ## Agent setup (via `cto-legends`)
 
-Part of the [CTO Legends](https://github.com/avalonreset/cto-legends) ecosystem. `cto-legends` is the only registered skill; this repo vendors a pinned copy at `skills/cto-legends/SKILL.md`.
+Part of the [cto-legends](https://github.com/avalonreset/cto-legends) ecosystem. `cto-legends` is the only registered skill; this repo vendors a pinned copy at `skills/cto-legends/SKILL.md`.
 
 Install with `cto-legends install legends-geogrid`, then follow the module recipe the router loads. Do not register this module as its own skill.
 

@@ -7,11 +7,11 @@
 [![checks](https://img.shields.io/github/actions/workflow/status/avalonreset/legends-geogrid/ci.yml?branch=main&label=checks&style=flat-square&labelColor=000000)](https://github.com/avalonreset/legends-geogrid/actions/workflows/ci.yml)
 [![license](https://img.shields.io/github/license/avalonreset/legends-geogrid?label=license&style=flat-square&labelColor=000000&color=666666)](LICENSE)
 
-**legends-geogrid is an agent-first, open-source google maps rank checker and local SEO battlefield explorer.**
+**`legends-geogrid` is an agent-first, open-source Google Maps rank checker, local rank tracker, and local SEO battlefield explorer.**
 
-Instead of paying a monthly rank-tracking subscription to stare at square grids of red and green dots by yourself, you work with your coding agent. Ask your agent to open the bundled 10-mile Austin pizza case study for `$0`, or tell it to study your own business on Google Maps. Your agent researches the market, samples an unbiased circular lattice through [legends-dataforseo](https://github.com/avalonreset/legends-dataforseo) at raw API cost, checks competitor storefront signage with [legends-jev](https://github.com/avalonreset/legends-jev) optical recognition, and opens the full-bleed **Competitive Map Companion** alongside an **18-page Letter PDF strategy report**.
+Instead of paying a monthly rank-tracking subscription to stare at square grids of red and green dots by yourself, you work with your coding agent. Ask your agent to open the bundled 10-mile Austin pizza case study for `$0`, or tell it to study your own business for Google Maps SEO and Google Business Profile optimization. Your agent researches the market, samples an unbiased circular lattice across the Google Map Pack through [legends-dataforseo](https://github.com/avalonreset/legends-dataforseo) at raw API cost, checks competitor storefront signage with optional [legends-jev](https://github.com/avalonreset/legends-jev) optical recognition, and opens the full-bleed **Competitive Map Companion** alongside an **18-page Letter PDF local SEO audit and strategy report**.
 
-**Quick links:** [Visual tour](#visual-tour) · [Talk to your agent](#talk-to-your-agent) · [Zero-credit starter study](examples/starter-home-slice/README.md) · [18-page sample PDF](examples/starter-home-slice/report/report.pdf) · [Data-cost economics](#data-cost-economics) · [Documentation](#documentation-for-agents-and-builders)
+**Quick links:** [Visual tour](#visual-tour) · [Talk to your agent](#talk-to-your-agent) · [Zero-credit starter study](examples/starter-home-slice/README.md) · [18-page sample PDF](examples/starter-home-slice/report/report.pdf) · [Data-cost economics](#data-cost-economics) · [Why switch](#why-switch-from-local-falcon-brightlocal--whitespark) · [FAQ](#frequently-asked-questions) · [Documentation](#documentation-for-agents-and-builders)
 
 ---
 
@@ -106,6 +106,34 @@ If you are evaluating an open-source Local Falcon alternative, the core advantag
 Every paid runner estimates cost offline by default and refuses to make network calls unless **both** spend gates are explicitly supplied:
 - `--execute` (authorizes live provider submission)
 - `--confirm-cost-usd <ceiling>` (aborts preflight if the estimated cost exceeds your ceiling)
+
+---
+
+## Why switch from Local Falcon, BrightLocal & Whitespark?
+
+Most hosted local rank tracker tools charge recurring monthly subscriptions for pre-packaged credit tiers and sample square bounding boxes that over-weight corner zip codes. `legends-geogrid` is designed for developers, agencies, and operators who want an open-source Local Falcon alternative or BrightLocal alternative driven by their coding agent:
+
+| Capability | Hosted SaaS geo-grid trackers (`Local Falcon`, `BrightLocal`, `Whitespark`, `LeadSnap`) | `legends-geogrid` (`cto-legends` open-source module) |
+| --- | --- | --- |
+| **Workflow interface** | Manual web dashboard clicks and recurring SaaS credit tiers | **Agent-first**: ask your coding agent in plain English; it runs the CLI and opens the browser studio |
+| **Sampling geometry** | Square $N \times N$ grids that distort radial distance in the corners | **True circular lattice** (`0.5 mi` spacing, `search_this_area=false`) with incremental outer-ring expansion |
+| **Google Map Pack & organic depth** | Typically top-20 map pins per coordinate | **Top-30 Google Maps rank checker** across 3-5 researched customer search themes |
+| **GBP keyword-stuffing & signage audit** | Manual visual spot-checks or basic title-string flags | **Automated exact-CID refresh + multi-vantage Street View + optional `legends-jev` optical signage verification** |
+| **Deliverables & white-label reports** | Hosted share links or template exports | **Interactive Leaflet Companion + 18-page vector Letter PDF & standalone HTML local SEO audit reports** |
+| **Data ownership & cost** | Monthly subscription (`$29 - $200+/mo`) with expiring credits | **MIT open source**: `$0` bundled Austin study; `~$0.76` (5-mi) to `~$3.00` (10-mi) raw DataForSEO cost stored on your disk |
+
+---
+
+## Frequently asked questions
+
+### How does a geo-grid Google Maps rank checker work?
+Google Maps and the Google Map Pack rank businesses differently depending on the searcher's exact GPS coordinates. A single-point local rank checker only shows rankings from one city centroid. `legends-geogrid` samples hundreds of coordinates across a true circular radius (`317` origins at `5` miles or `1,249` origins at `10` miles) with `search_this_area=false` so you see real neighborhood-by-neighborhood Google Maps ranking territories.
+
+### Can I explore a full local rank tracking study without API keys or credits?
+Yes. Every checkout includes the complete `1,249`-origin Austin pizza study (`Home Slice Pizza`, `702` competitors, `165` optically audited profiles) and its 18-page PDF report. Tell your agent *"open the example pizza map"* or run `pnpm dev` to inspect every lens in your browser for `$0`.
+
+### How does `legends-geogrid` help with Google Business Profile optimization and keyword stuffing audits?
+When a competitor outranks you across the map, `legends-geogrid` can audit whether their Google Business Profile title matches their real-world signage. Your agent refreshes exact Google CIDs, captures public website branding and multi-vantage Street View imagery, and optionally runs `legends-jev` optical character recognition to score title-stuffing concern confidence (`0-5`) with counterevidence preserved.
 
 ---
 

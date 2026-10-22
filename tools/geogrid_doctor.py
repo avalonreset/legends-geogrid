@@ -45,6 +45,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--reports', action='store_true', help='Require the optional PDF report engine and its dependencies')
     parser.add_argument('--dataforseo', action='store_true', help='Require the shared DataForSEO kit for fresh scans; no API calls')
+    parser.add_argument('--jev', action='store_true', help='Check optional legends-jev v0.2.0+ optical recognition readiness')
     parser.add_argument('--basemaps', action='store_true', help='Check local street-map browser setup; no network or paid requests')
     args = parser.parse_args()
     required = [
@@ -82,12 +83,24 @@ def main() -> int:
             ok('Google Maps', 'optional; free maps work without it. See docs/BASEMAPS.md for setup')
     if args.dataforseo:
         try:
-            from legends_dataforseo import api_request
-            from importlib.metadata import version
-            ok('legends-dataforseo-kit', version('legends-dataforseo-kit'))
+            import legends_dataforseo
+            from legends_dataforseo import api_request  # noqa: F401
+            pkg_ver = getattr(legends_dataforseo, "__version__", "installed")
+            ok('legends-dataforseo', str(pkg_ver))
         except (ImportError, ModuleNotFoundError):
-            missing.append('legends-dataforseo-kit')
-            fail('legends-dataforseo-kit', 'install requirements-dataforseo.txt')
+            missing.append('legends-dataforseo')
+            fail('legends-dataforseo', 'install requirements-dataforseo.txt or cto-legends install legends-dataforseo')
+    if args.jev:
+        try:
+            import legends_jev
+            pkg_ver = getattr(legends_jev, "__version__", "installed")
+            has_ocr = hasattr(legends_jev, "inspect_signage") and hasattr(legends_jev, "inspect_ocr")
+            if has_ocr:
+                ok('legends-jev', f"{pkg_ver} (optical recognition + signage ready)")
+            else:
+                warn('legends-jev', f"{pkg_ver} (upgrade to >=0.2.0 for optical recognition)")
+        except (ImportError, ModuleNotFoundError):
+            warn('legends-jev', 'not in current Python env (optional; cto-legends install legends-jev for --jev optical signage speed boost)')
     if args.reports:
         required.extend(['tools/strategy_report.py', 'tools/report_model.py', 'tools/adaptive_geogrid.py', 'requirements-report.txt'])
         for module in ('reportlab', 'PIL', 'pypdf', 'pypdfium2'):

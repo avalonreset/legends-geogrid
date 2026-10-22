@@ -51,15 +51,32 @@ export function localLeaders(model, queryId, minimumWins = 3) {
         if (component.length > cluster.length) cluster = component
       }
     }
-    const center = cluster.length ? {
+    const mean = cluster.length ? {
       lat: cluster.reduce((sum, p) => sum + p.lat, 0) / cluster.length,
       lng: cluster.reduce((sum, p) => sum + p.lng, 0) / cluster.length,
     } : null
+    let center = mean
+    if (mean && cluster.length > 2) {
+      const clusterSet = new Set(cluster)
+      let nearestAny = null, nearestAnyDist = Infinity
+      for (const p of model.points) {
+        const d = distanceKm(mean, p)
+        if (d < nearestAnyDist) { nearestAnyDist = d; nearestAny = p }
+      }
+      if (nearestAny && !clusterSet.has(nearestAny)) {
+        let bestInCluster = cluster[0], bestDist = Infinity
+        for (const p of cluster) {
+          const d = distanceKm(mean, p)
+          if (d < bestDist) { bestDist = d; bestInCluster = p }
+        }
+        center = { lat: bestInCluster.lat, lng: bestInCluster.lng }
+      }
+    }
     const hasBase = Number.isFinite(business.lat) && Number.isFinite(business.lng)
     const beyondKm = hasBase && primary && model.sampling?.radius_km
       ? distanceKm(primary, business) - model.sampling.radius_km : null
     const outside = beyondKm !== null && beyondKm > 0
-    return { business, wins: points.length, share: points.length / model.points.length,
+    return { business, wins: points.length, share: points.length / model.points.length, points,
       major, center, clusterSize: cluster.length, outside, hasBase,
       connector: !!(hasBase && center && beyondKm > 3.218688),
       badge: leaderIdentity(model).identities.get(id)?.badge || '—',

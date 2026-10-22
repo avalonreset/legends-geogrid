@@ -95,9 +95,20 @@ export function validateNameReview(input, model) {
     seenCids.add(String(c.cid))
     const website = plain(c.website_evidence) ? c.website_evidence : {}
     const sourceReview = plain(c.source_review) ? { bracket: str(c.source_review.bracket,100), suspect_terms: Array.isArray(c.source_review.suspect_terms) ? c.source_review.suspect_terms.filter(v=>typeof v==='string').slice(0,30) : [], checked_at: str(c.source_review.checked_at,100), finding: str(c.source_review.finding),
-      counterevidence: str(c.source_review.counterevidence), next_action: str(c.source_review.next_action),
+      counterevidence: str(c.source_review.counterevidence), next_action: str(c.source_review.next_action), visual_review: str(c.source_review.visual_review),
       sources: Array.isArray(c.source_review.sources) ? c.source_review.sources.filter(plain).slice(0,100).map(s => ({url:str(s.url,4000),label:str(s.label,500)})) : [] } : null
-    const profile = plain(c.profile) ? Object.fromEntries(Object.entries(c.profile).map(([k,v]) => [k, str(v,k === 'name' ? 500 : 2000)])) : {}
+    const profile = plain(c.profile) ? Object.fromEntries(Object.entries(c.profile).filter(([k]) => k !== 'jev_optical').map(([k,v]) => [k, str(v,k === 'name' ? 500 : 2000)])) : {}
+    if (plain(c.profile?.jev_optical)) {
+      const j = c.profile.jev_optical
+      profile.jev_optical = {
+        verdict: str(j.verdict, 64),
+        best_image: str(j.best_image, 32),
+        best_streetview: str(j.best_streetview, 32),
+        physical_sign_visible: typeof j.physical_sign_visible === 'number' ? j.physical_sign_visible : null,
+        suspect_terms_shown: typeof j.suspect_terms_shown === 'number' ? j.suspect_terms_shown : null,
+        latency_ms: typeof j.latency_ms === 'number' ? j.latency_ms : null,
+      }
+    }
     return { ...c, businessId: business.id, cid_verified: true, signals: Array.isArray(c.signals) ? c.signals.filter(plain) : [],
       limitations: Array.isArray(c.limitations) ? c.limitations.filter(s => typeof s === 'string') : [],
       source_review: sourceReview, profile, website_evidence: { ...website, evidence_path: str(website.evidence_path,2000), title: str(website.title,2000), excerpt:str(website.excerpt), names: Array.isArray(website.names) ? website.names.filter(plain).slice(0,100).map(n => ({name:str(n.name,500),source:str(n.source,2000)})) : [] } }
@@ -208,6 +219,19 @@ export function brandingEvidenceHTML(site = {}) {
   const unavailable = site.status === 'unavailable'
   return `<section><h3>Captured website wording</h3>${metadataOnly ? '<p class="nr-evidence-limit">Metadata only in this extract. The trading name is not verified.</p>' : ''}${names.length ? names.map(n=>`<p><strong>${esc(readableWebsiteText(n.name))}</strong><small>${esc(brandingSourceLabel(n.source))}</small></p>`).join('') : `<p>${unavailable?'Website could not be retrieved.':'No branding text extracted.'} See the individual source review below.</p>`}<p class="nr-source-date">${site.checked_at ? `${unavailable?'Attempted':'Captured'} ${date(site.checked_at)}.` : 'Website check not attached.'}</p><p class="nr-evidence-note">Extracted wording is not verified signage or a proposed replacement name.</p></section>`
 }
+export function visualEvidenceHTML(c) {
+  const profile = c.profile || {}, review = c.source_review || {}, jev = plain(profile.jev_optical) ? profile.jev_optical : null
+  const photos = [
+    ['GBP main photo', safeSourceURL(profile.main_image_url)],
+    ['Google Street View', safeSourceURL(profile.streetview_url)],
+    ['GBP logo badge', safeSourceURL(profile.logo_url)],
+  ].filter(([, url]) => Boolean(url))
+  const note = str(review.visual_review, 4000).trim()
+  const jevLabels = { supports_full_title: 'Supports full title', omits_suspect_terms: 'Omits suspect terms', obstructed_or_no_sign: 'Obstructed or no sign' }
+  const jevSummary = jev?.verdict ? `Jev 1.14 optical check: ${jevLabels[jev.verdict] || jev.verdict}${jev.best_streetview && jev.best_streetview !== 'none' ? ` · vantage ${jev.best_streetview}` : ''}${typeof jev.physical_sign_visible === 'number' ? ` · outdoor sign ${(jev.physical_sign_visible * 100).toFixed(0)}%` : ''}${typeof jev.suspect_terms_shown === 'number' ? ` · suspect terms ${(jev.suspect_terms_shown * 100).toFixed(0)}%` : ''}` : ''
+  if (!photos.length && !note && !jevSummary) return ''
+  return `<section class="nr-visual"><span class="nr-kicker">STOREFRONT, STREET VIEW &amp; LOGO INSPECTION</span>${jevSummary ? `<p class="nr-jev-badge"><b>${esc(jevSummary)}</b></p>` : ''}${note ? `<p class="nr-visual-note">${esc(note)}</p>` : ''}${photos.length ? `<div class="nr-visual-grid">${photos.map(([label, url]) => `<a class="nr-visual-card" href="${esc(url)}" target="_blank" rel="noopener noreferrer" data-nr-photo="${esc(url)}" data-nr-label="${esc(label)}"><img src="${esc(url)}" alt="${esc(label)}" loading="lazy" referrerpolicy="no-referrer"><span>🔍 ${esc(label)}</span></a>`).join('')}</div>` : ''}</section>`
+}
 export function caseBriefHTML(c, now = Date.now()) {
   const site = c.website_evidence || {}, profile = c.profile || {}, terms = c.source_review?.suspect_terms || []
   return `<div class="nr-detail-heading"><span class="nr-status">${esc(REVIEW_BRACKETS[reviewBracket(c)])}</span><h2>${esc(profile.name || c.name)}</h2><p>${esc(c.address || 'Address not supplied')} · ${c.total_wins || 0} first-place observations across the study</p><div class="nr-links">${link(c.map_url || profile.source_url, 'Google profile')}${link(c.website || site.url, 'Business website')}<button data-nr="map">Show on map</button></div></div>
@@ -215,6 +239,7 @@ export function caseBriefHTML(c, now = Date.now()) {
     ${historicalCaseHTML(c)}
     <div class="nr-comparison"><section><h3>Google business title</h3><strong>${highlightedTitleHTML(profile.name || c.name,terms)}</strong>${terms.length ? `<p class="nr-disputed"><b>Words to verify:</b> ${terms.map(t=>`“${esc(t)}”`).join(', ')}</p>` : ''}<small>${profile.checked_at ? `Checked ${date(profile.checked_at)}.` : 'Historical scan name; a current profile check is missing.'}</small></section>${brandingEvidenceHTML(site)}</div>
     ${sourceReviewHTML(c.source_review) || `<section class="nr-next-action"><h3>Agent investigation needed</h3><p>${esc(c.assessment || 'Resolve the current profile name and public branding before proposing a correction.')}</p><p>The agent needs to investigate this profile; no conclusion follows from an automated text match.</p></section>`}
+    ${visualEvidenceHTML(c)}
     ${c.scan_name && profile.name && c.scan_name !== profile.name ? `<p class="nr-name-change">Name changed since the ranking scan: ${esc(c.scan_name)} → ${esc(profile.name)}</p>` : ''}
     <details><summary>Collection records and limitations</summary><p>Profile CID: ${esc(c.cid)}</p><p>Profile record: <code>${esc(profile.evidence_path || 'Not attached')}</code></p><p>Profile SHA-256: <code>${esc(profile.sha256 || 'Not attached')}</code></p><p>Website record: <code>${esc(site.evidence_path || 'Not attached')}</code></p><p>Website SHA-256: <code>${esc(site.sha256 || 'Not attached')}</code></p><ul>${(c.signals || []).map(s => `<li>${esc(s.reason || s.code)}</li>`).join('')}${(c.limitations || []).map(s => `<li>${esc(s)}</li>`).join('')}</ul></details>`
 }
@@ -255,25 +280,42 @@ export function createNameReview({ getModel, getQuery = () => getModel().queries
     const historyCount = cases.filter(c=>c.historical_report).length
     const scopeDescription = scope === 'query' ? `Recurring leaders for “${esc(queryName)}” only.` : scope === 'recurring' ? `Recurring leaders across all ${getModel().queries.length} keywords.` : scope === 'history' ? 'Businesses from your September title report.' : scope === 'priority' ? 'Recurring leaders plus your historical report leads.' : 'All observed winners plus individually investigated leads.'
     panel.innerHTML = `<header class="nr-header"><div><span class="nr-kicker">LEGENDS · AGENT INTELLIGENCE</span><h1>Keyword stuffing</h1></div><button data-nr="close">Back to map</button></header>
-      <div class="nr-body"><section class="nr-overview"><p class="nr-intro"><b>${summary.total} business profiles · ${summary.assessed} individually assessed</b> · ${scopeDescription} Names/titles only. Updated ${date(evidence?.generated_at)}.</p>
+      <div class="nr-body"><section class="nr-overview"><div class="nr-overview-top"><p class="nr-intro"><b>${summary.total} business profiles · ${summary.assessed} individually assessed</b> · ${scopeDescription} Names/titles only. Updated ${date(evidence?.generated_at)}.</p><div class="nr-overview-actions"><details class="nr-method"><summary>Scope, confidence &amp; naming rule</summary><div class="nr-method-pop"><p>Recurring means at least three first-place locations in any studied keyword. Historical leads remain included even with no first-place wins. The optional keyword filter narrows every count and list together. Businesses outside the circle remain included if they compete within it. This is a selected investigation, not a count of all violations in the market.</p><p>Confidence measures support for a naming concern: 0 = branding supports the title; 1 = weak; 2 = limited; 3 = moderate; 4 = strong; 5 = very strong. Unscored means evidence is insufficient or stale. These are analyst judgements, not statistical probabilities or guarantees of a Google correction.</p><p>Google uses consistent real-world business names. A DBA or service word alone does not establish compliance or a violation. ${link('https://support.google.com/business/answer/3038177','Google naming policy')}</p><p>The agent owns the investigation. No correction has been submitted by this viewer.</p></div></details><button data-nr="close" class="nr-back-inline">Back to map</button></div></div>
       ${loading || error || !evidence ? `<p class="nr-load-status" role="status">${esc(loading ? 'Loading the agent’s saved investigation…' : error || 'Individual research is not attached yet. The observed businesses below still show the investigation scope.')}</p>` : ''}
       ${titleConcernOverviewHTML(cases,getQuery(),scope,filter)}
-      ${historyCount ? `<div class="nr-history-summary"><span><b>${historyCount} September-report leads matched.</b> First-place wins are not required for a naming investigation.</span><button data-nr="history">Review prior leads</button></div>` : ''}
-      <details class="nr-method"><summary>Scope, confidence, and naming rule</summary><p>Recurring means at least three first-place locations in any studied keyword. Historical leads remain included even with no first-place wins. The optional keyword filter narrows every count and list together. Businesses outside the circle remain included if they compete within it. This is a selected investigation, not a count of all violations in the market.</p><p>Confidence measures support for a naming concern: 0 = branding supports the title; 1 = weak; 2 = limited; 3 = moderate; 4 = strong; 5 = very strong. Unscored means evidence is insufficient or stale. These are analyst judgements, not statistical probabilities or guarantees of a Google correction.</p><p>Google uses consistent real-world business names. A DBA or service word alone does not establish compliance or a violation. ${link('https://support.google.com/business/answer/3038177','Google naming policy')}</p><p>The agent owns the investigation. No correction has been submitted by this viewer.</p></details></section>
-      <div class="nr-browser"><aside class="nr-cases"><label>Investigation scope<select id="nr-scope"><option value="priority">Recurring leaders + prior report</option><option value="history">September report · matched leads</option><option value="recurring">All keywords · recurring leaders</option><option value="query">Selected keyword only · recurring leaders</option><option value="all">All winners + investigated leads</option></select></label><label>Find a business<input id="nr-search" type="search" value="${esc(search)}" placeholder="Name, address, or profile ID"></label><label>Findings<select id="nr-filter"><option value="all">All profiles · concerns first</option><option value="concerns">All title concerns</option>${Object.entries(REVIEW_BRACKETS).map(([k,v])=>`<option value="${k}">${v}</option>`).join('')}</select></label><p>${rows.length} of ${summary.total} profiles · ${filter==='all'?'concerns first':'filtered findings'}</p><div class="nr-case-list">${visibleRows.map(row=>`<button data-case="${esc(row.id)}" aria-pressed="${selected===row.id}"><strong>${esc(row.profile?.name || row.name)}</strong><span>${esc(row.address || 'Address unavailable')}</span><small>${esc(REVIEW_BRACKETS[reviewBracket(row)])}${titleConfidence(row, now) ? ` · ${titleConfidence(row, now).level}/5` : ''}</small>${row.historical_report ? '<span class="nr-history-tag">September report</span>' : ''}${row.source_review?.suspect_terms?.length ? `<em>Verify: ${row.source_review.suspect_terms.map(t=>`“${esc(t)}”`).join(', ')}</em>` : ''}</button>`).join('') || '<p>No profiles match this filter. This is not a finding that every business name is compliant.</p>'}</div><div class="nr-buttons"><button data-nr="previous" ${page?'':'disabled'}>Previous</button><span>${page+1}/${Math.max(1,Math.ceil(rows.length/CASE_PAGE_SIZE))}</span><button data-nr="next" ${(page+1)*CASE_PAGE_SIZE<rows.length?'':'disabled'}>Next</button></div></aside><article class="nr-case-detail">${c ? caseBriefHTML(c, now) : '<h2>No case selected</h2><p>Choose an observed profile or return to all findings.</p>'}</article></div></div>`
+      ${historyCount ? `<div class="nr-history-summary"><span><b>${historyCount} September-report leads matched.</b> First-place wins are not required for a naming investigation.</span><button data-nr="history">Review prior leads</button></div>` : ''}</section>
+      <div class="nr-browser"><aside class="nr-cases"><div class="nr-filters"><label>Investigation scope<select id="nr-scope"><option value="priority">Recurring leaders + prior report</option><option value="history">September report · matched leads</option><option value="recurring">All keywords · recurring leaders</option><option value="query">Selected keyword only · recurring leaders</option><option value="all">All winners + investigated leads</option></select></label><label>Findings<select id="nr-filter"><option value="all">All profiles · concerns first</option><option value="concerns">All title concerns</option>${Object.entries(REVIEW_BRACKETS).map(([k,v])=>`<option value="${k}">${v}</option>`).join('')}</select></label><label class="nr-search-field">Find a business<input id="nr-search" type="search" value="${esc(search)}" placeholder="Name, address, or profile ID"></label></div><p class="nr-case-count">${rows.length} of ${summary.total} profiles · ${filter==='all'?'concerns first':'filtered findings'}</p><div class="nr-case-list">${visibleRows.map(row=>`<button data-case="${esc(row.id)}" aria-pressed="${selected===row.id}"><strong>${esc(row.profile?.name || row.name)}</strong><span>${esc(row.address || 'Address unavailable')}</span><small>${esc(REVIEW_BRACKETS[reviewBracket(row)])}${titleConfidence(row, now) ? ` · ${titleConfidence(row, now).level}/5` : ''}</small>${row.historical_report ? '<span class="nr-history-tag">September report</span>' : ''}${row.source_review?.suspect_terms?.length ? `<em>Verify: ${row.source_review.suspect_terms.map(t=>`“${esc(t)}”`).join(', ')}</em>` : ''}</button>`).join('') || '<p>No profiles match this filter. This is not a finding that every business name is compliant.</p>'}</div><div class="nr-buttons"><button data-nr="previous" ${page?'':'disabled'}>Previous</button><span>${page+1}/${Math.max(1,Math.ceil(rows.length/CASE_PAGE_SIZE))}</span><button data-nr="next" ${(page+1)*CASE_PAGE_SIZE<rows.length?'':'disabled'}>Next</button></div></aside><article class="nr-case-detail">${c ? caseBriefHTML(c, now) : '<h2>No case selected</h2><p>Choose an observed profile or return to all findings.</p>'}</article></div></div>
+      <div id="nr-lightbox" class="nr-lightbox" hidden role="dialog" aria-modal="true" aria-label="Inspection photo viewer"></div>`
     panel.querySelector('#nr-filter').value=filter
     panel.querySelector('#nr-scope').value=scope
     lastQuery=getQuery()
   }
+  function openLightbox(url, label) {
+    const box = panel.querySelector('#nr-lightbox')
+    if (!box || !safeSourceURL(url)) return
+    const c = current()
+    const title = c?.profile?.name || c?.name || 'Profile photo'
+    box.innerHTML = `<div class="nr-lightbox-card"><header class="nr-lightbox-header"><div><span class="nr-kicker">${esc(label || 'INSPECTION PHOTO')}</span><h3>${esc(title)}</h3></div><div class="nr-lightbox-actions"><a href="${esc(safeSourceURL(url))}" target="_blank" rel="noopener noreferrer">Open original ↗</a><button type="button" data-nr-lightbox="close">Close (Esc)</button></div></header><div class="nr-lightbox-stage"><img src="${esc(safeSourceURL(url))}" alt="${esc(label || title)}" referrerpolicy="no-referrer"></div><p class="nr-lightbox-hint">Click anywhere outside the image or press Esc to return to the dossier.</p></div>`
+    box.hidden = false
+    box.querySelector('[data-nr-lightbox="close"]')?.focus()
+  }
+  function closeLightbox() {
+    const box = panel.querySelector('#nr-lightbox')
+    if (box && !box.hidden) { box.hidden = true; box.innerHTML = ''; return true }
+    return false
+  }
   function open() { onOpen(); panel.hidden=false; render() }
-  function close() { panel.hidden=true }
+  function close() { closeLightbox(); panel.hidden=true }
   function dismiss() { close(); onClose?.() }
-  function chooseFilter(value) { filter=value;search='';page=0;selected=ordered(scoped().filter(c=>filter==='all'||(filter==='concerns'?isTitleConcern(c):reviewBracket(c)===filter)))[0]?.id;render() }
+  function chooseFilter(value) { filter=(filter===value && value!=='all')?'all':value;search='';page=0;selected=ordered(scoped().filter(c=>filter==='all'||(filter==='concerns'?isTitleConcern(c):reviewBracket(c)===filter)))[0]?.id;render() }
   panel.addEventListener('input',event=>{
     if(event.target.id==='nr-search') { search=event.target.value;page=0;const position=event.target.selectionStart;render();const input=panel.querySelector('#nr-search');input.focus();input.setSelectionRange(position,position) }
   })
   panel.addEventListener('change',event=>{if(event.target.id==='nr-filter')chooseFilter(event.target.value);if(event.target.id==='nr-scope'){scope=event.target.value;filter='all';search='';page=0;render()}})
   panel.addEventListener('click',event=>{
+    if(event.target.id==='nr-lightbox' || event.target.closest('[data-nr-lightbox="close"]')){closeLightbox();return}
+    const photoCard=event.target.closest('[data-nr-photo]')
+    if(photoCard && !event.metaKey && !event.ctrlKey && !event.shiftKey){event.preventDefault();openLightbox(photoCard.dataset.nrPhoto,photoCard.dataset.nrLabel);return}
     const shortcut=event.target.closest('[data-nr-filter]'), row=event.target.closest('[data-case]')
     if(shortcut){chooseFilter(shortcut.dataset.nrFilter);return}
     if(row){selected=row.dataset.case;render();panel.querySelector('.nr-case-detail')?.scrollIntoView({block:'nearest'});return}
@@ -283,7 +325,7 @@ export function createNameReview({ getModel, getQuery = () => getModel().queries
     if(action==='map'&&current())onMap(current().businessId)
     if(action==='previous'||action==='next'){page+=action==='next'?1:-1;render()}
   })
-  panel.addEventListener('keydown',event=>{if(event.key==='Escape')dismiss()})
+  panel.addEventListener('keydown',event=>{if(event.key==='Escape'){if(closeLightbox()){event.stopPropagation();return}dismiss()}})
   return {
     open,close,
     sync(){if(!panel.hidden && lastQuery!==getQuery()){if(scope==='query'){filter='all';search='';page=0}render()}},
@@ -310,7 +352,8 @@ export function createNameReview({ getModel, getQuery = () => getModel().queries
         evidence=validateNameReview(input,study)
         const attached=new Map(evidence.cases.map(c=>[c.businessId,c]))
         cases=observedReviewScope(study,{includeIds:[...attached.keys()]}).map(c=>attached.has(c.businessId) ? {...attached.get(c.businessId),wins_by_query:c.wins_by_query,total_wins:c.total_wins} : c)
-        selected=ordered(cases)[0]?.id
+        filter=cases.some(isTitleConcern)?'concerns':'all'
+        selected=ordered(scoped().filter(c=>filter==='all'||isTitleConcern(c)))[0]?.id || ordered(cases)[0]?.id
       } catch(e) { if(token===version)error=`Agent evidence could not load: ${e.message}. Observed leaders remain listed below; they are not cleared of name stuffing.` }
       finally {if(token===version){loading=false;if(!panel.hidden)render()}}
     },

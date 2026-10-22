@@ -39,11 +39,19 @@ function getDominanceSprites() {
 // One viewport bitmap replaces thousands of individually positioned SVG nodes.
 // Geographic coordinates and evidence stay unchanged; hover uses the same shapes.
 export const RankCanvasLayer = L.Layer.extend({
-  initialize({ onSelect }) {
+  initialize({ onSelect, onHoverLeader = null }) {
     this.onSelect = onSelect
+    this.onHoverLeader = onHoverLeader
     this.cells = []
     this.diamonds = []
+    this.territories = []
+    this.hoverLeaderId = null
+    this.hoverMix = 0
+    this.leaderWeights = new Map()
+    this.hoverAnimFrame = 0
+    this.hoverLastTime = 0
     this.spacing = 0
+    this.stepPx = 0
     this.hits = []
     this.frame = 0
     this.focusIndex = -1
@@ -69,6 +77,11 @@ export const RankCanvasLayer = L.Layer.extend({
     }
     this.hover = event => {
       const hit = this.hitAt(event.containerPoint)
+      const near = hit || this.nearCellAt(event.containerPoint)
+      const nextLeader = near?.leaderId || null
+      if (this.onHoverLeader && nextLeader !== this.hoverLeaderId) {
+        this.onHoverLeader(nextLeader)
+      }
       if (hit?.id === this.hoverId) return
       this.hideTooltip()
       if (hit) this.showTooltip(hit)
@@ -78,9 +91,16 @@ export const RankCanvasLayer = L.Layer.extend({
       const hit = this.hitAt(event.containerPoint)
       if (hit) this.onSelect(hit.id)
     }
-    this.hide = () => this.hideTooltip()
+    this.hide = () => {
+      this.hideTooltip()
+    }
+    this.mouseOut = () => {
+      this.hideTooltip()
+      if (this.onHoverLeader && this.hoverLeaderId) this.onHoverLeader(null)
+    }
     map.on('move zoom resize', this.queueDraw)
-    map.on('movestart zoomstart mouseout', this.hide)
+    map.on('movestart zoomstart', this.hide)
+    map.on('mouseout', this.mouseOut)
     map.on('mousemove', this.hover)
     map.on('click', this.click)
     map.getContainer().addEventListener('keydown', this.keydown = event => {
@@ -105,11 +125,13 @@ export const RankCanvasLayer = L.Layer.extend({
   },
   onRemove(map) {
     cancelAnimationFrame(this.frame)
+    cancelAnimationFrame(this.hoverAnimFrame)
     this.stopRankOneAnimation()
     document.removeEventListener('visibilitychange', this.rankOneVisibility)
     this.motionPreference.removeEventListener('change', this.rankOneVisibility)
     map.off('move zoom resize', this.queueDraw)
-    map.off('movestart zoomstart mouseout', this.hide)
+    map.off('movestart zoomstart', this.hide)
+    map.off('mouseout', this.mouseOut)
     map.off('mousemove', this.hover)
     map.off('click', this.click)
     map.getContainer().removeEventListener('keydown', this.keydown, true)
@@ -117,15 +139,77 @@ export const RankCanvasLayer = L.Layer.extend({
     this.canvas.remove()
     this.rankOneCanvas.remove()
   },
-  setData(cells, diamonds, spacing, translucent, blendBoundary = null) {
+  setData(cells, diamonds, spacing, translucent, blendBoundary = null, territories = [], clipTerritories = false) {
     this.hideTooltip()
     this.cells = cells
     this.diamonds = diamonds
+    this.territories = territories
+    if (this.clipTerritories !== clipTerritories) {
+      if (this.canvas) this.canvas.width = this.canvas.width
+      if (this.rankOneCanvas) this.rankOneCanvas.width = this.rankOneCanvas.width
+    }
+    this.clipTerritories = clipTerritories
     this.spacing = spacing
     this.translucent = translucent
     this.blendBoundary = blendBoundary
     this.focusIndex = -1
     this.draw()
+  },
+  setHoverLeader(leaderId) {
+    const next = leaderId || null
+    if (this.hoverLeaderId === next) return
+    this.hoverLeaderId = next
+    if (next && !this.leaderWeights.has(next)) this.leaderWeights.set(next, 0)
+    if (this.motionPreference?.matches) {
+      this.hoverMix = next ? 1 : 0
+      this.leaderWeights.clear()
+      if (next) this.leaderWeights.set(next, 1)
+      this.queueDraw()
+      return
+    }
+    if (!this.hoverAnimFrame) {
+      this.hoverLastTime = performance.now()
+      this.hoverAnimFrame = requestAnimationFrame(t => this.stepHoverAnimation(t))
+    }
+  },
+  stepHoverAnimation(now) {
+    this.hoverAnimFrame = 0
+    const dt = Math.min(50, Math.max(8, now - (this.hoverLastTime || now)))
+    this.hoverLastTime = now
+    const step = 1 - Math.exp(-dt / 55)
+    const targetMix = this.hoverLeaderId ? 1 : 0
+    this.hoverMix += (targetMix - this.hoverMix) * step
+    if (Math.abs(targetMix - this.hoverMix) < .008) this.hoverMix = targetMix
+    let moving = this.hoverMix !== targetMix
+    for (const [id, w] of [...this.leaderWeights.entries()]) {
+      const targetW = id === this.hoverLeaderId ? 1 : 0
+      const nextW = w + (targetW - w) * step
+      if (targetW === 0 && nextW < .008) {
+        this.leaderWeights.delete(id)
+      } else if (Math.abs(targetW - nextW) < .008) {
+        this.leaderWeights.set(id, targetW)
+      } else {
+        this.leaderWeights.set(id, nextW)
+        moving = true
+      }
+    }
+    this.draw()
+    if (moving && this._map) {
+      this.hoverAnimFrame = requestAnimationFrame(t => this.stepHoverAnimation(t))
+    }
+  },
+  nearCellAt({ x, y }) {
+    const halfStep = (this.stepPx || 0) * .54
+    if (!halfStep) return null
+    let best = null, bestDist = Infinity
+    for (const cell of this.hits) {
+      const dx = Math.abs(x - cell.sx), dy = Math.abs(y - cell.sy)
+      if (dx <= halfStep && dy <= halfStep) {
+        const d = dx * dx + dy * dy
+        if (d < bestDist) { bestDist = d; best = cell }
+      }
+    }
+    return best
   },
   hideTooltip() {
     if (this.tooltip) this.tooltip.remove()
@@ -171,6 +255,15 @@ export const RankCanvasLayer = L.Layer.extend({
     const dpr = Math.min(devicePixelRatio || 1, 2)
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
     ctx.clearRect(0, 0, this.rankOneCanvas.width / dpr, this.rankOneCanvas.height / dpr)
+    ctx.save()
+    if (this.clipTerritories && this.blendBoundary?.length) {
+      const scale = 2 ** this._map.getZoom()
+      const origin = this._map.project(this._map.containerPointToLatLng([0, 0]), this._map.getZoom())
+      ctx.beginPath()
+      this.blendBoundary.forEach((p, i) => ctx[i ? 'lineTo' : 'moveTo'](p.x * scale - origin.x, p.y * scale - origin.y))
+      ctx.closePath()
+      ctx.clip()
+    }
     const reduced = this.motionPreference?.matches
     const sprites = getDominanceSprites()
     let highlighted = 0
@@ -199,6 +292,7 @@ export const RankCanvasLayer = L.Layer.extend({
       })
       ctx.restore()
     }
+    ctx.restore()
     if (this.stats) Object.assign(this.stats, {
       highlightedPoints: highlighted, shimmerDrawMs: performance.now() - started,
       shimmerAnimating: !document.hidden && !reduced && this.hits.some(cell => cell.dominant && cell.size >= 3),
@@ -218,9 +312,13 @@ export const RankCanvasLayer = L.Layer.extend({
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
     ctx.clearRect(0, 0, viewport.x, viewport.y)
     const origin = map.project(map.containerPointToLatLng([0, 0]), map.getZoom())
-    const size = this.spacing * scale * STOP_SIGN_SCALE
-    const diamondSize = this.spacing * scale * 2 * DIAMOND_HALF
+    const stepPx = this.spacing * scale
+    this.stepPx = stepPx
+    const size = stepPx * STOP_SIGN_SCALE
+    const diamondSize = stepPx * 2 * DIAMOND_HALF
     const stroke = size * .015
+    const mix = this.hoverMix || 0
+    const weightOf = id => (id && this.leaderWeights?.get(id)) || 0
     const visible = (x, y, s) => x + s / 2 >= 0 && y + s / 2 >= 0 && x - s / 2 <= viewport.x && y - s / 2 <= viewport.y
     ctx.save()
     if (this.blendBoundary?.length) {
@@ -232,6 +330,9 @@ export const RankCanvasLayer = L.Layer.extend({
     for (const diamond of this.diamonds) {
       const x = diamond.x * scale - origin.x, y = diamond.y * scale - origin.y
       if (!visible(x, y, diamondSize)) continue
+      const wD = weightOf(diamond.leaderId)
+      const dimD = mix * (1 - wD)
+      const alphaD = 1 - dimD * .56
       ctx.save()
       ctx.beginPath()
       ctx.moveTo(x, y - diamondSize / 2); ctx.lineTo(x + diamondSize / 2, y)
@@ -239,35 +340,89 @@ export const RankCanvasLayer = L.Layer.extend({
       ctx.save()
       ctx.clip()
       // Texture already contains each contributor's display alpha.
-      ctx.globalAlpha = 1
+      ctx.globalAlpha = alphaD
       ctx.drawImage(diamond.texture, x - diamondSize / 2, y - diamondSize / 2, diamondSize, diamondSize)
       ctx.restore()
+      ctx.globalAlpha = alphaD
       ctx.strokeStyle = 'rgba(0,0,0,.5)'; ctx.lineWidth = stroke; ctx.stroke()
       ctx.restore()
     }
-    ctx.restore()
+    if (!this.clipTerritories) ctx.restore()
+    if (this.territories?.length) {
+      const baseRadius = Math.min(stepPx * .26, 13)
+      const baseBorderW = Math.max(1.4, Math.min(2.5, stepPx * .09))
+      const hoverBorderW = Math.max(2.2, Math.min(3.6, stepPx * .125))
+      const traceRing = (ring, inset) => {
+        const pts = ring.map(p => ({
+          x: p.x * scale - origin.x + (p.ix || 0) * inset,
+          y: p.y * scale - origin.y + (p.iy || 0) * inset,
+          r: p.convex ? Math.max(1.5, baseRadius - inset) : baseRadius + inset,
+        }))
+        for (let i = 0; i < pts.length; i++) {
+          const prev = pts[(i - 1 + pts.length) % pts.length]
+          const curr = pts[i]
+          const next = pts[(i + 1) % pts.length]
+          if (i === 0) ctx.moveTo((prev.x + curr.x) / 2, (prev.y + curr.y) / 2)
+          ctx.arcTo(curr.x, curr.y, (curr.x + next.x) / 2, (curr.y + next.y) / 2, curr.r)
+        }
+        ctx.closePath()
+      }
+      for (const t of this.territories) {
+        const focusT = weightOf(t.leaderId)
+        const dimT = mix * (1 - focusT)
+        const borderW = baseBorderW + (hoverBorderW - baseBorderW) * focusT
+        const inset = borderW / 2
+        const rings = t.rings || (t.ring ? [t.ring] : [])
+        ctx.save()
+        // Fill interior using evenodd so inner enclaves (holes) are never filled by the surrounding territory
+        ctx.beginPath()
+        for (const ring of rings) traceRing(ring, 0)
+        ctx.fillStyle = t.color
+        ctx.globalAlpha = .075 * (1 - dimT * .58) + .105 * focusT
+        ctx.fill('evenodd')
+        // Stroke each boundary ring inset strictly to its own side of the shared cell line (full-bleed, zero overlap)
+        ctx.beginPath()
+        for (const ring of rings) traceRing(ring, inset)
+        ctx.strokeStyle = t.color
+        ctx.globalAlpha = .84 * (1 - dimT * .52) + .15 * focusT
+        ctx.lineWidth = borderW
+        ctx.stroke()
+        ctx.restore()
+      }
+    }
     this.hits = []
     for (const cell of this.cells) {
       const x = cell.x * scale - origin.x, y = cell.y * scale - origin.y
       if (!visible(x, y, size)) continue
       this.hits.push({ ...cell, sx: x, sy: y, size })
+      const focusC = weightOf(cell.leaderId)
+      const dimC = mix * (1 - focusC)
+      const hoverFactor = 1 - dimC * .54
       ctx.save()
       ctx.beginPath()
       OCTAGON_VERTICES.forEach(([vx, vy], i) => ctx[i ? 'lineTo' : 'moveTo'](x + (vx - .5) * size, y + (vy - .5) * size))
       ctx.closePath()
       if (!['nr', 'unknown', 'other'].includes(cell.kind)) {
         ctx.fillStyle = cell.color
-        ctx.globalAlpha = (cell.opacity ?? 1) * (cell.muted ? .15 : 1)
+        ctx.globalAlpha = (cell.opacity ?? 1) * (cell.muted ? .15 : 1) * hoverFactor
         ctx.fill()
       }
-      ctx.globalAlpha = cell.muted ? .15 : 1
+      ctx.globalAlpha = (cell.muted ? .15 : 1) * hoverFactor
       const coverageOutline = cell.coverage && ['nr', 'unknown', 'other'].includes(cell.kind)
       ctx.strokeStyle = coverageOutline ? (cell.kind === 'unknown' ? 'rgba(225,184,105,.65)' : 'rgba(163,177,195,.55)') : 'rgba(0,0,0,.5)'
       ctx.lineWidth = coverageOutline ? Math.max(.8, Math.min(1.5, size * .025)) : size * (cell.active ? .03 : cell.kind === 'unknown' ? .02 : .015)
       if (cell.kind === 'unknown') ctx.setLineDash([Math.max(1, size * .06), Math.max(1, size * .06)])
       ctx.stroke()
+      if (focusC > .02) {
+        ctx.setLineDash([])
+        ctx.globalAlpha = (cell.muted ? .15 : 1) * focusC * .85
+        ctx.strokeStyle = '#ffffff'
+        ctx.lineWidth = Math.max(1.1, size * .075)
+        ctx.stroke()
+      }
       ctx.restore()
     }
+    if (this.clipTerritories) ctx.restore()
     this.stats = { renderer: 'canvas', points: this.cells.length, diamonds: this.diamonds.length,
       visiblePoints: this.hits.length, drawMs: performance.now() - started }
     if (this.rankOneCanvas) {

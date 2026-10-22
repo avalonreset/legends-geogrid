@@ -58,6 +58,9 @@ plan fingerprint. Review the estimate before the paid step:
 python tools/business_name_review.py submit --output-dir "<private-audit-folder>" --execute --confirm-cost-usd <approved-budget>
 python tools/business_name_review.py retrieve --output-dir "<private-audit-folder>"
 python tools/business_name_review.py websites --output-dir "<private-audit-folder>"
+python tools/business_name_review.py photos --output-dir "<private-audit-folder>"
+# Optional speed boost when legends-jev v0.2.0+ (jev-1.14.0 optical recognition) is installed:
+python tools/business_name_review.py photos --output-dir "<private-audit-folder>" --jev
 python tools/business_name_review.py export --output-dir "<private-audit-folder>"
 ```
 
@@ -153,11 +156,36 @@ Each case retains:
    Differentiate an SEO page title from the displayed company name. A website
    footer may identify a parent entity, not its trading name. Record branch
    identity using address, phone, license or profile link.
-3. **Seek physical-world corroboration.** Review dated signage or branded vehicle
-   photographs and other public customer-facing materials. Record whether the
-   image is business-supplied, third-party, or old Street View. A service-area
-   business may not have a public storefront; lack of a sign is not automatically
-   adverse evidence. Do not expose private residential details.
+3. **Seek physical-world corroboration (Standard Operating Procedure).** Run `photos`
+   to pull high-resolution GBP `main_image` and `logo` files plus a **multi-vantage
+   Google Street View search quest** (`streetview`, `streetview_v1`, `streetview_v2`)
+   into `<private-audit-folder>/photos/` (requires no extra API keys or paid calls).
+   - **Multi-Vantage Street View Search Quest rules**:
+     - Query `SingleImageSearch` at progressive radii (`18m`, `30m`, `50m`, `85m`) so
+       corner buildings lock onto the front street rather than a rear alley.
+     - Detect and skip isolated indoor 360 photospheres (`<= 2` connected road nodes)
+       so shopping-center pins step out to the outdoor street graph.
+     - Exclude historical time-machine indices (`info[5][0][8]`) and select up to 3
+       spatially distinct current-year road panoramas (`>= 10m` apart, preferring the
+       `13m..38m` standoff sweet spot) aiming their compass bearing (`yaw`) at `(lat, lng)`
+       to step around trees, utility poles, and side walls.
+   - **Optional `legends-jev` Optical Accelerator (`--jev`)**:
+     - The pipeline works 100% standalone without `legends-jev` using agent multimodal
+       file reading.
+     - When `legends-jev` (`v0.2.0+`, `jev-1.14.0` with `TypeSafe-Danger-Zone-Images: true`)
+       is installed and `--jev` is passed, `photos` batch-screens the downloaded
+       storefront, Street View, and logo images in ~200ms per profile (`sign_visible`,
+       `suspect_terms_shown`, `best_image`, `sign_box`, and `verdict`), automatically
+       promotes an unobstructed alternate Street View vantage (`streetview_v1`/`v2`) when
+       `v0` is blocked by a tree, and records the typed receipt in `photos-manifest.json`
+       for operator verification.
+   - Visually inspect the downloaded storefront, Street View, and logo images before
+     scoring a case: immediately clear false positives where physical building signage
+     or the official logo badge supports the displayed title, record confirmed signage
+     mismatches in `visual_review`, and leave obstructed or indoor-only photos as open
+     questions to investigate.
+   A service-area business may not have a public storefront; lack of a sign is
+   not automatically adverse evidence. Do not expose private residential details.
 4. **Check identity records where useful.** For California contractors, start
    with the displayed license number at [CSLB](https://www.cslb.ca.gov/onlineservices/checklicenseII/checklicense.aspx).
    Search legal entities at the [California Secretary of State](https://www.sos.ca.gov/business-programs/business-entities/information-requests)

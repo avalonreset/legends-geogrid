@@ -121,7 +121,7 @@ export function campaignPanelHTML(intelligence, lens, selectedArea, primaryName,
       <p><b>Observed:</b> ${escape(area.reason)}</p>
       ${area.distanceMiles ? `<p>${area.distanceMiles.min.toFixed(1)}–${area.distanceMiles.max.toFixed(1)} mi from base${area.serviceGapCount ? ` · ${area.serviceGapCount} service gaps` : ''}</p>` : ''}
       ${lens === 'serviceGap' ? `<p class="campaign-comparison"><b>At a representative location:</b><br>${(area.representative.queries || []).filter(q => q.id === queryId || q.band === 'defend').map(q => `${escape(q.name)}: ${q.rank ? `#${q.rank}` : q.band === 'outside30' ? 'outside 30' : 'unknown'}`).join('<br>')}</p>` : ''}
-      <div class="campaign-actions"><button data-focus-area="${escape(area.id)}">Show area</button><button data-area-evidence="${escape(area.representative.id)}">Inspect results</button></div>
+      <div class="campaign-actions"><button data-focus-area="${escape(area.id)}">Show area on map</button></div>
       <p><b>Next agent check:</b> ${escape(action)}</p><details><summary>Who ranks ahead here?</summary>
         <p>Other profiles in the top 3 within this area:</p><ul>${area.rivals.slice(0, 3).map(rival => `<li><button class="text-button" data-campaign-rival="${escape(rival.id)}">${escape(rival.name)}</button> · ${rival.count}/${area.count} locations</li>`).join('') || '<li>No qualifying rival evidence.</li>'}</ul>
         <p>Demand and serviceability have not yet been assessed for this group of locations.</p>

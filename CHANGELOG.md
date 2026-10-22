@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.2.1 - 2026-10-21
+
+- Add **Multi-Vantage Google Street View Search Quest & GBP Visual Inspection Gallery** (`tools/business_name_review.py`, `src/name-review.js`, `src/companion.css`): `photos` command pulls high-resolution GBP `main_image` and `logo` files plus up to 3 spatially distinct Street View panoramas (`streetview`, `streetview_v1`, `streetview_v2`) using progressive search radii (`18m`, `30m`, `50m`, `85m`), indoor 360 photosphere trap detection (`<= 2` road nodes), historical time-machine filtering (`info[5][0][8]`), sweet-spot standoff (`13m..38m`), and lateral road stepping (`>= 10m` apart) to step around curbside trees and side walls.
+- Add **Optional `legends-jev` Optical Recognition Accelerator (`--jev`)**: when `legends-jev` (`v0.2.0+`, `jev-1.14.0`) is installed in the `cto-legends` ecosystem, `python tools/business_name_review.py photos --output-dir <dir> --jev` runs ~200ms System One optical verification over downloaded storefront, Street View, and logo images (`sign_visible`, `suspect_terms_shown`, `best_image`, `sign_box`, and `verdict`), automatically promoting unobstructed alternate Street View vantages (`streetview_v1`/`v2`).
+- Update **10-Mile Home Slice Pizza Starter Case Study (`src/data/home-slice-name-review.json`, `public/starter-photos/home-slice/`)**: bundle 54 verified GBP and multi-vantage Street View evidence photos across all 18 investigated Austin pizzerias, clearing **DeSano Pizzeria Napoletana** (`301 Lavaca St Ste 200`, CID `3865327066180748277`) to `name_supported` (`0/5`) after front-street Lavaca verification (`panoid=FJ2xBzIZFRIAYHzsaTC1RA`) confirmed `DESANO PIZZERIA NAPOLETANA` on the brick facade (reducing flagged title concerns from 15 to 14).
+- Fix **Canvas Territory Overlay Clipping (`src/rank-canvas.js`)**: wrap circle-clipped `ctx.clip()` draws in `ctx.save()` / `ctx.restore()` inside `drawTerritoryLayer` so hover/pan redraws never cumulatively intersect and carve away at the territory overlay.
+- Ecosystem readiness (`tools/geogrid_doctor.py`): support `legends-dataforseo` (`v0.1.5`) package version inspection and optional `--jev` optical recognition readiness checks.
+
 ## 0.2.0 - 2026-10-19
 
 - Add the **Competitive Map Companion** (`index.html`, `src/companion.js`, `src/study-model.js`, `src/rank-canvas.js`): interactive circular-lattice workspace with equal-sided stop-sign pins scaled to 30% of grid spacing, four-corner continuous gradient diamonds, animated rank-1 cyan sparkles, coverage dots distinguishing top-30 absence from incomplete responses, and full-field competitor search across all observed profiles while preserving `/legacy.html` for the original grid studio.

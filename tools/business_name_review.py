@@ -344,6 +344,320 @@ def fetch_websites(root):
     print(json.dumps({"websites": len(results), "captured": sum(r["status"] == "captured" for r in results)}))
 
 
+def high_res_gbp_image(url, kind="main"):
+    if not isinstance(url, str) or not url.startswith(("https://", "http://")):
+        return None
+    if kind == "logo":
+        return re.sub(r"/s\d+[^/]*/", "/s600/", url)
+    url = re.sub(r"=w\d+-h\d+[^&\s]*", "=w800-h600-k-no", url)
+    url = re.sub(r"w=\d+&h=\d+", "w=800&h=600", url)
+    return url
+
+
+def haversine_meters(lat1, lng1, lat2, lng2):
+    r = 6_371_000.0
+    p1, p2 = math.radians(lat1), math.radians(lat2)
+    dp, dl = math.radians(lat2 - lat1), math.radians(lng2 - lng1)
+    a = math.sin(dp / 2) ** 2 + math.cos(p1) * math.cos(p2) * math.sin(dl / 2) ** 2
+    return 2 * r * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+
+
+def bearing_degrees(lat1, lng1, lat2, lng2):
+    r1, g1, r2, g2 = map(math.radians, (lat1, lng1, lat2, lng2))
+    dlng = g2 - g1
+    y = math.sin(dlng) * math.cos(r2)
+    x = math.cos(r1) * math.sin(r2) - math.sin(r1) * math.cos(r2) * math.cos(dlng)
+    return (math.degrees(math.atan2(y, x)) + 360.0) % 360.0
+
+
+def streetview_thumbnail_url(pano_id, yaw):
+    return (f"https://streetviewpixels-pa.googleapis.com/v1/thumbnail?panoid={quote(pano_id)}"
+            f"&cb_client=search.gws-prod.grass&w=800&h=600&yaw={yaw:.2f}&pitch=4&thumbfov=75")
+
+
+def streetview_quest_urls(lat, lng, max_vantages=3, timeout=15):
+    """Multi-vantage Street View search quest: step along current-year road panoramas around (lat, lng)."""
+    if not (isinstance(lat, (int, float)) and isinstance(lng, (int, float))
+            and math.isfinite(lat) and math.isfinite(lng)):
+        return []
+    rpc = "https://maps.googleapis.com/$rpc/google.internal.maps.mapsjs.v1.MapsJsInternalService/SingleImageSearch"
+    best_fallback = []
+    for radius in (18, 30, 50, 85):
+        payload = [
+            ["apiv3", None, None, None, "US", None, None, None, None, None, [[0]]],
+            [[None, None, float(lat), float(lng)], radius],
+            [None, ["en", "US"], None, None, None, None, None, None, [2], None, [[[2, True, 2]]]],
+            [[1, 2, 3, 4, 8, 6]],
+        ]
+        req = urllib.request.Request(
+            rpc,
+            data=json.dumps(payload).encode("utf-8"),
+            headers={"Content-Type": "application/json+protobuf", "User-Agent": "Mozilla/5.0"},
+            method="POST",
+        )
+        try:
+            with urllib.request.urlopen(req, timeout=timeout) as resp:
+                data = json.loads(resp.read().decode("utf-8", errors="replace"))
+        except Exception:
+            continue
+        info = data[1] if isinstance(data, list) and len(data) > 1 and isinstance(data[1], list) else None
+        pano_id = info[1][1] if info and len(info) > 1 and isinstance(info[1], list) and len(info[1]) > 1 else None
+        if not isinstance(pano_id, str) or not pano_id:
+            continue
+        meta = info[5][0] if len(info) > 5 and info[5] and isinstance(info[5][0], list) else []
+        pose = meta[1] if len(meta) > 1 and isinstance(meta[1], list) else None
+        plat = pose[0][2] if pose and pose[0] and len(pose[0]) > 3 else None
+        plng = pose[0][3] if pose and pose[0] and len(pose[0]) > 3 else None
+        base_yaw = bearing_degrees(plat, plng, lat, lng) if isinstance(plat, (int, float)) and isinstance(plng, (int, float)) else 0.0
+        base_url = streetview_thumbnail_url(pano_id, base_yaw)
+        if not best_fallback and len(pano_id) <= 28:
+            best_fallback = [base_url]
+        hist_indices = {h[0] for h in (meta[8] if len(meta) > 8 and isinstance(meta[8], list) else []) if isinstance(h, list) and h}
+        raw_nodes = meta[3][0] if len(meta) > 3 and meta[3] and isinstance(meta[3][0], list) else []
+        current_panos = []
+        for idx, node in enumerate(raw_nodes):
+            if idx in hist_indices:
+                continue
+            try:
+                nid = node[0][1]
+                nlat, nlng = node[2][0][2], node[2][0][3]
+                if isinstance(nid, str) and len(nid) <= 28 and isinstance(nlat, (int, float)) and isinstance(nlng, (int, float)):
+                    dist = haversine_meters(nlat, nlng, lat, lng)
+                    yaw = bearing_degrees(nlat, nlng, lat, lng)
+                    current_panos.append((dist, nid, nlat, nlng, yaw))
+            except Exception:
+                pass
+        if len(current_panos) <= 2 and radius < 85:
+            continue
+        if not current_panos:
+            return [base_url]
+        current_panos.sort(key=lambda x: (0 if 13.0 <= x[0] <= 38.0 else 1, x[0]))
+        selected = []
+        for candidate in current_panos:
+            if all(haversine_meters(candidate[2], candidate[3], s[2], s[3]) >= 10.0 for s in selected):
+                selected.append(candidate)
+            if len(selected) >= max_vantages:
+                break
+        return [streetview_thumbnail_url(s[1], s[4]) for s in selected]
+    return best_fallback
+
+
+def streetview_storefront_url(lat, lng, timeout=15):
+    """Resolve primary outdoor Street View storefront camera URL for (lat, lng)."""
+    urls = streetview_quest_urls(lat, lng, max_vantages=1, timeout=timeout)
+    return urls[0] if urls else None
+
+
+def _ensure_legends_jev_importable():
+    try:
+        import legends_jev  # noqa: F401
+        return True
+    except Exception:
+        pass
+    import sys
+    home = Path(os.environ.get("CTO_LEGENDS_HOME") or (Path.home() / ".cto-legends"))
+    releases_dir = home / "releases" / "legends-jev"
+    if releases_dir.is_dir():
+        for rel in sorted(releases_dir.iterdir(), reverse=True):
+            for candidate in (
+                rel / "env" / "Lib" / "site-packages",
+                *rel.glob("env/lib/python*/site-packages"),
+            ):
+                if (candidate / "legends_jev").is_dir():
+                    sys.path.insert(0, str(candidate))
+                    try:
+                        import legends_jev  # noqa: F401
+                        return True
+                    except Exception:
+                        continue
+    return False
+
+
+def _read_windows_dpapi_typesafe_key():
+    if os.name != "nt" or os.environ.get("TYPESAFE_API_KEY"):
+        return None
+    local_app = os.environ.get("LOCALAPPDATA")
+    if not local_app:
+        return None
+    dpapi_path = Path(local_app) / "Legends" / "TypeSafe" / "api-key.dpapi"
+    if not dpapi_path.is_file():
+        return None
+    try:
+        import ctypes
+        import ctypes.wintypes
+
+        class DATA_BLOB(ctypes.Structure):
+            _fields_ = [("cbData", ctypes.wintypes.DWORD), ("pbData", ctypes.POINTER(ctypes.c_char))]
+
+        raw_bytes = bytes.fromhex(dpapi_path.read_text(encoding="utf-8").strip())
+        in_buf = ctypes.create_string_buffer(raw_bytes, len(raw_bytes))
+        in_blob = DATA_BLOB(len(raw_bytes), in_buf)
+        out_blob = DATA_BLOB()
+        if not ctypes.windll.crypt32.CryptUnprotectData(
+            ctypes.byref(in_blob), None, None, None, None, 0, ctypes.byref(out_blob)
+        ):
+            return None
+        try:
+            secret = ctypes.string_at(out_blob.pbData, out_blob.cbData).decode("utf-16-le").strip()
+            return secret or None
+        finally:
+            ctypes.memset(out_blob.pbData, 0, out_blob.cbData)
+            ctypes.windll.kernel32.LocalFree(out_blob.pbData)
+    except Exception:
+        return None
+
+
+def derive_suspect_terms(root, cid, title, entry=None, site_url=None):
+    """Extract the specific disputed/suspect terms for a profile title."""
+    root = Path(root)
+    for mr_path in sorted(root.glob("manual-review-*.json")):
+        try:
+            mr = load(mr_path)
+            terms = (mr.get("cases") or {}).get(cid, {}).get("suspect_terms")
+            if isinstance(terms, list) and [t for t in terms if isinstance(t, str) and t.strip()]:
+                return [t.strip() for t in terms if isinstance(t, str) and t.strip()]
+        except Exception:
+            pass
+    te_path = root / "title-review-enrichment.json"
+    if te_path.is_file():
+        try:
+            te = load(te_path)
+            hist_terms = ((te.get("cases") or {}).get(cid, {}).get("historical_report") or {}).get("disputed_terms")
+            if isinstance(hist_terms, list) and [t for t in hist_terms if isinstance(t, str) and t.strip()]:
+                return [t.strip() for t in hist_terms if isinstance(t, str) and t.strip()]
+        except Exception:
+            pass
+    # Check separator suffixes (- ..., | ..., : ..., @...)
+    sep_match = re.search(r"(?:\s+[-|]\s*|:\s+|\s*@\s*)([^|]+)$", title or "")
+    if sep_match and len(sep_match.group(1).strip()) >= 3:
+        return [sep_match.group(1).strip()]
+    # Compare against captured website brand names if available
+    if site_url:
+        site_path = root / "websites" / (hashlib.sha256(site_url.encode()).hexdigest() + ".json")
+        if site_path.is_file():
+            try:
+                site = load(site_path)
+                t_words = (title or "").split()
+                for n_obj in site.get("names") or []:
+                    cand = (n_obj.get("name") or "").strip()
+                    if not cand:
+                        continue
+                    c_norm = normalize_name(cand)
+                    t_norm = normalize_name(title or "")
+                    if c_norm and t_norm.startswith(c_norm + " ") and len(t_norm) > len(c_norm) + 3:
+                        c_count = len(cand.split())
+                        rem = " ".join(t_words[c_count:]).strip(" -|:,")
+                        if len(rem) >= 3:
+                            return [rem]
+                    if t_words and cand.split() and normalize_name(t_words[0]) == normalize_name(cand.split()[0]) and len(t_words) >= 3:
+                        rem = " ".join(t_words[1:]).strip(" -|:,")
+                        if len(rem) >= 3 and normalize_name(rem) != normalize_name(" ".join(cand.split()[1:])):
+                            return [rem]
+            except Exception:
+                pass
+    if isinstance(entry, dict) and entry.get("suspect_terms"):
+        return list(entry["suspect_terms"])
+    return [w for w in re.split(r"[\s|\-:,&]+", title or "") if len(w) >= 3][:6]
+
+
+def try_jev_optical_signage(title, suspect_terms, image_paths):
+    """Optional fast-path optical verification via legends-jev when installed and provisioned."""
+    if not suspect_terms or not image_paths:
+        return None
+    if not _ensure_legends_jev_importable():
+        return {"status": "unavailable", "reason": "legends_jev_not_installed"}
+    try:
+        from legends_jev.core import inspect_signage, load_image_entry
+        from legends_jev.provider import call as jev_call
+    except Exception:
+        return {"status": "unavailable", "reason": "legends_jev_not_installed"}
+    images = {}
+    for label, path in image_paths.items():
+        try:
+            images[label] = load_image_entry(path)
+        except Exception:
+            continue
+    if not images:
+        return None
+    prev_key = os.environ.get("TYPESAFE_API_KEY")
+    temp_key = None if prev_key else _read_windows_dpapi_typesafe_key()
+    try:
+        if temp_key:
+            os.environ["TYPESAFE_API_KEY"] = temp_key
+        return inspect_signage(title, suspect_terms, images, jev_call)
+    except Exception as exc:
+        return {"status": "error", "reason": type(exc).__name__}
+    finally:
+        if temp_key:
+            if prev_key is None:
+                os.environ.pop("TYPESAFE_API_KEY", None)
+            else:
+                os.environ["TYPESAFE_API_KEY"] = prev_key
+
+
+def fetch_photos(root, use_jev=False, only_cids=None):
+    """Download GBP logo, main_image, and multi-vantage Street View images for visual inspection."""
+    root = Path(root)
+    validate_seed(root)
+    photos_dir = root / "photos"
+    photos_dir.mkdir(exist_ok=True)
+    manifest_path = root / "photos-manifest.json"
+    manifest = load(manifest_path) if manifest_path.exists() else {}
+    only_set = {str(x) for x in (only_cids or []) if str(x).strip()}
+    for c in load(root / "seed.json")["cases"]:
+        cid = str(c["cid"])
+        if only_set and cid not in only_set:
+            continue
+        item, status, _ = profile_item(root / "profiles" / f"{cid}.json", cid)
+        if status != "complete" or not item:
+            continue
+        lat = item.get("latitude") if item.get("latitude") is not None else c.get("lat")
+        lng = item.get("longitude") if item.get("longitude") is not None else c.get("lng")
+        entry = manifest.get(cid, {})
+        logo_url = high_res_gbp_image(item.get("logo"), "logo")
+        main_url = high_res_gbp_image(item.get("main_image"), "main")
+        quest_urls = entry.get("streetview_quest_urls") or streetview_quest_urls(lat, lng, max_vantages=3)
+        sv_url = entry.get("streetview_url") or (quest_urls[0] if quest_urls else None)
+        entry.update({"cid": cid, "logo_url": logo_url, "main_image_url": main_url,
+                      "streetview_url": sv_url, "streetview_quest_urls": quest_urls, "checked_at": now()})
+        download_targets = [("logo", logo_url), ("main", main_url), ("streetview", sv_url)]
+        for v_idx, v_url in enumerate(quest_urls[1:3], start=1):
+            download_targets.append((f"streetview_v{v_idx}", v_url))
+        downloaded_paths = {}
+        for key, url in download_targets:
+            if not url:
+                continue
+            dest = photos_dir / f"{cid}-{key}.jpg"
+            if not dest.exists():
+                try:
+                    req = urllib.request.Request(public_url(url), headers={"User-Agent": "Mozilla/5.0"})
+                    with urllib.request.urlopen(req, timeout=20) as resp:
+                        raw = resp.read(5_000_000)
+                    if raw:
+                        dest.write_bytes(raw)
+                        entry[f"{key}_path"] = str(dest.relative_to(root))
+                except Exception:
+                    pass
+            if dest.exists():
+                downloaded_paths[key] = dest
+        if use_jev and downloaded_paths:
+            title = item.get("title") or c.get("name") or ""
+            suspect = derive_suspect_terms(root, cid, title, entry, site_url=item.get("url") or c.get("website"))
+            entry["suspect_terms"] = suspect
+            jev_res = try_jev_optical_signage(title, suspect, downloaded_paths)
+            if jev_res:
+                entry["jev_optical"] = jev_res
+                best_sv = jev_res.get("best_streetview") or jev_res.get("best_image")
+                if best_sv in ("streetview_v1", "streetview_v2"):
+                    idx = int(best_sv[-1])
+                    if idx < len(quest_urls):
+                        entry["streetview_url"] = quest_urls[idx]
+        manifest[cid] = entry
+    save(manifest_path, manifest)
+    print(json.dumps({"profiles_with_photos": len(manifest), "jev_enabled": bool(use_jev)}))
+    return manifest
+
+
 def normalize_name(name):
     return " ".join(re.findall(r"[a-z0-9]+", name.lower().replace("&", " and ")))
 
@@ -417,6 +731,7 @@ def attach_source_reviews(root, cases):
                 "finding": " ".join(review.get("findings", [])),
                 "counterevidence": " ".join(review.get("counterevidence", [])),
                 "next_action": review["next_action"],
+                **({"visual_review": review["visual_review"]} if isinstance(review.get("visual_review"), str) and review["visual_review"].strip() else {}),
                 "sources": [{**s, "label": s.get("label") or s.get("type") or "Evidence source"} for s in sources],
                 "report_ready": False, "evidence_path": path.name, "sha256": sha(path),
             }
@@ -509,6 +824,7 @@ def apply_title_enrichment(document, cases, study_plan_sha256):
 def export(root):
     root = Path(root)
     seed = validate_seed(root)
+    photos_manifest = load(root / "photos-manifest.json") if (root / "photos-manifest.json").exists() else {}
     cases = []
     for c in seed["cases"]:
         path = root / "profiles" / f"{c['cid']}.json"
@@ -538,7 +854,11 @@ def export(root):
             "status": assessment_status, "signals": signals, "assessment": assessment,
             "profile": {"status": status, "name": item.get("title"), "checked_at": checked,
                         "source_url": profile_url, "evidence_path": str(path.relative_to(root)) if path.exists() else None,
-                        "sha256": sha(path) if path.exists() else None},
+                        "sha256": sha(path) if path.exists() else None,
+                        **({"logo_url": high_res_gbp_image(item.get("logo"), "logo")} if high_res_gbp_image(item.get("logo"), "logo") else {}),
+                        **({"main_image_url": high_res_gbp_image(item.get("main_image"), "main")} if high_res_gbp_image(item.get("main_image"), "main") else {}),
+                        **({"streetview_url": photos_manifest.get(c["cid"], {}).get("streetview_url")} if photos_manifest.get(c["cid"], {}).get("streetview_url") else {}),
+                        **({"jev_optical": photos_manifest.get(c["cid"], {}).get("jev_optical")} if isinstance(photos_manifest.get(c["cid"], {}).get("jev_optical"), dict) else {})},
             "website_evidence": {k: site.get(k) for k in ("status", "url", "checked_at", "names", "title", "evidence_path", "sha256")},
             "limitations": ["Profile retrieval and automated website extraction are not an individual assessment; the analyst review specifies which real-world sources were actually inspected.",
                             "A shared domain may describe another branch. A DBA or legal registration alone does not determine Google compliance.",
@@ -589,7 +909,7 @@ def attach(root):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("command", choices=["plan", "submit", "retrieve", "websites", "export", "attach"])
+    parser.add_argument("command", choices=["plan", "submit", "retrieve", "websites", "photos", "export", "attach"])
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--study", type=Path)
     parser.add_argument("--include-cid", action="append", default=[],
@@ -597,6 +917,8 @@ def main():
     parser.add_argument("--only-cid", action="append", default=[],
                         help="Restrict the plan to these observed profiles; repeatable (plan only).")
     parser.add_argument("--execute", action="store_true")
+    parser.add_argument("--jev", action="store_true",
+                        help="Optionally accelerate storefront photo/Street View screening with legends-jev optical recognition when installed.")
     parser.add_argument("--confirm-cost-usd", type=float, default=0)
     args = parser.parse_args()
     root = args.output_dir
@@ -618,6 +940,8 @@ def main():
             retrieve(root, api_request)
     elif args.command == "websites":
         fetch_websites(root)
+    elif args.command == "photos":
+        fetch_photos(root, use_jev=args.jev, only_cids=args.only_cid)
     elif args.command == "attach":
         print(json.dumps({"attachment": str(attach(root))}))
     else:

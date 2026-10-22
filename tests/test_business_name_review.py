@@ -440,6 +440,49 @@ class BusinessNameReviewTests(unittest.TestCase):
         review.attach_source_reviews(self.root, [case])
         self.assertNotIn("source_review", case)
 
+    def test_streetview_quest_filters_time_machine_and_steps_along_road(self):
+        from unittest import mock
+        # Simulate an indoor 1-node response at radius=18 followed by an outdoor road graph at radius=30
+        indoor_resp = [None, [None, [2, "indoor_pano"], None, None, None, [[
+            [1], [[None, None, 30.3000, -97.7000]], None,
+            [[[[2, "indoor_pano"], None, [[None, None, 30.3000, -97.7000]]]]],
+            None, None, None, None, []
+        ]]]]
+        outdoor_resp = [None, [None, [2, "pano_v0"], None, None, None, [[
+            [1], [[None, None, 30.30015, -97.7000]], None,
+            [[
+                [[2, "pano_v0"], None, [[None, None, 30.30015, -97.7000]]],
+                [[2, "pano_v1"], None, [[None, None, 30.30015, -97.70015]]],
+                [[2, "pano_old_2018"], None, [[None, None, 30.30016, -97.7000]]],
+                [[2, "pano_v2"], None, [[None, None, 30.30015, -97.69985]]],
+            ]],
+            None, None, None, None, [[2, [2018, 5]]]
+        ]]]]
+        calls = iter([indoor_resp, outdoor_resp])
+        class FakeResp:
+            def __init__(self, payload):
+                self.payload = payload
+            def __enter__(self):
+                return self
+            def __exit__(self, *args):
+                pass
+            def read(self):
+                return json.dumps(self.payload).encode("utf-8")
+        with mock.patch("urllib.request.urlopen", side_effect=lambda *a, **k: FakeResp(next(calls))):
+            urls = review.streetview_quest_urls(30.3000, -97.7000, max_vantages=3)
+        self.assertEqual(len(urls), 3)
+        self.assertTrue(any("panoid=pano_v0" in u for u in urls))
+        self.assertTrue(any("panoid=pano_v1" in u for u in urls))
+        self.assertTrue(any("panoid=pano_v2" in u for u in urls))
+        self.assertFalse(any("pano_old_2018" in u for u in urls))
+        self.assertFalse(any("indoor_pano" in u for u in urls))
+
+    def test_optional_jev_signage_graceful_when_absent(self):
+        from unittest import mock
+        with mock.patch.dict("sys.modules", {"legends_jev": None, "legends_jev.core": None}):
+            res = review.try_jev_optical_signage("Example Pizza", ["Pizza"], {"main": self.root / "missing.jpg"})
+        self.assertEqual(res["status"], "unavailable")
+
 
 if __name__ == "__main__":
     unittest.main()

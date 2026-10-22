@@ -52,6 +52,26 @@ The software calculates and renders evidence. The operator and agent supply busi
 
 **Start here:** [Starter case study](examples/starter-home-slice/README.md) · [Start a study](docs/START_A_STUDY.md) · [Companion guide](docs/COMPANION.md) · [Battlefield intelligence](docs/BATTLEFIELD_INTELLIGENCE.md) · [Business-name review](docs/BUSINESS_NAME_REVIEW.md) · [Search-window policy](docs/SEARCH_WINDOW_POLICY.md) · [Street-map setup](docs/BASEMAPS.md) · [Latest release](https://github.com/avalonreset/legends-geogrid/releases/latest)
 
+### Interactive interface tour (bundled 10-mile Austin starter study)
+
+![Local leaders and neighbor-colored territories across 1,249 Austin locations](assets/companion-local-leaders.webp)
+*1. **Local leaders (`factions`)**: First-place winners across 1,249 origins on a 10-mile, 0.5-mile circular lattice, rendered with neighbor-aware contrasting territory outlines, stable study-wide `L`-number IDs, and dashed connectors to competitor bases outside the circle.*
+
+![Circular-lattice rankings with stop-sign octagons and four-corner gradient diamonds](assets/companion-rankings.webp)
+*2. **Rankings (`visibility`)**: Top-30 organic Google Maps rankings with equal-sided stop-sign pins, four-corner continuous gradient diamonds, rank-1 cyan shimmer, and `clip to circle` boundary clipping.*
+
+![Keyword stuffing and Jev 1.14 optical signage verification dossier](assets/companion-keyword-stuffing.webp)
+*3. **Keyword stuffing & Jev 1.14 optical signage check (`keyword-stuffing`)**: Agent-owned Google Business Profile name-review workbench pairing highlighted disputed title tokens, captured website wording, an explained `0-5` `title-evidence-v1` concern confidence scale, and `legends-jev` 1.14 optical signage inspection across GBP storefront photos, logos, and multi-vantage Street View.*
+
+![In-app photo Lightbox modal inspecting storefront signage](assets/companion-photo-lightbox.webp)
+*4. **In-app photo Lightbox modal**: Click any GBP exterior photo, Street View capture, or logo badge inside the dossier to inspect full-resolution signage in place without losing scroll position.*
+
+![Territory campaigns and researched action options](assets/companion-campaigns.webp)
+*5. **Territory campaigns (`campaigns`)**: Spatial footholds (ranks 1-3), advance zones (ranks 4-10), and build zones (ranks 11-30) paired with study-bound `campaign-research.json` action briefs.*
+
+![Split-screen Strategy room and regional service reach matrix](assets/companion-strategy-room.webp)
+*6. **Strategy room (`#strategy-room`)**: Resizable split-screen workbench comparing top-3 and top-10 reach across every studied service and directional ring (`Core`, `2-5 mi`, `5-10 mi`) alongside live map lenses.*
+
 ## Try a report first
 
 Want to inspect a completed real-world report immediately? Open [`examples/starter-home-slice/report/report.pdf`](examples/starter-home-slice/report/report.pdf) or [`examples/starter-home-slice/report/report.html`](examples/starter-home-slice/report/report.html) (see the [starter case study guide](examples/starter-home-slice/README.md)).
@@ -184,7 +204,7 @@ Fresh scans depend on [legends-dataforseo](https://github.com/avalonreset/legend
 
 Reports default to the dark theme. For pure-white printable reports, set `"theme": "light"` in the report config; both themes preserve rank colors and legends-geogrid branding.
 
-**Tested pairing:** legends-geogrid v0.2.0 with legends-dataforseo v0.1.0.
+**Tested pairing:** legends-geogrid v0.2.1 with legends-dataforseo v0.1.5 and optional legends-jev v0.2.0.
 The requirement below pins the kit's immutable public source ZIP, so installation
 does not require Git. The two projects are maintained and versioned separately.
 Offline reports remain usable without the provider dependency or credentials.

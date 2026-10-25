@@ -1,0 +1,14 @@
+cff-version: 1.2.0
+title: "legends-geogrid"
+message: "If you use legends-geogrid in your research or engineering workflows, please cite it using the metadata below."
+type: software
+authors:
+  - family-names: "Samar"
+    given-names: "Benjamin"
+    alias: "avalonreset"
+repository-code: "https://github.com/avalonreset/legends-geogrid"
+url: "https://github.com/avalonreset/cto-legends"
+license: "MIT"
+version: "0.2.1"
+date-released: "2026-10-24"
+abstract: "Google Maps ranking grids, circular-lattice competitive studies, multi-query strategy reports, and Google Business Profile name-review dossiers with optional Jev 1.14 optical signage verification."

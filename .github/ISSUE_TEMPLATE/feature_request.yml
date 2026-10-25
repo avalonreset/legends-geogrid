@@ -1,0 +1,11 @@
+name: Feature request
+description: Propose a workflow improvement for legends-geogrid
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Desired user outcome
+      description: What goal should the user or agent be able to accomplish?
+    validations:
+      required: true

@@ -38,7 +38,7 @@
   },
   "devDependencies": {
     "postcss": "^8.5.18",
-    "vite": "^8.2.2"
+    "vite": "^8.2.4"
   },
   "pnpm": {
     "overrides": {

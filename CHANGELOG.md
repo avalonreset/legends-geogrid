@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.2 - 2026-10-29
+
+- Raise minimum supported Python runtime to Python 3.11 (`"python": ">=3.11"`, `"node": ">=22.0.0"` in `package.json`, `tools/geogrid_doctor.py`, and CI matrix).
+- Update pinned `legends-dataforseo` dependency in `requirements-dataforseo.txt` to `v0.1.6` (`58c3409253beaa5614f3f9af0a5b71903d322b55`).
+- Harden GitHub Actions workflows with 40-character commit SHA action pins, explicit `contents: read` permissions, and `pip>=26.2.2` before package installation.
+
 ## 0.2.1 - 2026-10-21
 
 - Add **Multi-Vantage Google Street View Search Quest & GBP Visual Inspection Gallery** (`tools/business_name_review.py`, `src/name-review.js`, `src/companion.css`): `photos` command pulls high-resolution GBP `main_image` and `logo` files plus up to 3 spatially distinct Street View panoramas (`streetview`, `streetview_v1`, `streetview_v2`) using progressive search radii (`18m`, `30m`, `50m`, `85m`), indoor 360 photosphere trap detection (`<= 2` road nodes), historical time-machine filtering (`info[5][0][8]`), sweet-spot standoff (`13m..38m`), and lateral road stepping (`>= 10m` apart) to step around curbside trees and side walls.

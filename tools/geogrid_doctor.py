@@ -138,11 +138,11 @@ def main() -> int:
     else:
         warn("DataForSEO env", "not configured, dashboard and dry-runs still work")
 
-    if sys.version_info >= (3, 10):
+    if sys.version_info >= (3, 11):
         ok("Python", sys.version.split()[0])
     else:
-        missing.append("Python 3.10+")
-        fail("Python", f"3.10+ required; found {sys.version.split()[0]}")
+        missing.append("Python 3.11+")
+        fail("Python", f"3.11+ required; found {sys.version.split()[0]}")
 
     if missing:
         return 1

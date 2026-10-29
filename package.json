@@ -1,6 +1,6 @@
 {
   "name": "legends-geogrid",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "type": "module",
   "description": "Open-source google maps rank checker with geo-grid scans, a competitive map companion, PDF strategy reports, business-name review, and DataForSEO cost controls.",
   "license": "MIT",
@@ -14,8 +14,8 @@
   },
   "homepage": "https://github.com/avalonreset/legends-geogrid#readme",
   "engines": {
-    "node": ">=20.19",
-    "python": ">=3.10"
+    "node": ">=22.0.0",
+    "python": ">=3.11"
   },
   "packageManager": "pnpm@10.33.0",
   "scripts": {

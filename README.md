@@ -147,7 +147,7 @@ python -m playwright install --with-deps chromium
 python tools/geogrid_doctor.py --dataforseo --jev --reports --basemaps
 ```
 
-**Tested ecosystem pairing:** `legends-geogrid` `v0.2.1` with [`legends-dataforseo`](https://github.com/avalonreset/legends-dataforseo) `v0.1.5` and optional [`legends-jev`](https://github.com/avalonreset/legends-jev) `v0.2.0` (`Jev 1.14` optical recognition and storefront signage grounding).
+**Tested ecosystem pairing:** `legends-geogrid` `v0.2.2` with [`legends-dataforseo`](https://github.com/avalonreset/legends-dataforseo) `v0.1.6` and optional [`legends-jev`](https://github.com/avalonreset/legends-jev) `v0.2.0` (`Jev 1.14` optical recognition and storefront signage grounding).
 
 ---
 

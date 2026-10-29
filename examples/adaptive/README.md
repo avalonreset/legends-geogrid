@@ -1,6 +1,6 @@
 # Adaptive multi-query collector
 
-Run from the repository root with Python 3.10+. These commands need no credentials and make no network calls:
+Run from the repository root with Python 3.11+. These commands need no credentials and make no network calls:
 
 ```sh
 python tools/adaptive_geogrid.py --config examples/adaptive/sample.json

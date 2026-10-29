@@ -14,7 +14,7 @@ The packaged scope is the Competitive Map Companion, Local Leaders with neighbor
 - Timestamp propagation uses provider observation dates, never export dates.
 
 The release receipt and linked Actions run record the exact candidate SHA and
-Windows/Linux Python 3.10/3.12 results. CI installs and launches Chromium before
+Windows/Linux Python 3.11/3.12 results. CI installs and launches Chromium before
 testing, rather than relying on a preconfigured browser.
 
 ## Supported limits

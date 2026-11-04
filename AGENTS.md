@@ -10,11 +10,12 @@ theme purple or blue. Evidence colors remain distinct from brand decoration.
 
 - Offline report: install `requirements-report.txt`, then run the README's
   synthetic report example. No provider credentials or API spending are needed.
-- Browser demo: `pnpm install --frozen-lockfile`, then `pnpm dev`.
+- Browser demo (default, zero-daemon): run `python tools/study.py --open` (or `python tools/study.py open --study <path>`) to build a self-contained static Companion HTML file and open it in the default browser with zero background processes, zero open ports, and no Node.js daemon. For live local UI development or server-held Google Map Tiles proxying, run `pnpm install --frozen-lockfile`, then `pnpm dev` in a visible interactive terminal.
+- Endpoint security (EDR) guardrail: NEVER spawn `pnpm dev`, `vite`, `node`, or `python -m http.server` using `Start-Process -WindowStyle Hidden`, detached `-ExecutionPolicy Bypass` scripts, or `Invoke-WebRequest -UseBasicParsing` localhost polling loops. Enterprise EDR sensors classify hidden PowerShell process trees combined with web-request polling as a malware dropper/beacon and may isolate the host device. Always use `python tools/study.py --open` for agent-driven browser inspection.
 - Fresh scans: install `requirements-dataforseo.txt`. This installs the public
   [legends-dataforseo](https://github.com/avalonreset/legends-dataforseo)
   dependency. Run `python tools/geogrid_doctor.py --dataforseo` before collection.
-  Release 0.2.2 works with the pinned DataForSEO dependency or `legends-dataforseo`
+  Release 0.2.3 works with the pinned DataForSEO dependency or `legends-dataforseo`
   `v0.1.6+` installed via `cto-legends install legends-dataforseo`.
   Do not install an MCP server or copy a second HTTP/authentication client.
 - Optional optical signage accelerator: when investigating business-name discrepancies

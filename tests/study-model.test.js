@@ -864,7 +864,7 @@ describe('study-model: Real Sample Integration', () => {
     assert.equal(review.cases.filter(c => c.source_review).length, 79)
   })
 
-  it('normalizes a multi-query radial battlefield model with shortlist and discovered profiles', () => {
+  it('normalizes a multi-query radial battlefield model with shortlist and discovered profiles', async () => {
     const raw = createMinimalBattlefieldStudy({
       lanes: [
         { lane_id: 'q1', query: 'hvac contractor', keyword: 'hvac contractor' },
@@ -888,5 +888,13 @@ describe('study-model: Real Sample Integration', () => {
     assert.equal(model.queries.length, 3, 'Study has 3 search queries')
     assert.equal(model.businesses.filter(b => b.shortlisted).length, 2)
     assert.equal(model.businesses.length, 3, 'Additional observed profiles remain available')
+    const { partitionUniformLattices, latticeIntersections } = await import('../src/map-geometry.js')
+    const { distanceRings } = await import('../src/distance-units.js')
+    const inner = [{ id: 'i1', lat: 30.00, lng: -97.00 }, { id: 'i2', lat: 30.00, lng: -97.01 }, { id: 'i3', lat: 30.01, lng: -97.00 }, { id: 'i4', lat: 30.01, lng: -97.01 }]
+    const outer = [{ id: 'o1', lat: 30.00, lng: -97.05 }, { id: 'o2', lat: 30.00, lng: -97.10 }, { id: 'o3', lat: 30.05, lng: -97.05 }, { id: 'o4', lat: 30.05, lng: -97.10 }]
+    assert.equal(partitionUniformLattices([...inner, ...outer]).length, 2)
+    assert.equal(latticeIntersections([...inner, ...outer], false).length, 2)
+    assert.equal(distanceRings('mi', 16).length, 4)
+    assert.equal(distanceRings('mi', 40).length, 9)
   })
 })

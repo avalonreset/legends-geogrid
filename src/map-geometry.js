@@ -36,9 +36,42 @@ export const STOP_SIGN_SCALE = .30
 export const DIAMOND_HALF = STOP_SIGN_SCALE * OCTAGON_CUT
 export const OCTAGON_POINTS = `${OCTAGON_CUT * 100},0 ${100 - OCTAGON_CUT * 100},0 100,${OCTAGON_CUT * 100} 100,${100 - OCTAGON_CUT * 100} ${100 - OCTAGON_CUT * 100},100 ${OCTAGON_CUT * 100},100 0,${100 - OCTAGON_CUT * 100} 0,${OCTAGON_CUT * 100}`
 
+// Partition multi-resolution or hybrid grids into independent uniform lattices
+// so inner and outer rings never cross-contaminate row/column intersections.
+export function partitionUniformLattices(points) {
+  if (points.length <= 4) return [points]
+  const byLat = new Map(), byLng = new Map()
+  for (const p of points) {
+    if (!byLat.has(p.lat)) byLat.set(p.lat, [])
+    byLat.get(p.lat).push(p)
+    if (!byLng.has(p.lng)) byLng.set(p.lng, [])
+    byLng.get(p.lng).push(p)
+  }
+  const groups = new Map()
+  const orphans = []
+  for (const p of points) {
+    const rowPeers = byLat.get(p.lat).map(q => Math.abs(q.lng - p.lng)).filter(d => d > 1e-6)
+    const colPeers = byLng.get(p.lng).map(q => Math.abs(q.lat - p.lat)).filter(d => d > 1e-6)
+    const dLng = rowPeers.length ? Math.min(...rowPeers) : 0
+    const dLat = colPeers.length ? Math.min(...colPeers) : 0
+    const step = dLat || (dLng * Math.cos(p.lat * Math.PI / 180))
+    if (!step) {
+      orphans.push(p)
+      continue
+    }
+    const key = step.toFixed(3)
+    if (!groups.has(key)) groups.set(key, [])
+    groups.get(key).push(p)
+  }
+  if (groups.size <= 1) return [points]
+  const sorted = [...groups.values()].sort((a, b) => b.length - a.length)
+  if (orphans.length) sorted[0].push(...orphans)
+  return sorted.filter(g => g.length >= 2)
+}
+
 // Keep the four positions, even when a radial boundary removes some origins.
 // Padding the axes also finds intersections beside the outermost measured row.
-export function latticeIntersections(points, partial = false) {
+function singleLatticeIntersections(points, partial = false) {
   const rows = [...new Set(points.map(p => p.lat))].sort((a, b) => b - a)
   const columns = [...new Set(points.map(p => p.lng))].sort((a, b) => a - b)
   if (rows.length < 2 || columns.length < 2) return []
@@ -57,6 +90,10 @@ export function latticeIntersections(points, partial = false) {
     intersections.push({ corners, north: rows[r], south: rows[r + 1], west: columns[c], east: columns[c + 1] })
   }
   return intersections
+}
+
+export function latticeIntersections(points, partial = false) {
+  return partitionUniformLattices(points).flatMap(group => singleLatticeIntersections(group, partial))
 }
 
 export function blendColor(corners, x, y) {
@@ -78,7 +115,7 @@ export function destination(lat, lng, km, bearing) {
 }
 
 // Trace closed orthogonal grid-cell boundary loops for contiguous leader clusters.
-export function territoryOutlines(points, cellById, project) {
+function singleLatticeOutlines(points, cellById, project) {
   const rows = [...new Set(points.map(p => p.lat))].sort((a, b) => b - a)
   const columns = [...new Set(points.map(p => p.lng))].sort((a, b) => a - b)
   if (rows.length < 2 || columns.length < 2) return []
@@ -181,4 +218,8 @@ export function territoryOutlines(points, cellById, project) {
     }
   }
   return outlines
+}
+
+export function territoryOutlines(points, cellById, project) {
+  return partitionUniformLattices(points).flatMap(group => singleLatticeOutlines(group, cellById, project))
 }

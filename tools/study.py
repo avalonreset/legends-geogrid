@@ -185,7 +185,16 @@ def assemble_report(output,config_path):
 
 
 def main(argv=None):
-    parser=argparse.ArgumentParser(description=__doc__);sub=parser.add_subparsers(dest='command',required=True)
+    parser=argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--open',dest='open_flag',action='store_true',help='Generate and open a self-contained static Companion HTML without spawning a background server')
+    parser.add_argument('--study',help='Optional study JSON or run directory for --open')
+    parser.add_argument('--research',help='Optional campaign-research JSON for --open')
+    parser.add_argument('--name-review',dest='name_review',help='Optional name-review JSON for --open')
+    parser.add_argument('--output',help='Optional output HTML path for --open')
+    parser.add_argument('--no-browser',action='store_true',help='Generate the static Companion HTML without launching a browser')
+    parser.add_argument('--pdf',action='store_true',help='Also open the study PDF report in the browser when available')
+    sub=parser.add_subparsers(dest='command',required=False)
+    op=sub.add_parser('open');op.add_argument('--study');op.add_argument('--research');op.add_argument('--name-review',dest='name_review');op.add_argument('--output');op.add_argument('--no-browser',action='store_true');op.add_argument('--pdf',action='store_true')
     sub.add_parser('library-init')
     e=sub.add_parser('enhance');e.add_argument('--run-dir',required=True);e.add_argument('--output-dir',required=True)
     e.add_argument('--execute',action='store_true');e.add_argument('--confirm-cost-usd',type=float,default=0)
@@ -208,9 +217,13 @@ def main(argv=None):
             s.add_argument('--output-dir',required=True);s.add_argument('--execute',action='store_true');s.add_argument('--confirm-cost-usd',type=float,default=0)
     for command in sub.choices.values():command.add_argument('--vault-dir',help='Vault root; defaults to GEOGRID_VAULT_DIR or Documents/legends-geogrid-vault')
     args=parser.parse_args(argv)
+    if not args.command and not args.open_flag: parser.error('the following arguments are required: command (or --open)')
     try:
         from study_library import bank_study, save_checkpoint
-        if args.command=='enhance':
+        if args.command=='open' or (not args.command and args.open_flag):
+            from companion_standalone import open_companion
+            result=open_companion(study=args.study,research=args.research,name_review=args.name_review,output=args.output,open_browser=not args.no_browser,open_pdf=args.pdf)
+        elif args.command=='enhance':
             from study_enhance import run as enhance
             result=enhance(args.run_dir,args.output_dir,args.execute,args.confirm_cost_usd,args.vault_dir,args.max_age_hours,args.target_spacing_km)
         elif args.command=='battlefield':

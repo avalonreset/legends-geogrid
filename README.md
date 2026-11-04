@@ -68,7 +68,7 @@ Dock the resizable **Strategy Room** beside the live map to compare top-3 and to
 
 | What you tell your agent | What happens under the hood |
 | --- | --- |
-| *"Open the example pizza map so I can explore it without spending credits."* | Runs `python tools/study.py --open` (or `pnpm dev`) to launch the pre-loaded 10-mile Austin starter study in your browser, plus [`examples/starter-home-slice/report/report.pdf`](examples/starter-home-slice/report/report.pdf). Zero credentials or API calls required. |
+| *"Open the example pizza map so I can explore it without spending credits."* | Runs `python tools/study.py --open` to launch a self-contained static Competitive Map Companion in your browser (zero background daemons or open ports), plus [`examples/starter-home-slice/report/report.pdf`](examples/starter-home-slice/report/report.pdf). Zero credentials or API calls required. |
 | *"Study `<Business Name>` on Google Maps."* | Researches the business website, public Google Business Profile, and search demand; recommends [3-5 distinct search themes](docs/QUERY_SELECTION_POLICY.md); previews the circular lattice and DataForSEO cost ceiling; and waits for your approval before collecting. |
 | *"Audit the top competitors in this study for keyword stuffing and check their storefront signs."* | Runs Standard-queue exact-CID profile refreshes, website branding captures, multi-vantage Street View (`v0`, `v1`, `v2`), and `legends-jev` 1.14 optical signage verification (`business_name_review.py photos --jev`), then attaches the dossier to your study. |
 | *"Enhance this study out to 10 miles."* | Reuses every inner-radius observation already banked on disk (`tools/radius_compose.py`), collects only the outer ring within your approved budget, and generates a new companion dataset and Letter PDF/HTML report edition. |
@@ -147,7 +147,7 @@ python -m playwright install --with-deps chromium
 python tools/geogrid_doctor.py --dataforseo --jev --reports --basemaps
 ```
 
-**Tested ecosystem pairing:** `legends-geogrid` `v0.2.2` with [`legends-dataforseo`](https://github.com/avalonreset/legends-dataforseo) `v0.1.6` and optional [`legends-jev`](https://github.com/avalonreset/legends-jev) `v0.2.0` (`Jev 1.14` optical recognition and storefront signage grounding).
+**Tested ecosystem pairing:** `legends-geogrid` `v0.2.3` with [`legends-dataforseo`](https://github.com/avalonreset/legends-dataforseo) `v0.1.6` and optional [`legends-jev`](https://github.com/avalonreset/legends-jev) `v0.2.0` (`Jev 1.14` optical recognition and storefront signage grounding).
 
 ---
 

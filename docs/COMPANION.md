@@ -1,7 +1,7 @@
 # Competitive map companion
 
 The browser is a shared visual workspace alongside an agent conversation. Run
-`pnpm dev` and open the local URL. The original studio remains at `/legacy.html`;
+`python tools/study.py --open` (or `python tools/study.py open --study <path>`) to build a self-contained static HTML companion and open it directly in the system browser without spawning a background server or holding a local port. For live local UI development or server-held Google Map Tiles proxying, run `pnpm dev` in a visible interactive terminal and open the local URL (never spawn `pnpm dev` or `vite` via `Start-Process -WindowStyle Hidden`). The original studio remains at `/legacy.html`;
 existing generated battlefield consoles remain untouched.
 
 The default view uses the bundled historical pizza sample. In development, a private

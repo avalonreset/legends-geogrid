@@ -328,20 +328,21 @@ export const RankCanvasLayer = L.Layer.extend({
       ctx.clip()
     }
     for (const diamond of this.diamonds) {
+      const dSize = (diamond.spacing ? diamond.spacing * scale : stepPx) * 2 * DIAMOND_HALF
       const x = diamond.x * scale - origin.x, y = diamond.y * scale - origin.y
-      if (!visible(x, y, diamondSize)) continue
+      if (!visible(x, y, dSize)) continue
       const wD = weightOf(diamond.leaderId)
       const dimD = mix * (1 - wD)
       const alphaD = 1 - dimD * .56
       ctx.save()
       ctx.beginPath()
-      ctx.moveTo(x, y - diamondSize / 2); ctx.lineTo(x + diamondSize / 2, y)
-      ctx.lineTo(x, y + diamondSize / 2); ctx.lineTo(x - diamondSize / 2, y); ctx.closePath()
+      ctx.moveTo(x, y - dSize / 2); ctx.lineTo(x + dSize / 2, y)
+      ctx.lineTo(x, y + dSize / 2); ctx.lineTo(x - dSize / 2, y); ctx.closePath()
       ctx.save()
       ctx.clip()
       // Texture already contains each contributor's display alpha.
       ctx.globalAlpha = alphaD
-      ctx.drawImage(diamond.texture, x - diamondSize / 2, y - diamondSize / 2, diamondSize, diamondSize)
+      ctx.drawImage(diamond.texture, x - dSize / 2, y - dSize / 2, dSize, dSize)
       ctx.restore()
       ctx.globalAlpha = alphaD
       ctx.strokeStyle = 'rgba(0,0,0,.5)'; ctx.lineWidth = stroke; ctx.stroke()
@@ -392,15 +393,16 @@ export const RankCanvasLayer = L.Layer.extend({
     }
     this.hits = []
     for (const cell of this.cells) {
+      const cSize = (cell.spacing ? cell.spacing * scale : stepPx) * STOP_SIGN_SCALE
       const x = cell.x * scale - origin.x, y = cell.y * scale - origin.y
-      if (!visible(x, y, size)) continue
-      this.hits.push({ ...cell, sx: x, sy: y, size })
+      if (!visible(x, y, cSize)) continue
+      this.hits.push({ ...cell, sx: x, sy: y, size: cSize })
       const focusC = weightOf(cell.leaderId)
       const dimC = mix * (1 - focusC)
       const hoverFactor = 1 - dimC * .54
       ctx.save()
       ctx.beginPath()
-      OCTAGON_VERTICES.forEach(([vx, vy], i) => ctx[i ? 'lineTo' : 'moveTo'](x + (vx - .5) * size, y + (vy - .5) * size))
+      OCTAGON_VERTICES.forEach(([vx, vy], i) => ctx[i ? 'lineTo' : 'moveTo'](x + (vx - .5) * cSize, y + (vy - .5) * cSize))
       ctx.closePath()
       if (!['nr', 'unknown', 'other'].includes(cell.kind)) {
         ctx.fillStyle = cell.color

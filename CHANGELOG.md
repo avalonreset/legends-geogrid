@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.3 - 2026-11-03
+
+- Add **Zero-Daemon Static Companion Launcher (`python tools/study.py --open` / `python tools/study.py open`, `tools/companion_standalone.py`, `assets/companion-runtime.js`, `assets/companion-runtime.css`)**: generates a self-contained static HTML Competitive Map Companion from the bundled 10-mile Austin starter study (or any `--study` JSON and its sidecar attachments) and opens it via the system browser with zero background processes, zero open ports, and no `pnpm` / Node.js daemon required.
+- Add **Endpoint Security (EDR) Agent Guardrails (`AGENTS.md`, `README.md`, `docs/COMPANION.md`)**: explicitly prohibit agents from improvising hidden PowerShell background server wrappers (`Start-Process -WindowStyle Hidden` + `Invoke-WebRequest -UseBasicParsing` polling loops inside `-ExecutionPolicy Bypass` shells), preventing false-positive EDR behavioral detections on corporate Windows endpoints.
+- Add **Multi-Resolution Lattice Partitioning & Extended Distance Rings (`src/map-geometry.js`, `src/rank-canvas.js`, `src/distance-units.js`, `src/companion.js`)**: `partitionUniformLattices` separates nested or hybrid multi-spacing grids into independent uniform lattices so inner and outer rings render four-corner gradient diamonds, territory outlines, and stop-sign octagons at their native ring spacing without cross-ring artifacts, and `distanceRings` scales out to `50 mi/km` for wide-radius studies.
+- Upgrade `vite` to `8.3.5` (`>=8.2.4`) and `postcss` to `8.5.27`, resolving 6 Windows dev-server advisories (`0` vulnerabilities in `pnpm audit`).
+
 ## 0.2.2 - 2026-10-29
 
 - Raise minimum supported Python runtime to Python 3.11 (`"python": ">=3.11"`, `"node": ">=22.0.0"` in `package.json`, `tools/geogrid_doctor.py`, and CI matrix).

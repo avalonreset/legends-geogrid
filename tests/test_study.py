@@ -200,5 +200,24 @@ class StudyTests(unittest.TestCase):
             with self.assertRaises(OSError):research(request,out,True,1,allow_live=True)
             with self.assertRaisesRegex(ValueError,'already reserved'):research(request,out,True,1,allow_live=True)
         self.assertFalse((out/'.research-lock').exists())
+    def test_open_flag_and_subcommand_emit_zero_daemon_static_companion(self):
+        import io
+        from contextlib import redirect_stdout
+        from study import main
+        out_html=self.root/'companion.html'
+        for argv in (['--open','--no-browser','--output',str(out_html)],['open','--no-browser','--output',str(out_html)]):
+            buf=io.StringIO()
+            with redirect_stdout(buf):
+                rc=main(argv)
+            self.assertEqual(rc,0)
+            receipt=json.loads(buf.getvalue())
+            self.assertEqual(receipt['status'],'companion_ready')
+            self.assertEqual(receipt['mode'],'static_file_zero_daemon')
+            self.assertEqual(receipt['background_processes_spawned'],0)
+            self.assertFalse(receipt['browser_opened'])
+            self.assertTrue(out_html.is_file())
+            html=out_html.read_text(encoding='utf-8')
+            self.assertIn('window.__GEOGRID_BOOTSTRAP__',html)
+            self.assertIn('Home Slice Pizza',html)
 
 if __name__=='__main__':unittest.main()

@@ -1,8 +1,8 @@
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
-import sample from './data/home-slice-study.json'
-import sampleResearch from './data/home-slice-campaign-research.json'
-import sampleNameReview from './data/home-slice-name-review.json'
+import { sample, sampleResearch, sampleNameReview } from './starter-data.js'
+
+
 import { normalizeStudy, observationFor, businessMetrics, businessLeaderboard, businessPage, rankPresentation, RANK_COLORS, RANK_OPACITIES, rankFillOpacity } from './study-model.js'
 import { cellSpacings, destination, blendColor, latticeIntersections, territoryOutlines } from './map-geometry.js'
 import { installWheelZoom } from './wheel-zoom.js'
@@ -41,7 +41,7 @@ let preferredBasemap = 'osm-legends'
 try { preferredBasemap = localStorage.getItem('geogrid-basemap') || preferredBasemap } catch { /* Use default. */ }
 state.basemap = BASEMAPS.some(s => s.id === initialParams.get('basemap')) ? initialParams.get('basemap') :
   BASEMAPS.some(s => s.id === preferredBasemap) ? preferredBasemap : 'osm-legends'
-let spacing = 0, gridCorners = [], cancelWheelZoom = () => {}
+let spacing = 0, pointSpacings = [], gridCorners = [], cancelWheelZoom = () => {}
 let followStudyBounds = true, fittingStudy = false
 let hoveredLeaderId = null, leaderBaseEntries = [], cameraFrame = 0
 const colorFor = id => profileColor(model, id)
@@ -115,7 +115,7 @@ function syncURL() {
   } else { params.delete('lens'); params.delete('area') }
   if (state.view === 'campaigns' && investigationIds && investigationId) params.set('investigation', investigationId)
   else params.delete('investigation')
-  history.replaceState(null, '', `${location.pathname}?${params}`)
+  try { history.replaceState(null, '', `${location.pathname}?${params}`) } catch { /* Restricted on some file:// origins. */ }
 }
 
 function announce(message) {
@@ -224,7 +224,7 @@ async function loadCampaignResearch(fallbackInput = null) {
     if (model !== currentModel) return
     let input = null
     if (url) {
-      const response = await fetch(url)
+      const response = await fetch(url, { cache: 'no-store' })
       if (!response.ok) throw new Error(`HTTP ${response.status}`)
       input = await response.json()
       if (model !== currentModel) return
@@ -464,7 +464,7 @@ function drawMap() {
       color: '#969696', weight: 1, opacity: .65, dashArray: '4 6', fill: false, interactive: false }).addTo(coverageLayer)
   }
   if (state.rings && Number.isFinite(anchor?.lat) && Number.isFinite(anchor?.lng)) {
-    for (const { km, label } of distanceRings(state.units)) {
+    for (const { km, label } of distanceRings(state.units, model.sampling?.radius_km)) {
       if (model.sampling?.radius_km && km > model.sampling.radius_km + .00001) continue
       L.circle([anchor.lat, anchor.lng], {
         pane: 'referencePane', radius: km * 1000, color: '#cccccc', weight: 1,
@@ -488,7 +488,8 @@ function drawMap() {
     ? new Map(strategyMatchup(model, state.query, state.rival, 'all').cells.map(c => [c.id, c])) : null
   const cells = []
   const leaders = localLeaders(model, state.query, state.leaderMinimum)
-  for (const p of model.points) {
+  for (let pi = 0; pi < model.points.length; pi++) {
+    const p = model.points[pi]
     const o = observationFor(model, p, state.query, state.business)
     const top = winnerAt(p.observations[state.query])
     const majorLeader = top && leaders.majorIds.has(top.id)
@@ -506,7 +507,7 @@ function drawMap() {
     const projected = map.project([p.lat, p.lng], 0)
     const comparison = matchupCells?.get(p.id)
     const comparisonStyle = comparison && MATCHUP_STYLES[comparison.state]
-    cells.push({ id: p.id, lat: p.lat, lng: p.lng, x: projected.x, y: projected.y,
+    cells.push({ id: p.id, lat: p.lat, lng: p.lng, x: projected.x, y: projected.y, spacing: pointSpacings[pi] || spacing,
       leaderId: state.view === 'factions' && highlightedLeader ? top.id : null,
       color, opacity: tactical ? (state.translucent ? .45 : .9) : state.view === 'factions' ? (state.translucent ? .45 : 1) : rankFillOpacity(presentation.rank, state.translucent),
       kind: tactical ? (!tacticalCell || tacticalCell.band === 'unknown' ? 'unknown' : tacticalCell.band === 'outside30' ? 'nr' : 'ranked') : state.view === 'factions' ? (highlightedLeader ? 'ranked' : top ? 'other' : 'unknown') : presentation.kind, active, muted, coverage: state.coverage,
@@ -607,7 +608,8 @@ function drawBlends(cells, cellById = new Map(cells.map(c => [c.id, c]))) {
     const a = map.project([intersection.north, intersection.west], 0)
     const b = map.project([intersection.south, intersection.east], 0)
     const center = a.add(b).divideBy(2)
-    diamonds.push({ x: center.x, y: center.y, texture: textures.get(key), leaderId: dominantLeaderId })
+    const dSpace = Math.min(Math.abs(b.x - a.x), Math.abs(b.y - a.y))
+    diamonds.push({ x: center.x, y: center.y, spacing: dSpace > 0 ? dSpace : spacing, texture: textures.get(key), leaderId: dominantLeaderId })
   }
   return diamonds
 }
@@ -677,11 +679,11 @@ function loadStudy(input, restore = false) {
   campaign.area = null
   campaign.research = null
   investigationIds = null
-  const spacings = cellSpacings(model.points.map(p => {
+  pointSpacings = cellSpacings(model.points.map(p => {
     const projected = map.project([p.lat, p.lng], 0)
     return [projected.x, projected.y]
   }))
-  spacing = Math.min(...spacings.filter(s => s > 0))
+  spacing = Math.min(...pointSpacings.filter(s => s > 0))
   if (!Number.isFinite(spacing)) spacing = .001
   gridCorners = []
   if (['square_grid', 'radius_grid'].includes(model.geometry) || model.limited) {
@@ -828,7 +830,7 @@ $('#sampling-view').addEventListener('change', async e => {
   try {
     const url = new URL(e.target.value, location.href)
     if (url.origin !== location.origin) throw new Error('Study must use this origin')
-    const response = await fetch(url)
+    const response = await fetch(url, { cache: 'no-store' })
     if (!response.ok) throw new Error(`HTTP ${response.status}`)
     const input = await response.json()
     normalizeStudy(input)
@@ -1014,10 +1016,10 @@ window.GeoGrid = {
   pointPosition: id => pointsLayer.pointPosition(id),
   context: contextText,
 }
-loadStudy(sample, true)
+loadStudy(sample, true); void (async () => {
 // A private local pointer can select the working study without bundling client
 // evidence in the open-source build. Explicit links always retain their study.
-if (import.meta.env.DEV && initialParams.get('starter') !== '1') {
+if (import.meta.env.DEV && ['http:', 'https:'].includes(location.protocol) && initialParams.get('starter') !== '1') {
   try {
     const response = await fetch('/runs/current-study.json', { cache: 'no-store' })
     if (response.ok && response.headers.get('content-type')?.includes('application/json')) {
@@ -1033,7 +1035,7 @@ if (params.has('study')) {
   try {
     const url = new URL(params.get('study'), location.href)
     if (url.origin !== location.origin) throw new Error('Study URLs must use the same origin. Use Open study for local files.')
-    const response = await fetch(url)
+    const response = await fetch(url, { cache: 'no-store' })
     if (!response.ok) throw new Error(`HTTP ${response.status}`)
     loadStudy(await response.json(), true)
   } catch (error) { announce(`Could not load requested study (${error.message}). Showing the bundled sample.`) }
@@ -1042,4 +1044,4 @@ if (params.has('study')) {
 // Start map requests when the user returns to a map mode, not against 0×0 bounds.
 mapSourcesReady = true
 ensureBasemap()
-if (initialParams.get('strategy') === '1') strategyRoom.open()
+if (initialParams.get('strategy') === '1') strategyRoom.open(); })()

@@ -1,4 +1,4 @@
-# Current release: 0.2.0
+# Current release: 0.2.3
 
 The current release pairs the **Competitive Map Companion** (`index.html`, `src/companion.js`), **Local Leaders & neighbor-aware OKLab coloring**, **Strategy Room & Head-to-Head matchups**, **Territory Campaigns**, **Circular-Lattice sampling & nested radius composition**, and the **Business-Name Review (`Keyword stuffing`) workbench** (including the `0-5` `title-evidence-v1` concern confidence scale and historical report lead reconciliation) with business-first research, public GBP and website evidence, 3-5 justified search themes, decision-oriented PDF/HTML reports, and a persistent Markdown/JSON study library. Real reports default to free street maps; dark and white print modes share the same template. `study.py enhance` executes finer sampling within the existing footprint with eligible point reuse and incremental estimates.
 

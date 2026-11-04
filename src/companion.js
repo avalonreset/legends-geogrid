@@ -39,8 +39,10 @@ let strategyRoom
 let nameReview
 let preferredBasemap = 'osm-legends'
 try { preferredBasemap = localStorage.getItem('geogrid-basemap') || preferredBasemap } catch { /* Use default. */ }
-state.basemap = BASEMAPS.some(s => s.id === initialParams.get('basemap')) ? initialParams.get('basemap') :
-  BASEMAPS.some(s => s.id === preferredBasemap) ? preferredBasemap : 'osm-legends'
+const isFileOrigin = location.protocol === 'file:'
+const selectableBasemap = id => BASEMAPS.some(s => s.id === id && (!isFileOrigin || s.kind === 'osm'))
+state.basemap = selectableBasemap(initialParams.get('basemap')) ? initialParams.get('basemap') :
+  selectableBasemap(preferredBasemap) ? preferredBasemap : 'osm-legends'
 let spacing = 0, pointSpacings = [], gridCorners = [], cancelWheelZoom = () => {}
 let followStudyBounds = true, fittingStudy = false
 let hoveredLeaderId = null, leaderBaseEntries = [], cameraFrame = 0
@@ -73,7 +75,7 @@ $('#app').innerHTML = `
       <div class="map-column">
         <div class="map-heading"><div class="view-tabs" role="group" aria-label="Map lens">
           <button data-view="visibility">Rankings</button><button data-view="factions">Local leaders</button><button data-view="campaigns">Campaigns</button><button data-view="keyword-stuffing" aria-controls="name-review-host">Keyword stuffing</button><button data-view="matchup" hidden>Head-to-head</button>
-        </div><div class="map-description" id="view-description"></div><div class="map-heading-actions"><select id="basemap" aria-label="Map source">${BASEMAPS.map(s => `<option value="${s.id}">${s.name}</option>`).join('')}</select><button id="fit" class="quiet-button" title="Show every sampled location">Fit study</button></div></div>
+        </div><div class="map-description" id="view-description"></div><div class="map-heading-actions"><select id="basemap" aria-label="Map source">${BASEMAPS.map(s => `<option value="${s.id}"${isFileOrigin && s.kind !== 'osm' ? ' disabled' : ''}>${s.name}${isFileOrigin && s.kind !== 'osm' ? ' (HTTP server only)' : ''}</option>`).join('')}</select><button id="fit" class="quiet-button" title="Show every sampled location">Fit study</button></div></div>
         <div id="name-review-host" hidden></div>
         <div id="map"><div class="map-badge"><span id="map-business"></span><small id="map-subtitle">Organic Maps rankings</small></div>
           <div id="basemap-status" class="basemap-status" role="status" hidden><p></p><div><button id="retry-basemap">Retry map</button><button id="use-default-basemap">Use OpenStreetMap</button><button id="dismiss-basemap">Dismiss</button></div></div>
@@ -354,7 +356,7 @@ function render() {
   $('#study-date').textContent = model.evidence?.observed_from ? `Observed ${formatDate(model.evidence.observed_from)}` : model.generatedAt ? `Exported ${new Date(model.generatedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}` : 'Historical proof · date unavailable'
   $('#query').innerHTML = model.queries.map(q => `<option value="${escape(q.id)}" ${q.id === state.query ? 'selected' : ''}>${escape(q.name)}</option>`).join('')
   $('#query-scope').textContent = `${model.points.length} locations · ${model.queries.length} ${model.queries.length === 1 ? 'query' : 'queries'}`
-  const views = model.studyViews || []
+  const views = isFileOrigin ? [] : (model.studyViews || [])
   $('#sampling-view').hidden = !views.length
   $('#sampling-view').innerHTML = views.map(v => `<option value="${escape(v.url)}" ${params.get('study') === v.url ? 'selected' : ''}>${escape(distanceText(v.label, state.units))}</option>`).join('')
   $('#map-business').textContent = state.view === 'factions' ? 'Local leaders' : state.view === 'campaigns' ? `${model.name} · ${CAMPAIGN_LENSES[campaign.lens].label}` : selected.name

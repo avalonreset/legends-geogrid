@@ -75,16 +75,15 @@ Dock the resizable **Strategy Room** beside the live map to compare top-3 and to
 
 ### Want to launch the zero-credit browser demo manually?
 
-If you just cloned the repo and want to pop open the Austin starter study yourself (Node.js 20.19+ or 22.12+ and `pnpm` 10+):
+If you just cloned the repo and want to pop open the Austin starter study yourself, Python 3.11+ builds and opens a self-contained static Companion HTML file with zero background daemons, zero open ports, and no Node.js server required:
 
 ```powershell
 git clone https://github.com/avalonreset/legends-geogrid.git
 cd legends-geogrid
-pnpm install --frozen-lockfile
-pnpm dev
+python tools/study.py --open
 ```
 
-Or open the pre-built 18-page strategy report directly at [`examples/starter-home-slice/report/report.pdf`](examples/starter-home-slice/report/report.pdf).
+Or open the pre-built 18-page strategy report directly at [`examples/starter-home-slice/report/report.pdf`](examples/starter-home-slice/report/report.pdf). (For live UI source development or server-held Google Map Tiles proxying, run `pnpm install --frozen-lockfile` and `pnpm dev` in an interactive terminal; never spawn hidden background dev servers via `Start-Process -WindowStyle Hidden`.)
 
 ---
 
@@ -130,7 +129,7 @@ Most hosted local rank tracker tools charge recurring monthly subscriptions for 
 Google Maps and the Google Map Pack rank businesses differently depending on the searcher's exact GPS coordinates. A single-point local rank checker only shows rankings from one city centroid. `legends-geogrid` samples hundreds of coordinates across a true circular radius (`317` origins at `5` miles or `1,249` origins at `10` miles) with `search_this_area=false` so you see real neighborhood-by-neighborhood Google Maps ranking territories.
 
 ### Can I explore a full local rank tracking study without API keys or credits?
-Yes. Every checkout includes the complete `1,249`-origin Austin pizza study (`Home Slice Pizza`, `702` competitors, `165` optically audited profiles) and its 18-page PDF report. Tell your agent *"open the example pizza map"* or run `pnpm dev` to inspect every lens in your browser for `$0`.
+Yes. Every checkout includes the complete `1,249`-origin Austin pizza study (`Home Slice Pizza`, `702` competitors, `165` optically audited profiles) and its 18-page PDF report. Tell your agent *"open the example pizza map"* or run `python tools/study.py --open` to inspect every lens in your browser for `$0`.
 
 ### How does `legends-geogrid` help with Google Business Profile optimization and keyword stuffing audits?
 When a competitor outranks you across the map, `legends-geogrid` can audit whether their Google Business Profile title matches their real-world signage. Your agent refreshes exact Google CIDs, captures public website branding and multi-vantage Street View imagery, and optionally runs `legends-jev` optical character recognition to score title-stuffing concern confidence (`0-5`) with counterevidence preserved.
@@ -147,7 +146,7 @@ python -m playwright install --with-deps chromium
 python tools/geogrid_doctor.py --dataforseo --jev --reports --basemaps
 ```
 
-**Tested ecosystem pairing:** `legends-geogrid` `v0.2.3` with [`legends-dataforseo`](https://github.com/avalonreset/legends-dataforseo) `v0.1.6` and optional [`legends-jev`](https://github.com/avalonreset/legends-jev) `v0.2.0` (`Jev 1.14` optical recognition and storefront signage grounding).
+**Tested ecosystem pairing:** `legends-geogrid` `v0.2.4` with [`legends-dataforseo`](https://github.com/avalonreset/legends-dataforseo) `v0.1.6` and optional [`legends-jev`](https://github.com/avalonreset/legends-jev) `v0.2.1` (`Jev 1.14` optical recognition and storefront signage grounding).
 
 ---
 

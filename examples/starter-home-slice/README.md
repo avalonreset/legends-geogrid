@@ -1,6 +1,6 @@
-# Home Slice Pizza: 10-Mile Starter Case Study (v0.2.0)
+# Home Slice Pizza: 10-Mile Starter Case Study (v0.2.4)
 
-This directory and the bundled Companion datasets under `src/data/` provide a complete, pre-built **v0.2.0 starter case study** for **Home Slice Pizza** (`1415 S Congress Ave, Austin, TX 78704`, `homeslicepizza.com`, CID `12299280573550492680`).
+This directory and the bundled Companion datasets under `src/data/` provide a complete, pre-built **v0.2.4 starter case study** for **Home Slice Pizza** (`1415 S Congress Ave, Austin, TX 78704`, `homeslicepizza.com`, CID `12299280573550492680`).
 
 Anyone cloning `legends-geogrid` can immediately launch the browser Companion or open the completed Strategy Report without configuring API credentials or paying for a fresh scan.
 
@@ -36,12 +36,11 @@ Anyone cloning `legends-geogrid` can immediately launch the browser Companion or
 
 ## How to Open
 
-### 1. Interactive Browser Companion
+### 1. Interactive Browser Companion (Zero-Daemon Static File)
 ```bash
-pnpm install
-pnpm dev
+python tools/study.py --open
 ```
-Open the local URL printed by Vite. The 10-mile Home Slice Pizza starter study, Campaign Research, and Business-Name Review load automatically by default (or add `?starter=1` if you have a local `/runs/current-study.json` pointer configured).
+Builds a self-contained static HTML Companion (`runs/starter-home-slice/companion.html`) with the 10-mile Home Slice Pizza starter study, Campaign Research, and Business-Name Review embedded, and opens it directly in your default browser over `file://` without spawning a background server or holding a local port. (For live local UI development or server-held Google Map Tiles proxying, run `pnpm install --frozen-lockfile` and `pnpm dev` in an interactive terminal; never spawn hidden background dev servers via `Start-Process -WindowStyle Hidden`.)
 
 ### 2. Completed Strategy Report
 Open [`examples/starter-home-slice/report/report.pdf`](./report/report.pdf) in any PDF viewer, or open [`examples/starter-home-slice/report/report.html`](./report/report.html) in your browser.

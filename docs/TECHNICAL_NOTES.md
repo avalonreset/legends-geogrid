@@ -167,6 +167,10 @@ Run artifacts are local files. Raw output may include public business fields, ta
 
 ## Browser studio
 
-The studio is a static Vite application. Leaflet renders the map and OpenStreetMap supplies the default tiles from the exact policy endpoint, `https://tile.openstreetmap.org/{z}/{x}/{y}.png`. The map shows linked OpenStreetMap attribution. Rank pins use a canvas layer so a 17 x 17 grid remains responsive. The studio itself never calls DataForSEO and cannot spend credits.
+The Companion can be opened in two ways:
+1. **Zero-daemon static HTML (`python tools/study.py --open`)**: embeds the pre-compiled Companion runtime (`assets/companion-runtime.js` and `assets/companion-runtime.css`) and the target study dataset into a self-contained `.html` file and opens it over `file://` without spawning a background server or holding a local port.
+2. **Vite source application (`pnpm dev` / `pnpm build`)**: serves the modular source tree for interactive UI development or server-held Google Map Tiles proxying.
+
+Leaflet renders the map and OpenStreetMap supplies the default tiles from the exact policy endpoint, `https://tile.openstreetmap.org/{z}/{x}/{y}.png`. The map shows linked OpenStreetMap attribution. Rank pins use a canvas layer so a 1,249-point circular lattice remains responsive. The Companion itself never calls DataForSEO and cannot spend credits.
 
 Set `VITE_MAP_TILE_URL` and `VITE_MAP_TILE_ATTRIBUTION` at build time to use another tile provider. The operator is responsible for that provider's licence, attribution, traffic, and caching requirements. legends-geogrid does not prefetch or package map tiles.

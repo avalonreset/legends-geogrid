@@ -55,12 +55,12 @@ def _resolve_study_inputs(
 
     candidate = Path(study)
     if candidate.is_dir():
-        for name in ("companion-study.json", "study.json"):
+        for name in ("companion-study.json", "battlefield-model.json", "study.json", "parsed-grid.json"):
             if (candidate / name).is_file():
                 candidate = candidate / name
                 break
         else:
-            raise ValueError(f"No companion-study.json found in directory: {candidate}")
+            raise ValueError(f"No companion-study.json, battlefield-model.json, or parsed-grid.json found in directory: {candidate}")
     if not candidate.is_file():
         raise ValueError(f"Study file not found: {candidate}")
 
@@ -127,8 +127,14 @@ def open_companion(
     study_data, research_data, review_data, out_path, report_pdf, report_html = _resolve_study_inputs(
         study=study, research=research, name_review=name_review, output=output
     )
-    if not isinstance(study_data, dict) or study_data.get("schema") != "geogrid-companion/v1":
-        raise ValueError("Study JSON must use schema 'geogrid-companion/v1'.")
+    is_valid_study = isinstance(study_data, dict) and (
+        study_data.get("schema") in ("geogrid-companion/v1", "geogrid-battlefield/v1")
+        or (isinstance(study_data.get("results"), list) and isinstance(study_data.get("target"), str))
+    )
+    if not is_valid_study:
+        raise ValueError(
+            "Study JSON must use schema 'geogrid-companion/v1', 'geogrid-battlefield/v1', or a GeoGrid parsed-grid dataset."
+        )
 
     css_text = RUNTIME_CSS.read_text(encoding="utf-8")
     js_text = _safe_inline_script(RUNTIME_JS.read_text(encoding="utf-8"))

@@ -4,6 +4,17 @@ Read ../AGENTS.md, START_A_STUDY.md and QUERY_SELECTION_POLICY.md. This is an ag
 the agent researches and reasons; tools preserve evidence and enforce collection
 preconditions. It does not need another model API, an MCP server, or a Hub vault.
 
+## Open the interactive Companion (zero-daemon)
+
+To open the bundled 10-mile Austin starter study or any saved study (`companion-study.json`, `battlefield-model.json`, `parsed-grid.json`, or run directory) in the user's browser:
+
+```sh
+python tools/study.py --open
+python tools/study.py open --study runs/<slug>/companion-study.json
+```
+
+This generates a self-contained static HTML file (`runs/starter-home-slice/companion.html` or `<study>.companion.html`) and opens it directly via `file://` with zero background processes, zero open ports, and no Node.js daemon. **Endpoint security (EDR) guardrail:** NEVER spawn `pnpm dev`, `vite`, `node`, or `python -m http.server` using `Start-Process -WindowStyle Hidden`, detached `-ExecutionPolicy Bypass` scripts, or `Invoke-WebRequest -UseBasicParsing` localhost polling loops. Always use `python tools/study.py --open`.
+
 ## Start from the business
 
 When given a business name, investigate it. Do not interview the user about

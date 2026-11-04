@@ -108,7 +108,7 @@ export function createBasemapSwitcher(map, { announce, onChange, onStatus = () =
       } catch (error) {
         if (layer && map.hasLayer(layer)) map.removeLayer(layer)
         if (revision === version) {
-          const detail = source.google ? error.message || 'Google Maps could not load.' : 'Street map resources could not load.'
+          const detail = error?.message || (source.google ? 'Google Maps could not load.' : 'Street map resources could not load.')
           const message = `${source.name} is unavailable. ${detail} ${current ? 'The previous background remains visible.' : 'The ranking evidence is loaded; choose another background or retry.'}`
           onStatus({ phase: 'error', id, message })
           announce(message)

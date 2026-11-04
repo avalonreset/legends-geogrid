@@ -220,4 +220,31 @@ class StudyTests(unittest.TestCase):
             self.assertIn('window.__GEOGRID_BOOTSTRAP__',html)
             self.assertIn('Home Slice Pizza',html)
 
+    def test_open_accepts_battlefield_and_parsed_grid_datasets(self):
+        from companion_standalone import open_companion
+        parsed_sample=self.root/'parsed-grid.json'
+        parsed_sample.write_text(json.dumps({
+            'target':'Test Pizzeria',
+            'keyword':'pizza',
+            'location':'Austin, TX',
+            'results':[{'point':{'tag':'r0c0','lat':30.25,'lng':-97.75},'rank':1,'top_items':[{'title':'Test Pizzeria'}]}]
+        }),encoding='utf-8')
+        out_parsed=self.root/'parsed.companion.html'
+        r1=open_companion(study=parsed_sample,output=out_parsed,open_browser=False)
+        self.assertEqual(r1['status'],'companion_ready')
+        self.assertTrue(out_parsed.is_file())
+        bf_dir=self.root/'bf-run';bf_dir.mkdir()
+        bf_path=bf_dir/'battlefield-model.json'
+        bf_path.write_text(json.dumps({
+            'schema':'geogrid-battlefield/v1',
+            'business':{'name':'Test Pizzeria'},
+            'factions':[{'faction_id':'TARGET','name':'Test Pizzeria','is_target':True,'lat':30.25,'lng':-97.75}],
+            'lanes':[{'lane_id':'q1','query':'pizza'}],
+            'points':[{'tag':'r0c0','lat':30.25,'lng':-97.75,'distance_from_target_km':0.0,'by_lane':{'q1':{'status':'found','target_rank':1,'top_items':[{'title':'Test Pizzeria','rank':1,'cid':'123'}]}}}]
+        }),encoding='utf-8')
+        r2=open_companion(study=bf_dir,open_browser=False)
+        self.assertEqual(r2['status'],'companion_ready')
+        self.assertTrue(Path(r2['companion_html']).is_file())
+        self.assertIn('Test Pizzeria',Path(r2['companion_html']).read_text(encoding='utf-8'))
+
 if __name__=='__main__':unittest.main()

@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.4 - 2026-11-04
+
+- **Multi-Schema Zero-Daemon Companion (`tools/companion_standalone.py`, `src/companion.js`, `src/basemap-switcher.js`)**: `python tools/study.py --open --study <path>` now accepts `geogrid-companion/v1`, `geogrid-battlefield/v1` (`battlefield-model.json`), and legacy `parsed-grid.json` datasets as well as study run directories. In `file://` static mode, `localStorage` basemap preferences safely normalize to OpenStreetMap raster tiles and server-only basemaps are disabled in the selector so offline users never hit HTTP/worker errors.
+- **Zero-Daemon Documentation & Agent Handoff Alignment (`README.md`, `docs/STUDY-RECIPE.md`, `docs/RELEASE_READINESS.md`, `docs/TECHNICAL_NOTES.md`, `examples/starter-home-slice/README.md`)**: promote `python tools/study.py --open` as the primary manual and agent Companion launcher across all handoff docs and starter guides, reinforcing the Endpoint Security (EDR) guardrail against hidden background dev servers.
+
 ## 0.2.3 - 2026-11-03
 
 - Add **Zero-Daemon Static Companion Launcher (`python tools/study.py --open` / `python tools/study.py open`, `tools/companion_standalone.py`, `assets/companion-runtime.js`, `assets/companion-runtime.css`)**: generates a self-contained static HTML Competitive Map Companion from the bundled 10-mile Austin starter study (or any `--study` JSON and its sidecar attachments) and opens it via the system browser with zero background processes, zero open ports, and no `pnpm` / Node.js daemon required.

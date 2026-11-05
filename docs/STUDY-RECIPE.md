@@ -13,7 +13,15 @@ python tools/study.py --open
 python tools/study.py open --study runs/<slug>/companion-study.json
 ```
 
-This generates a self-contained static HTML file (`runs/starter-home-slice/companion.html` or `<study>.companion.html`) and opens it directly via `file://` with zero background processes, zero open ports, and no Node.js daemon. **Endpoint security (EDR) guardrail:** NEVER spawn `pnpm dev`, `vite`, `node`, or `python -m http.server` using `Start-Process -WindowStyle Hidden`, detached `-ExecutionPolicy Bypass` scripts, or `Invoke-WebRequest -UseBasicParsing` localhost polling loops. Always use `python tools/study.py --open`.
+This generates a self-contained static HTML file (`runs/starter-home-slice/companion.html` or `<study>.companion.html`) and opens it directly via `file://` with zero background processes, zero open ports, and no Node.js daemon. **Endpoint security (EDR) guardrail:** NEVER spawn `pnpm dev`, `vite`, `node`, or `python -m http.server` using hidden background window flags, detached execution-policy bypass scripts, or `Invoke-WebRequest -UseBasicParsing` localhost polling loops. Always use `python tools/study.py --open`.
+
+## EDR and Security Guardrails
+
+- **No hidden consoles or execution-policy bypass wrappers**: invoke `python tools/study.py`, `python tools/geogrid_doctor.py`, and companion tools directly through standard process execution without hidden console flags or shell execution-policy bypass wrappers.
+- **No parent-process tree walking**: never enumerate parent processes or inspect system process trees.
+- **No browser profile or OS credential harvesting**: read credentials strictly from environment variables (`DATAFORSEO_LOGIN` / `DATAFORSEO_PASSWORD`, `TYPESAFE_API_KEY`) or an explicit key file (`--typesafe-api-key-file`), never from local browser profile databases or OS DPAPI stores.
+- **Symlink refusal**: refuse symlink paths (`Path.is_symlink()`) on file inputs, key files, and output paths.
+- **Network allowlist**: outbound HTTPS requests are restricted to explicit study and provider endpoints.
 
 ## Start from the business
 

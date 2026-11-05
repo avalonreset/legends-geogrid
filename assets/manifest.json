@@ -1,0 +1,26 @@
+{
+  "banner.png": {
+    "width": 4096,
+    "height": 1024,
+    "bytes": 48828,
+    "sha256": "e3c093bdddba8198c213d54df2857897c043ac02fbfc4a5e85e1c60ed2eba834"
+  },
+  "banner.webp": {
+    "width": 4096,
+    "height": 1024,
+    "bytes": 20788,
+    "sha256": "e2754214060489344472507e7df701ebe669086ea90e644ed9a819eda948f6db"
+  },
+  "preview.png": {
+    "width": 1024,
+    "height": 256,
+    "bytes": 20731,
+    "sha256": "3a8599abf9fc4cc76a21918319b35503865400de231a9170ce644496cc02407a"
+  },
+  "social-preview.png": {
+    "width": 1280,
+    "height": 640,
+    "bytes": 15645,
+    "sha256": "aa036f3d144e725680e3332a5663281fff1c6cc1f658479215909f9e15cd5b00"
+  }
+}

@@ -48,16 +48,16 @@ without specifying the decision and metric.
 Do not silently combine these lenses into an opaque opportunity score. Report
 query-specific results first. Equal-query averages, if used, are descriptive and
 are not demand or revenue weights. For primary-centric interpretation also show
-distance bands: 0–2 miles (inclusive), >2–5 miles, and >5–10 miles for a ten-mile
+distance bands: 0-2 miles (inclusive), >2-5 miles, and >5-10 miles for a ten-mile
 study. The outer band has more sampled area; that is not evidence of more demand.
 
 ## Turn locations into investigation areas
 
 Classify measured primary ranks per query:
 
-- 1–3: existing top-three foothold to understand and maintain.
-- 4–10: near-top-three observations to investigate.
-- 11–30: weaker observed visibility requiring a different hypothesis.
+- 1-3: existing top-three foothold to understand and maintain.
+- 4-10: near-top-three observations to investigate.
+- 11-30: weaker observed visibility requiring a different hypothesis.
 - Absent from a complete top 30: not observed at that depth, not empty territory.
 - Missing, pending or incomplete evidence: unknown, never a ranking failure.
 
@@ -85,13 +85,13 @@ The companion's **Campaigns** lens always analyzes the primary profile, regardle
 of the last competitor selected. Selecting a rival returns to its Rankings view.
 The following lenses are deterministic, cached views of the saved evidence:
 
-- **Territory overview:** top-three, ranks 4–10, ranks 11–30, outside top 30 and
+- **Territory overview:** top-three, ranks 4-10, ranks 11-30, outside top 30 and
   incomplete evidence, with up to three featured investigation components.
-- **Near top 3:** orthogonally connected primary ranks 4–10.
-- **Service gaps:** selected-query ranks 4–10 where at least one other studied
+- **Near top 3:** orthogonally connected primary ranks 4-10.
+- **Service gaps:** selected-query ranks 4-10 where at least one other studied
   query reaches the top three at the same origin. Show the compared queries and
   ranks; this is a contrast, not proof of a content deficiency.
-- **Expansion frontier:** only ranks 11–30 directly adjacent north/east/south/west
+- **Expansion frontier:** only ranks 11-30 directly adjacent north/east/south/west
   to a complete same-query top-ten observation. Do not highlight an entire
   connected weak-ranking region merely because one edge touches the top ten.
 - **Hold top 3:** existing top-three observations, not proven persistent territory.
@@ -155,7 +155,7 @@ This writes JSON and a Markdown investigation report without provider calls.
 The analyzer requires a declared regular circular lattice, reconstructs expected
 origins, and validates full rank/identity evidence before assigning investigation
 bands. It preserves unknowns for missing or contradictory evidence. Cross-query
-focus means ranks 4–10 on at least `min(3, query count)` queries; the threshold is
+focus means ranks 4-10 on at least `min(3, query count)` queries; the threshold is
 recorded in the output. The report is an investigation aid, not a commercial
 priority score. Input SHA-256 and exact source controls accompany the results.
 
@@ -188,7 +188,7 @@ boundaries, customer populations, or commercial service areas.
 Each region/query cell reports complete and unknown observations separately.
 Top-three and top-ten percentages divide by that cell's **complete** origins.
 Zero complete observations yields an unavailable percentage, never zero
-visibility. Missing expected origins remain unknown. Rank 4–10, returned
+visibility. Missing expected origins remain unknown. Rank 4-10, returned
 top-30, service-gap and frontier counts retain the previously defined evidence
 rules. The matrix shows counts alongside percentages so a small or incomplete
 region cannot look convincing through percentage alone.
@@ -201,7 +201,7 @@ available. Ordering uses mean coverage, then top-ten appearance count, then
 profile ID.
 
 Local pressure counts appearances ahead of the primary **only where the primary
-ranks 4–10**, pooled across all studied query/origin pairs in the selected region.
+ranks 4-10**, pooled across all studied query/origin pairs in the selected region.
 Its denominator is those near-top-three pairs, not every search in the region.
 Ties use the number of appearances ahead when the primary was returned, then
 profile ID. Primary-returned comparisons have their own denominator. The

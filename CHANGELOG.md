@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.5 - 2026-11-05
+
+- **Ecosystem Gold Standard & Release Gate (`docs/AGENT-RECIPE.md`, `scripts/check_release.py`, `assets/manifest.json`, `assets/preview.png`)**: added the public release static gate, asset manifest, `1024x256` preview banner, and canonical `docs/AGENT-RECIPE.md` agent handoff recipe.
+- **Strict Explicit Credential Loading (`tools/business_name_review.py`, `tests/test_business_name_review.py`)**: removed Windows DPAPI store lookups from optional `--jev` optical signage verification and added explicit `--typesafe-api-key-file` support and symlink refusal (`Path.is_symlink()`) across file inputs, outputs, and key files.
+- **Dependency Pin & Single-Skill Hygiene (`requirements-dataforseo.txt`, `third_party/claude-seo/`)**: pinned `legends-dataforseo` `v0.1.8` (`2a8bff788d091485d8e240ac722d4efd2358cac6`) and renamed vendored reference skill docs under `third_party/claude-seo/skills/` to `REFERENCE.md` without frontmatter so `skills/cto-legends/SKILL.md` is the sole `SKILL.md` in the repository.
+
 ## 0.2.4 - 2026-11-04
 
 - **Multi-Schema Zero-Daemon Companion (`tools/companion_standalone.py`, `src/companion.js`, `src/basemap-switcher.js`)**: `python tools/study.py --open --study <path>` now accepts `geogrid-companion/v1`, `geogrid-battlefield/v1` (`battlefield-model.json`), and legacy `parsed-grid.json` datasets as well as study run directories. In `file://` static mode, `localStorage` basemap preferences safely normalize to OpenStreetMap raster tiles and server-only basemaps are disabled in the selector so offline users never hit HTTP/worker errors.
@@ -8,7 +14,7 @@
 ## 0.2.3 - 2026-11-03
 
 - Add **Zero-Daemon Static Companion Launcher (`python tools/study.py --open` / `python tools/study.py open`, `tools/companion_standalone.py`, `assets/companion-runtime.js`, `assets/companion-runtime.css`)**: generates a self-contained static HTML Competitive Map Companion from the bundled 10-mile Austin starter study (or any `--study` JSON and its sidecar attachments) and opens it via the system browser with zero background processes, zero open ports, and no `pnpm` / Node.js daemon required.
-- Add **Endpoint Security (EDR) Agent Guardrails (`AGENTS.md`, `README.md`, `docs/COMPANION.md`)**: explicitly prohibit agents from improvising hidden PowerShell background server wrappers (`Start-Process -WindowStyle Hidden` + `Invoke-WebRequest -UseBasicParsing` polling loops inside `-ExecutionPolicy Bypass` shells), preventing false-positive EDR behavioral detections on corporate Windows endpoints.
+- Add **Endpoint Security (EDR) Agent Guardrails (`AGENTS.md`, `README.md`, `docs/COMPANION.md`)**: explicitly prohibit agents from improvising hidden PowerShell background server wrappers (hidden background window flags + `Invoke-WebRequest -UseBasicParsing` polling loops inside execution-policy bypass shells), preventing false-positive EDR behavioral detections on corporate Windows endpoints.
 - Add **Multi-Resolution Lattice Partitioning & Extended Distance Rings (`src/map-geometry.js`, `src/rank-canvas.js`, `src/distance-units.js`, `src/companion.js`)**: `partitionUniformLattices` separates nested or hybrid multi-spacing grids into independent uniform lattices so inner and outer rings render four-corner gradient diamonds, territory outlines, and stop-sign octagons at their native ring spacing without cross-ring artifacts, and `distanceRings` scales out to `50 mi/km` for wide-radius studies.
 - Upgrade `vite` to `8.3.5` (`>=8.2.4`) and `postcss` to `8.5.27`, resolving 6 Windows dev-server advisories (`0` vulnerabilities in `pnpm audit`).
 

@@ -483,6 +483,24 @@ class BusinessNameReviewTests(unittest.TestCase):
             res = review.try_jev_optical_signage("Example Pizza", ["Pizza"], {"main": self.root / "missing.jpg"})
         self.assertEqual(res["status"], "unavailable")
 
+    def test_typesafe_api_key_file_and_symlink_refusal(self):
+        key_file = self.root / "typesafe.key"
+        key_file.write_text("  ts-test-secret-123  \n", encoding="utf-8")
+        self.assertEqual(review.read_typesafe_api_key_file(key_file), "ts-test-secret-123")
+        with self.assertRaises(ValueError):
+            review.read_typesafe_api_key_file(self.root / "missing.key")
+        empty_file = self.root / "empty.key"
+        empty_file.write_text("   \n", encoding="utf-8")
+        with self.assertRaises(ValueError):
+            review.read_typesafe_api_key_file(empty_file)
+        link_path = self.root / "symlink.key"
+        try:
+            link_path.symlink_to(key_file)
+        except OSError:
+            return
+        with self.assertRaises(ValueError):
+            review.read_typesafe_api_key_file(link_path)
+
 
 if __name__ == "__main__":
     unittest.main()

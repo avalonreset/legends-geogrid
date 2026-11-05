@@ -40,7 +40,7 @@ Anyone cloning `legends-geogrid` can immediately launch the browser Companion or
 ```bash
 python tools/study.py --open
 ```
-Builds a self-contained static HTML Companion (`runs/starter-home-slice/companion.html`) with the 10-mile Home Slice Pizza starter study, Campaign Research, and Business-Name Review embedded, and opens it directly in your default browser over `file://` without spawning a background server or holding a local port. (For live local UI development or server-held Google Map Tiles proxying, run `pnpm install --frozen-lockfile` and `pnpm dev` in an interactive terminal; never spawn hidden background dev servers via `Start-Process -WindowStyle Hidden`.)
+Builds a self-contained static HTML Companion (`runs/starter-home-slice/companion.html`) with the 10-mile Home Slice Pizza starter study, Campaign Research, and Business-Name Review embedded, and opens it directly in your default browser over `file://` without spawning a background server or holding a local port. (For live local UI development or server-held Google Map Tiles proxying, run `pnpm install --frozen-lockfile` and `pnpm dev` in an interactive terminal; never spawn hidden background dev servers via hidden window flags.)
 
 ### 2. Completed Strategy Report
 Open [`examples/starter-home-slice/report/report.pdf`](./report/report.pdf) in any PDF viewer, or open [`examples/starter-home-slice/report/report.html`](./report/report.html) in your browser.

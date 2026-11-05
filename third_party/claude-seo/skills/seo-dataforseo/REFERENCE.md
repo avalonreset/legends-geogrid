@@ -1,22 +1,3 @@
----
-name: seo-dataforseo
-description: >
-  Live SEO data via DataForSEO MCP server: SERP analysis, keyword research
-  (volume, difficulty, intent, trends), backlink profiles, on-page analysis,
-  competitor and content analysis, business listings, AI visibility (LLM
-  mention tracking), and domain analytics. Requires DataForSEO extension
-  installed. Use when user says "dataforseo", "live SERP", "keyword volume",
-  "backlink data", "AI visibility check", or "real search data".
-user-invocable: true
-argument-hint: "[command] [query]"
-license: MIT
-compatibility: "Requires DataForSEO MCP server"
-metadata:
-  author: AgriciDaniel
-  version: "2.3.1"
-  category: seo
----
-
 # DataForSEO: Live SEO Data (Extension)
 
 Live search data via the DataForSEO MCP server. Provides real-time SERP results

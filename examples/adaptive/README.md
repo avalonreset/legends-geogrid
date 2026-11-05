@@ -25,20 +25,20 @@ The first adapter supports the **Live** Maps endpoint, one request per origin/qu
 | Field | Meaning |
 | --- | --- |
 | `center` | Latitude strictly inside the poles, longitude -180 through 180. Entire bounding square must remain valid. |
-| `queries` | 1–50 `{id,keyword}` lanes; unique ASCII IDs. Every selected origin gets every lane. |
-| `targets` | 1–50 alternative exact identities: `{cid?,place_id?,domain?}`. Every supplied field within an identity must match. IDs are strings. Domain uses the runner's canonical hostname normalization, with exact host equality (no subdomain or similar-name fallback). The reported rank is the best organic rank across matching alternatives. |
-| `spacing_km` | Lattice step, 0.01–100 km. Uses the existing runner's local latitude/longitude approximation. |
-| `starting_grid` | Odd width, 1–101, of the complete shared base. |
+| `queries` | 1-50 `{id,keyword}` lanes; unique ASCII IDs. Every selected origin gets every lane. |
+| `targets` | 1-50 alternative exact identities: `{cid?,place_id?,domain?}`. Every supplied field within an identity must match. IDs are strings. Domain uses the runner's canonical hostname normalization, with exact host equality (no subdomain or similar-name fallback). The reported rank is the best organic rank across matching alternatives. |
+| `spacing_km` | Lattice step, 0.01-100 km. Uses the existing runner's local latitude/longitude approximation. |
+| `starting_grid` | Odd width, 1-101, of the complete shared base. |
 | `max_shell` | Square half-width in lattice steps, from the base half-width through 50. Corners lie sqrt(2) times farther than the half-width. |
 | `strategy` | `adaptive8sectors` (default), `dense`, or `sparse`. |
-| `depth` | Requested provider depth, 1–700. |
+| `depth` | Requested provider depth, 1-700. |
 | `negative_depth` | Required contiguous organic ranks for a usable negative, 1 through requested depth; defaults to 20. |
-| `provider_zoom` | Search viewport zoom, 3–21; independent of geometry. |
-| `display_zoom` | Presentation metadata only, 0–22; never sent to the provider. |
+| `provider_zoom` | Search viewport zoom, 3-21; independent of geometry. |
+| `display_zoom` | Presentation metadata only, 0-22; never sent to the provider. |
 | `language_code`, `device`, `se_domain` | Provider language, desktop/mobile device and search domain. |
 | `search_this_area` | Explicit boolean, default true. |
-| `max_calls` | Cumulative attempts, including errors, sentinels and backfill; 1–1,000,000. |
-| `timeout_seconds` | Per Live request timeout, 1–600 seconds. |
+| `max_calls` | Cumulative attempts, including errors, sentinels and backfill; 1-1,000,000. |
+| `timeout_seconds` | Per Live request timeout, 1-600 seconds. |
 
 Adaptive selection starts only after the entire base has been attempted. The outer base shell can count as the first negative layer. A one-point base cannot count as a sector layer. Each sector then acquires complete Chebyshev shell sectors until it has two consecutive clean-negative layers across all lanes. A farther central-ray sentinel must also return clean negatives across all lanes before `sampled_stop`. Any positive sentinel reactivates the sector and fills all cells on that sector's sentinel shell, reusing the already collected probe. Short lists, rank gaps, errors, empty responses and missing observations never qualify as negatives. Inconclusive sectors stop as unresolved for review.
 

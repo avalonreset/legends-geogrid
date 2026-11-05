@@ -83,8 +83,8 @@ nor exported. Saved rank authenticity still depends on the supplying runner.
 
 Counts are computed per lane, never averaged across differently sampled lanes.
 Measured = found + not_returned. Sampled = every supplied record (including
-unmeasured planned origins). Top 3 = ranks 1–3; top 10 = ranks 1–10; near miss =
-ranks 4–10 inclusive. Shares explicitly use the measured denominator and mean
+unmeasured planned origins). Top 3 = ranks 1-3; top 10 = ranks 1-10; near miss =
+ranks 4-10 inclusive. Shares explicitly use the measured denominator and mean
 **observed appearances at valid sampled origins**, not area/market coverage.
 Empty/error/unmeasured origins are excluded and counted. A missing target with
 no complete observed rank sequence through a cutoff cannot establish absence
@@ -189,8 +189,8 @@ supplies local Unicode TrueType fonts; `title` and `mono` are optional and other
 `regular`. Supply only fonts you have permission to use and embed; none are
 downloaded. Unsupported glyphs fail rather than disappear. Titles are 24/30 pt;
 body is 11/16 pt and map findings 10.5/14 pt. Captions/legend are at least 8.5 pt;
-pin labels at least 8 pt at final PDF scale. Rank colors are pure green (1–3),
-yellow (4–10) and red (11+), with neutral excluded/not-returned markers, distance
+pin labels at least 8 pt at final PDF scale. Rank colors are pure green (1-3),
+yellow (4-10) and red (11+), with neutral excluded/not-returned markers, distance
 band shading and labels. Longer attribution and geometry notes remain in the
 evidence appendix; mandatory supplied attribution stays beside the main map.
 Em dashes in all PDF/HTML display copy are normalized to spaced hyphens. Raw

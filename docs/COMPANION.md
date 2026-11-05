@@ -1,7 +1,7 @@
 # Competitive map companion
 
 The browser is a shared visual workspace alongside an agent conversation. Run
-`python tools/study.py --open` (or `python tools/study.py open --study <path>`) to build a self-contained static HTML companion and open it directly in the system browser without spawning a background server or holding a local port. For live local UI development or server-held Google Map Tiles proxying, run `pnpm dev` in a visible interactive terminal and open the local URL (never spawn `pnpm dev` or `vite` via `Start-Process -WindowStyle Hidden`). The original studio remains at `/legacy.html`;
+`python tools/study.py --open` (or `python tools/study.py open --study <path>`) to build a self-contained static HTML companion and open it directly in the system browser without spawning a background server or holding a local port. For live local UI development or server-held Google Map Tiles proxying, run `pnpm dev` in a visible interactive terminal and open the local URL (never spawn `pnpm dev` or `vite` via hidden background window flags). The original studio remains at `/legacy.html`;
 existing generated battlefield consoles remain untouched.
 
 The default view uses the bundled historical pizza sample. In development, a private
@@ -54,7 +54,7 @@ See [Search-window policy](SEARCH_WINDOW_POLICY.md).
   one query. Ten saturated colors run from pure cyan (#00ffff) at 1 through
   green to pure yellow (#ffff00) at 10, with evenly spaced hues. Top-ten opacity falls evenly from
   100% at rank 1 to 75% at rank 10. Rank 11 switches to pure red at 25%
-  opacity; ranks 12–30 retain pure red and fade evenly to 2% at rank 30.
+  opacity; ranks 12-30 retain pure red and fade evenly to 2% at rank 30.
   Translucent mode multiplies top-ten opacity by 45% (45% to 33.75%) while preserving the red scale.
   Diamond gradients blend the same colors and opacity without a second alpha multiplier.
   Hollow stop signs mean confirmed absence from the top thirty; dashed stop signs
@@ -79,7 +79,7 @@ See [Search-window policy](SEARCH_WINDOW_POLICY.md).
   and a small ring for the selected business in Rankings. Estimated
   locations are omitted. A supplied coordinate is not independently verified by
   this viewer and does not establish a territory of dominance.
-- **Strike zones** are observed ranks 4–10. They invite investigation; they do
+- **Strike zones** are observed ranks 4-10. They invite investigation; they do
   not predict an easy ranking improvement or prescribe an SEO action.
 - **Location** shows the returned organic results for a selected map point.
 - **Study** explains evidence states, metrics and limitations.
@@ -201,7 +201,7 @@ areas or additional measurements. Missing coordinates are labeled and never
 inferred. The explicit Fit circle + leader bases control reveals outside bases
 without automatically shrinking the scan on every query change. Selecting a
 leader fits its base and largest patch. This uses saved results, not paid calls. Unavailable first-place evidence uses an
-amber dashed outline. Strike zones remains a ranks-4–10 filter for the selected
+amber dashed outline. Strike zones remains a ranks-4-10 filter for the selected
 business, not a prediction of effort, demand, or achievable ranking gains.
 
 The optional `study_views` field contains `{label, url}` entries for related

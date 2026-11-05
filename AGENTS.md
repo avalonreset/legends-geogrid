@@ -11,20 +11,28 @@ theme purple or blue. Evidence colors remain distinct from brand decoration.
 - Offline report: install `requirements-report.txt`, then run the README's
   synthetic report example. No provider credentials or API spending are needed.
 - Browser demo (default, zero-daemon): run `python tools/study.py --open` (or `python tools/study.py open --study <path>`) to build a self-contained static Companion HTML file and open it in the default browser with zero background processes, zero open ports, and no Node.js daemon. For live local UI development or server-held Google Map Tiles proxying, run `pnpm install --frozen-lockfile`, then `pnpm dev` in a visible interactive terminal.
-- Endpoint security (EDR) guardrail: NEVER spawn `pnpm dev`, `vite`, `node`, or `python -m http.server` using `Start-Process -WindowStyle Hidden`, detached `-ExecutionPolicy Bypass` scripts, or `Invoke-WebRequest -UseBasicParsing` localhost polling loops. Enterprise EDR sensors classify hidden PowerShell process trees combined with web-request polling as a malware dropper/beacon and may isolate the host device. Always use `python tools/study.py --open` for agent-driven browser inspection.
+- Endpoint security (EDR) guardrail: NEVER spawn `pnpm dev`, `vite`, `node`, or `python -m http.server` using hidden background window flags, detached execution-policy bypass scripts, or `Invoke-WebRequest -UseBasicParsing` localhost polling loops. Enterprise EDR sensors classify hidden PowerShell process trees combined with web-request polling as a malware dropper/beacon and may isolate the host device. Always use `python tools/study.py --open` for agent-driven browser inspection.
 - Fresh scans: install `requirements-dataforseo.txt`. This installs the public
   [legends-dataforseo](https://github.com/avalonreset/legends-dataforseo)
   dependency. Run `python tools/geogrid_doctor.py --dataforseo` before collection.
-  Release 0.2.3 works with the pinned DataForSEO dependency or `legends-dataforseo`
-  `v0.1.6+` installed via `cto-legends install legends-dataforseo`.
+  Release 0.2.5 works with the pinned DataForSEO dependency or `legends-dataforseo`
+  `v0.1.8+` installed via `cto-legends install legends-dataforseo`.
   Do not install an MCP server or copy a second HTTP/authentication client.
 - Optional optical signage accelerator: when investigating business-name discrepancies
-  (`tools/business_name_review.py photos`), check whether `legends-jev` (`v0.2.0+`)
+  (`tools/business_name_review.py photos`), check whether `legends-jev` (`v0.2.3+`)
   is installed via `cto-legends status` or `python tools/geogrid_doctor.py --jev`.
   The workflow operates standalone without `legends-jev`, or accepts `--jev` to run
   ~200ms System One optical recognition over GBP and multi-vantage Street View photos.
 - Credentials: `DATAFORSEO_LOGIN` (or `DATAFORSEO_USERNAME`) and
-  `DATAFORSEO_PASSWORD`. Never print, commit, or embed credentials in reports.
+  `DATAFORSEO_PASSWORD` (plus optional `TYPESAFE_API_KEY` or `--typesafe-api-key-file` when `--jev` is used). Never print, commit, or embed credentials in reports.
+
+## EDR and Security Guardrails
+
+- **No hidden consoles or execution-policy bypass wrappers**: invoke `python tools/study.py`, `python tools/geogrid_doctor.py`, and companion tools directly through standard process execution without hidden console flags or shell execution-policy bypass wrappers.
+- **No parent-process tree walking**: never enumerate parent processes or inspect system process trees.
+- **No browser profile or OS credential harvesting**: read credentials strictly from environment variables (`DATAFORSEO_LOGIN` / `DATAFORSEO_PASSWORD`, `TYPESAFE_API_KEY`) or an explicit key file (`--typesafe-api-key-file`), never from local browser profile databases or OS DPAPI stores.
+- **Symlink refusal**: refuse symlink paths (`Path.is_symlink()`) on file inputs, key files, and output paths.
+- **Network allowlist**: outbound HTTPS requests are restricted to explicit study and provider endpoints.
 
 ## Research and collection
 
@@ -105,7 +113,7 @@ review is an explicit optional filter. Investigate the union individually;
 retain singleton winners in an optional all-observed scope. A supplied naming
 lead does not need any first-place wins: match its exact CID to the study and
 show its measured appearances, radius relationship, old title and current title.
-Optional concern confidence is an individually reasoned 0–5 ordinal judgement,
+Optional concern confidence is an individually reasoned 0-5 ordinal judgement,
 not a violation probability. Bind it to the exact CID/current title and fresh
 sources; missing evidence remains unscored. Distinguish pending
 research from individually assessed but insufficient evidence. Limit this feature
@@ -120,7 +128,7 @@ or unavailable evidence cannot justify a correction.
 Companion policy: ten saturated shades from pure cyan (#00ffff) at rank 1,
 through green to pure yellow (#ffff00) at rank 10, with evenly spaced hues. Top-ten opacity falls evenly from 100% at rank 1 to
 75% at rank 10. Rank 11 is pure red
-(#ff0000) at 25% fill opacity. Ranks 12–30 retain pure red and fade evenly to 2%
+(#ff0000) at 25% fill opacity. Ranks 12-30 retain pure red and fade evenly to 2%
 at rank 30. Translucent mode multiplies top-ten opacity by 45% but preserves the red
 scale. Diamonds blend the same colors and alpha; never multiply alpha twice.
 NR beyond 30 requires complete top-30 evidence. Older depth-20 absences cannot

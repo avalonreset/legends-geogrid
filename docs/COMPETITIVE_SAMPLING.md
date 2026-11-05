@@ -9,7 +9,7 @@ IDs remain separate competitors even when their names and websites match.
 Display addresses for repeated names. A shared brand does not prove cannibalization.
 Discover rivals from the shared searches, then freeze the shortlist across queries.
 The export ranks eligible profiles by the sum of `21 - organic rank` for ranks
-1–20 over every measured origin and query, weighting each equally. Break ties by
+1-20 over every measured origin and query, weighting each equally. Break ties by
 top-three appearances, then total appearances, then exact CID. Use returned
 business categories and retained profile identity as preliminary service-relevance
 evidence; the plan's `competitor_policy.eligible_category_pattern` can filter

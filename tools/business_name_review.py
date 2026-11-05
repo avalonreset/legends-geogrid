@@ -29,11 +29,16 @@ def now():
 
 
 def load(path):
-    return json.loads(Path(path).read_text(encoding="utf-8"))
+    p = Path(path)
+    if p.is_symlink():
+        raise ValueError("Refusing to read symlink path")
+    return json.loads(p.read_text(encoding="utf-8"))
 
 
 def save(path, value, exclusive=False):
     path = Path(path)
+    if path.is_symlink():
+        raise ValueError("Refusing to write symlink path")
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("x" if exclusive else "w", encoding="utf-8") as out:
         json.dump(value, out, indent=2, ensure_ascii=False, allow_nan=False)
@@ -473,38 +478,19 @@ def _ensure_legends_jev_importable():
     return False
 
 
-def _read_windows_dpapi_typesafe_key():
-    if os.name != "nt" or os.environ.get("TYPESAFE_API_KEY"):
+def read_typesafe_api_key_file(path):
+    """Read TYPESAFE_API_KEY from an explicit regular file path, refusing symlinks."""
+    if not path:
         return None
-    local_app = os.environ.get("LOCALAPPDATA")
-    if not local_app:
-        return None
-    dpapi_path = Path(local_app) / "Legends" / "TypeSafe" / "api-key.dpapi"
-    if not dpapi_path.is_file():
-        return None
-    try:
-        import ctypes
-        import ctypes.wintypes
-
-        class DATA_BLOB(ctypes.Structure):
-            _fields_ = [("cbData", ctypes.wintypes.DWORD), ("pbData", ctypes.POINTER(ctypes.c_char))]
-
-        raw_bytes = bytes.fromhex(dpapi_path.read_text(encoding="utf-8").strip())
-        in_buf = ctypes.create_string_buffer(raw_bytes, len(raw_bytes))
-        in_blob = DATA_BLOB(len(raw_bytes), in_buf)
-        out_blob = DATA_BLOB()
-        if not ctypes.windll.crypt32.CryptUnprotectData(
-            ctypes.byref(in_blob), None, None, None, None, 0, ctypes.byref(out_blob)
-        ):
-            return None
-        try:
-            secret = ctypes.string_at(out_blob.pbData, out_blob.cbData).decode("utf-16-le").strip()
-            return secret or None
-        finally:
-            ctypes.memset(out_blob.pbData, 0, out_blob.cbData)
-            ctypes.windll.kernel32.LocalFree(out_blob.pbData)
-    except Exception:
-        return None
+    p = Path(path)
+    if p.is_symlink():
+        raise ValueError("Refusing to read symlink API key file")
+    if not p.exists() or not p.is_file():
+        raise ValueError("API key file does not exist or is not a regular file")
+    secret = p.read_text(encoding="utf-8").strip()
+    if not secret:
+        raise ValueError("API key file is empty")
+    return secret
 
 
 def derive_suspect_terms(root, cid, title, entry=None, site_url=None):
@@ -560,7 +546,7 @@ def derive_suspect_terms(root, cid, title, entry=None, site_url=None):
     return [w for w in re.split(r"[\s|\-:,&]+", title or "") if len(w) >= 3][:6]
 
 
-def try_jev_optical_signage(title, suspect_terms, image_paths):
+def try_jev_optical_signage(title, suspect_terms, image_paths, api_key_file=None):
     """Optional fast-path optical verification via legends-jev when installed and provisioned."""
     if not suspect_terms or not image_paths:
         return None
@@ -580,7 +566,8 @@ def try_jev_optical_signage(title, suspect_terms, image_paths):
     if not images:
         return None
     prev_key = os.environ.get("TYPESAFE_API_KEY")
-    temp_key = None if prev_key else _read_windows_dpapi_typesafe_key()
+    key_file_target = api_key_file or os.environ.get("TYPESAFE_API_KEY_FILE")
+    temp_key = None if prev_key else (read_typesafe_api_key_file(key_file_target) if key_file_target else None)
     try:
         if temp_key:
             os.environ["TYPESAFE_API_KEY"] = temp_key
@@ -595,7 +582,7 @@ def try_jev_optical_signage(title, suspect_terms, image_paths):
                 os.environ["TYPESAFE_API_KEY"] = prev_key
 
 
-def fetch_photos(root, use_jev=False, only_cids=None):
+def fetch_photos(root, use_jev=False, only_cids=None, api_key_file=None):
     """Download GBP logo, main_image, and multi-vantage Street View images for visual inspection."""
     root = Path(root)
     validate_seed(root)
@@ -644,7 +631,7 @@ def fetch_photos(root, use_jev=False, only_cids=None):
             title = item.get("title") or c.get("name") or ""
             suspect = derive_suspect_terms(root, cid, title, entry, site_url=item.get("url") or c.get("website"))
             entry["suspect_terms"] = suspect
-            jev_res = try_jev_optical_signage(title, suspect, downloaded_paths)
+            jev_res = try_jev_optical_signage(title, suspect, downloaded_paths, api_key_file=api_key_file)
             if jev_res:
                 entry["jev_optical"] = jev_res
                 best_sv = jev_res.get("best_streetview") or jev_res.get("best_image")
@@ -919,6 +906,8 @@ def main():
     parser.add_argument("--execute", action="store_true")
     parser.add_argument("--jev", action="store_true",
                         help="Optionally accelerate storefront photo/Street View screening with legends-jev optical recognition when installed.")
+    parser.add_argument("--typesafe-api-key-file", type=Path,
+                        help="Optional path to a plain-text file containing TYPESAFE_API_KEY when --jev is used.")
     parser.add_argument("--confirm-cost-usd", type=float, default=0)
     args = parser.parse_args()
     root = args.output_dir
@@ -941,7 +930,7 @@ def main():
     elif args.command == "websites":
         fetch_websites(root)
     elif args.command == "photos":
-        fetch_photos(root, use_jev=args.jev, only_cids=args.only_cid)
+        fetch_photos(root, use_jev=args.jev, only_cids=args.only_cid, api_key_file=args.typesafe_api_key_file)
     elif args.command == "attach":
         print(json.dumps({"attachment": str(attach(root))}))
     else:

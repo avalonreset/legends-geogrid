@@ -160,7 +160,7 @@ allow long terms to wrap, and keep core findings visible without opening drawers
 
 ## Shared hierarchy; palette-specific surfaces, v5
 
-- HTML: display title 28–44px responsive; section 32px; subheading/card title 24px; body 17px; card body 16px; labels/evidence toggles 13–14px. Mobile section/subhead sizes are 28/22px.
+- HTML: display title 28-44px responsive; section 32px; subheading/card title 24px; body 17px; card body 16px; labels/evidence toggles 13-14px. Mobile section/subhead sizes are 28/22px.
 - Major headings have 48px preceding space inside long sections and 24px following space. Subheads use 32/16px. Never use body-size text as a structural heading or depend on synthesized font weight.
 - Headings are white; body #E0E0E0; metadata #A3A3A3. Essential limitations remain readable body copy, never muted away.
 - Query panels use a charcoal gradient; action panels use a restrained dark-red-to-charcoal gradient. A faint inset top highlight provides a glass-like edge without transparency, backdrop blur, animation or reduced contrast.

@@ -83,7 +83,7 @@ cd legends-geogrid
 python tools/study.py --open
 ```
 
-Or open the pre-built 18-page strategy report directly at [`examples/starter-home-slice/report/report.pdf`](examples/starter-home-slice/report/report.pdf). (For live UI source development or server-held Google Map Tiles proxying, run `pnpm install --frozen-lockfile` and `pnpm dev` in an interactive terminal; never spawn hidden background dev servers via `Start-Process -WindowStyle Hidden`.)
+Or open the pre-built 18-page strategy report directly at [`examples/starter-home-slice/report/report.pdf`](examples/starter-home-slice/report/report.pdf). (For live UI source development or server-held Google Map Tiles proxying, run `pnpm install --frozen-lockfile` and `pnpm dev` in an interactive terminal; never spawn hidden background dev servers via hidden window flags.)
 
 ---
 
@@ -146,7 +146,7 @@ python -m playwright install --with-deps chromium
 python tools/geogrid_doctor.py --dataforseo --jev --reports --basemaps
 ```
 
-**Tested ecosystem pairing:** `legends-geogrid` `v0.2.4` with [`legends-dataforseo`](https://github.com/avalonreset/legends-dataforseo) `v0.1.6` and optional [`legends-jev`](https://github.com/avalonreset/legends-jev) `v0.2.1` (`Jev 1.14` optical recognition and storefront signage grounding).
+**Tested ecosystem pairing:** `legends-geogrid` `v0.2.5` with [`legends-dataforseo`](https://github.com/avalonreset/legends-dataforseo) `v0.1.8` and optional [`legends-jev`](https://github.com/avalonreset/legends-jev) `v0.2.3` (`Jev 1.14` optical recognition and storefront signage grounding).
 
 ---
 

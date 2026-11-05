@@ -88,7 +88,7 @@ Client reports exist to show spatial truth clearly. Maps are the primary evidenc
 ### Compact native PDF text legends
 
 - **Native text band over raster stamps:** Avoid embedding tiny, blurry rasterized legend text or repetitive disclaimers directly into map image bitmaps. Consolidate rank thresholds and status definitions into a compact, legible native text legend band directly below the map figure.
-- **Native PDF typography:** Render the legend band using native PDF typography (e.g. `1–3: green | 4–10: amber | 11+: coral | NR: not returned | E: error | Ø: empty | U: unmeasured`) rather than rasterized artwork or disconnected floating callouts.
+- **Native PDF typography:** Render the legend band using native PDF typography (e.g. `1-3: green | 4-10: amber | 11+: coral | NR: not returned | E: error | Ø: empty | U: unmeasured`) rather than rasterized artwork or disconnected floating callouts.
 - **Clear missingness semantics:** Distinguish non-returned points from true absences or errors: NR indicates Not Returned at requested depth, E indicates provider error, Ø indicates empty response, and U indicates unmeasured. Translucent circles indicate Not Returned, never rank 21 or zero market demand.
 
 ### Coordinate evidence bounds vs. page bounds

@@ -1,3 +1,2 @@
-# Explicit immutable release archive for the companion DataForSEO client.
-# Update the commit/tag and hash together after auditing a new release.
-https://github.com/avalonreset/legends-dataforseo/archive/2a8bff788d091485d8e240ac722d4efd2358cac6.zip --hash=sha256:7b85cf7e44ed4b2ae0b4bea6481108f8bebcba93de75f227093939464f0c1ca7
+# Public v0.1.8 provider engine pinned to immutable source; no git client needed.
+legends-dataforseo @ https://github.com/avalonreset/legends-dataforseo/archive/2a8bff788d091485d8e240ac722d4efd2358cac6.zip

@@ -202,7 +202,7 @@ def collect(
         raise ValueError("Budget must be finite and nonnegative")
     if not 1 <= max_workers <= 12:
         raise ValueError("Workers must be in 1..12")
-    plan_file = Path(plan_path).resolve()
+    plan_file = runner._safe_local_path(plan_path).resolve()
     raw_plan = json.loads(plan_file.read_text(encoding="utf-8-sig"))
     adapted = adapt_plan(raw_plan, phase_filter=phase)
     b, s, queries, origins = adapted["business"], adapted["settings"], adapted["queries"], adapted["origins"]
@@ -211,7 +211,7 @@ def collect(
     endpoint = POST_ENDPOINT if s["method"] == "standard" else ENDPOINT
     sp_data, sp_receipt = validate_lineage(adapted, study_plan_path)
 
-    out_path = Path(output_dir).resolve()
+    out_path = runner._safe_local_path(output_dir).resolve()
     ledger_file = out_path / "collection-ledger.jsonl"
     completed_fps, ambiguous_fps = load_ledger(ledger_file)
     submissions = load_submissions(ledger_file)

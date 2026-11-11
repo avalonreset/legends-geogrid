@@ -247,4 +247,31 @@ class StudyTests(unittest.TestCase):
         self.assertTrue(Path(r2['companion_html']).is_file())
         self.assertIn('Test Pizzeria',Path(r2['companion_html']).read_text(encoding='utf-8'))
 
+    def test_website_rejects_non_public_urls(self):
+        out=self.root/'ssrf.json'
+        for bad_url in ('http://127.0.0.1/','http://localhost:80/','http://169.254.169.254/latest/meta-data/','http://2130706433/','ftp://example.org/'):
+            with self.assertRaises(ValueError):
+                website(bad_url,out)
+
+    def test_default_vault_path_outside_documents(self):
+        from study_library import root_path, config_path
+        with patch.dict('os.environ',{},clear=False):
+            os_env=__import__('os').environ
+            os_env.pop('GEOGRID_VAULT_DIR',None)
+            default_root=root_path()
+            self.assertNotIn('Documents',default_root.parts)
+            self.assertEqual(config_path().name,'library.json')
+            self.assertEqual(config_path().parent.name,'.legends-geogrid')
+
+    def test_doctor_supports_json_and_check_playwright(self):
+        import io
+        from contextlib import redirect_stdout
+        import geogrid_doctor
+        buf=io.StringIO()
+        with patch('sys.argv',['geogrid_doctor.py','--json']),redirect_stdout(buf):
+            rc=geogrid_doctor.main()
+        self.assertEqual(rc,0)
+        payload=json.loads(buf.getvalue())
+        self.assertTrue(payload['ok'])
+
 if __name__=='__main__':unittest.main()

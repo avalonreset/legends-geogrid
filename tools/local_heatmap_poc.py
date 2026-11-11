@@ -974,10 +974,28 @@ def render_html(args: argparse.Namespace, results: list[PointResult], markdown_p
 """
 
 
+def _safe_local_path(value: str | Path) -> Path:
+    p = Path(value).expanduser().absolute()
+    for idx, part in enumerate((p, *p.parents)):
+        if idx > 0 and sys.platform == "darwin" and part in {Path("/var"), Path("/tmp"), Path("/etc")}:
+            continue
+        if part.is_symlink() or getattr(part, "is_junction", lambda: False)():
+            raise ValueError("Refusing to access symlink or junction path.")
+        try:
+            st = part.lstat()
+            if getattr(st, "st_reparse_tag", 0) == 0xA0000003 or (
+                getattr(st, "st_file_attributes", 0) & 0x400
+            ):
+                raise ValueError("Refusing to access Windows reparse point.")
+        except OSError:
+            continue
+    return p
+
+
 def write_outputs(args: argparse.Namespace, tasks: list[dict[str, Any]], payload: dict[str, Any], results: list[PointResult]) -> dict[str, str]:
     started_at = dt.datetime.now(dt.timezone.utc).isoformat()
     run_slug = f"{dt.datetime.now().strftime('%Y%m%d-%H%M%S')}-{normalize(args.target_name)[:32] or 'target'}"
-    output_root = Path(args.output_dir).resolve()
+    output_root = _safe_local_path(args.output_dir).resolve()
     output_root.mkdir(parents=True, exist_ok=True)
     output_dir = Path(tempfile.mkdtemp(prefix=run_slug + "-", dir=output_root))
 

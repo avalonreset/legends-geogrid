@@ -15,6 +15,8 @@ from study_contract import digest
 
 
 def export_study(run_dir: Path, radius_miles: float | None = None, compact: bool = False) -> dict:
+    from local_heatmap_poc import _safe_local_path
+    run_dir = _safe_local_path(run_dir).resolve()
     if radius_miles is not None and (not math.isfinite(radius_miles) or radius_miles <= 0):
         raise ValueError("Radius must be finite and positive")
     plan_path = run_dir / "competitive-plan.json"
@@ -235,8 +237,9 @@ def main():
     args = parser.parse_args()
     if args.radius_miles is not None and args.output is None:
         parser.error("--radius-miles requires a separate --output to preserve the source archive")
+    from local_heatmap_poc import _safe_local_path
     model = export_study(args.run_dir, args.radius_miles, compact=args.compact)
-    output = args.output or args.run_dir / "companion-study.json"
+    output = _safe_local_path(args.output or args.run_dir / "companion-study.json")
     output.parent.mkdir(parents=True, exist_ok=True)
     serialized = json.dumps(model, ensure_ascii=False, separators=(",", ":")) if args.compact else json.dumps(model, ensure_ascii=False, indent=2)
     output.write_text(serialized + "\n", encoding="utf-8")

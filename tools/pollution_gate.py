@@ -14,10 +14,17 @@ Credentials: DATAFORSEO_LOGIN / DATAFORSEO_PASSWORD in the environment.
 Costs ~$0.002 per probe on the Live endpoint (or use the repo bulk runner's
 standard queue for ~$0.0006 per probe on large batches).
 """
-import argparse, base64, json, re, sys, urllib.request
+import argparse, base64, json, os, re, sys, urllib.error, urllib.request
 from local_heatmap_poc import extract_items, organic_maps_items
 
 ENDPOINT = "https://api.dataforseo.com/v3/serp/google/maps/live/advanced"
+MAX_RESPONSE_BYTES = 5 * 1024 * 1024
+LIVE_COST_PER_POINT_USD = 0.002
+
+
+class _NoRedirect(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        raise urllib.error.HTTPError(req.full_url, code, f"Redirects not allowed ({msg})", headers, fp)
 
 
 def post(payload, login, password):
@@ -28,8 +35,12 @@ def post(payload, login, password):
         headers={"Authorization": "Basic " + token, "Content-Type": "application/json"},
         method="POST",
     )
-    with urllib.request.urlopen(req, timeout=110) as r:
-        return json.load(r)
+    opener = urllib.request.build_opener(urllib.request.ProxyHandler({}), _NoRedirect())
+    with opener.open(req, timeout=110) as r:
+        raw = r.read(MAX_RESPONSE_BYTES + 1)
+    if len(raw) > MAX_RESPONSE_BYTES:
+        raise ValueError("DataForSEO response exceeds 5 MB safety limit")
+    return json.loads(raw.decode("utf-8"))
 
 
 def main():
@@ -39,15 +50,28 @@ def main():
     ap.add_argument("--category", required=True, help="regex: must-match titles")
     ap.add_argument("--banned", default="", help="regex: instant-fail titles")
     ap.add_argument("--depth", type=int, default=20)
+    ap.add_argument("--execute", action="store_true", help="Execute live paid DataForSEO calls")
+    ap.add_argument("--confirm-cost-usd", type=float, default=None, help="Maximum approved USD spend")
     a = ap.parse_args()
-    import os
+    cat = re.compile(a.category, re.I)
+    ban = re.compile(a.banned, re.I) if a.banned else None
+    pts = [p.split(",") for p in a.points.split(";") if p.strip()]
+    estimated_usd = round(len(pts) * LIVE_COST_PER_POINT_USD, 4)
+    if not a.execute:
+        print(json.dumps({
+            "status": "dry_run_preview",
+            "keyword": a.keyword,
+            "points": len(pts),
+            "estimated_cost_usd": estimated_usd,
+            "note": f"Pass --execute --confirm-cost-usd {estimated_usd:.4f} to run live probes.",
+        }, indent=2))
+        return 2
+    if a.confirm_cost_usd is None or a.confirm_cost_usd < estimated_usd:
+        sys.exit(f"--execute requires --confirm-cost-usd >= {estimated_usd:.4f}")
     login = os.environ.get("DATAFORSEO_LOGIN")
     password = os.environ.get("DATAFORSEO_PASSWORD")
     if not login or not password:
         sys.exit("DATAFORSEO_LOGIN and DATAFORSEO_PASSWORD must be set in the environment")
-    cat = re.compile(a.category, re.I)
-    ban = re.compile(a.banned, re.I) if a.banned else None
-    pts = [p.split(",") for p in a.points.split(";")]
     fails = []
     for lat, lng in pts:
         d = post([{"keyword": a.keyword, "location_coordinate": f"{lat},{lng}",

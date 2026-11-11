@@ -15,11 +15,11 @@ from study_contract import digest, validate
 
 
 def read(path):
-    return json.loads(Path(path).read_text(encoding='utf-8-sig'))
+    return json.loads(collector._safe_local_path(path).read_text(encoding='utf-8-sig'))
 
 
 def write(path, value):
-    with Path(path).open('x', encoding='utf-8') as stream:
+    with collector._safe_local_path(path).open('x', encoding='utf-8') as stream:
         json.dump(value, stream, indent=2)
 
 
@@ -206,7 +206,7 @@ def preview(manifest, output):
 
 def run(run_dir, output, execute=False, ceiling=0, vault=None, max_age_hours=24, target_spacing_km=.75):
     from study_library import bank_study
-    output=Path(output).resolve(); source=Path(run_dir).resolve()
+    output=collector._safe_local_path(output).resolve(); source=collector._safe_local_path(run_dir).resolve()
     require(not output.is_relative_to(source), 'enhancement must be a sibling run, not inside its baseline')
     if not output.exists():
         manifest=plan_enhancement(source,max_age_hours=max_age_hours,target_spacing_km=target_spacing_km)

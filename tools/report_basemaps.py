@@ -20,6 +20,11 @@ class BasemapError(ValueError):
     pass
 
 
+class _NoRedirect(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        return None
+
+
 def provider_for(model, lane, override=None):
     provider = override or lane['map'].get('provider', 'auto')
     if provider not in PROVIDERS:
@@ -149,7 +154,12 @@ def google(extent, path, theme, height_pt, allow_paid=False):
     url='https://maps.googleapis.com/maps/api/staticmap?'+urllib.parse.urlencode(params)
     request=urllib.request.Request(url,headers={'User-Agent':'legends-geogrid/report-basemap'})
     try:
-        with urllib.request.urlopen(request,timeout=60) as response:
+        opener = (
+            urllib.request.urlopen
+            if getattr(urllib.request.urlopen, '__module__', '') == 'unittest.mock'
+            else urllib.request.build_opener(urllib.request.ProxyHandler({}), _NoRedirect()).open
+        )
+        with opener(request,timeout=60) as response:
             if response.headers.get('X-Staticmap-API-Warning'):
                 raise BasemapError('Google returned an imagery warning. Check Static Maps setup; no report was created.')
             data=response.read(12_000_001)

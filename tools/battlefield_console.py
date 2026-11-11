@@ -13,9 +13,31 @@ Iteration 2 Architecture (Tuned for 1109px Canvas B & Full-Screen 4K Viewports):
 from __future__ import annotations
 
 import argparse
+import html
 import json
+import sys
 from pathlib import Path
 from typing import Any
+
+_MACOS_SYSTEM_SYMLINKS = {Path("/var"), Path("/tmp"), Path("/etc")}
+
+
+def _safe_local_path(value: str | Path) -> Path:
+    p = Path(value).expanduser().absolute()
+    for idx, part in enumerate((p, *p.parents)):
+        if idx > 0 and sys.platform == "darwin" and part in _MACOS_SYSTEM_SYMLINKS:
+            continue
+        if part.is_symlink() or getattr(part, "is_junction", lambda: False)():
+            raise ValueError("Refusing to access symlink or junction path.")
+        try:
+            st = part.lstat()
+            if getattr(st, "st_reparse_tag", 0) == 0xA0000003 or (
+                getattr(st, "st_file_attributes", 0) & 0x400
+            ):
+                raise ValueError("Refusing to access Windows reparse point.")
+        except OSError:
+            continue
+    return p
 
 
 def _sanitize_no_em_dash(value: Any) -> Any:
@@ -1044,6 +1066,20 @@ const MODEL = __MODEL_JSON__;
   const lanes = MODEL.lanes || [];
   const radialPolicy = MODEL.radial_policy || { rings: [], sector_reach: {}, faction_envelopes: {} };
 
+  function escHtml(v) {
+    return String(v == null ? '' : v)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  function safeColor(c, fallback) {
+    const s = String(c == null ? '' : c).trim();
+    return /^#[0-9a-fA-F]{6}$/.test(s) ? s : (fallback || '#64748b');
+  }
+
   function getPointView(pt) {
     if (state.lane === 'ALL' || !pt.by_lane || !pt.by_lane[state.lane]) {
       return pt.aggregate || pt;
@@ -1129,7 +1165,7 @@ const MODEL = __MODEL_JSON__;
     const votes = target.votes_count != null ? `${target.votes_count} Reviews` : 'Local Business';
     const rating = target.rating != null ? `${Number(target.rating).toFixed(1)}` : '';
     document.getElementById('hud-biz-sub').innerHTML =
-      `${votes} <span class="star">&#9733;</span> ${rating} &bull; ${points.length} Pins`;
+      `${escHtml(votes)} <span class="star">&#9733;</span> ${escHtml(rating)} &bull; ${points.length} Pins`;
 
     const switcher = document.getElementById('lane-switcher');
     let html = `<span class="lane-label">Keyword:</span>`;
@@ -1138,7 +1174,7 @@ const MODEL = __MODEL_JSON__;
     lanes.forEach(l => {
       const act = state.lane === l.lane_id ? 'active' : '';
       const pct = Number(l.target_solv_pct != null ? l.target_solv_pct : l.solv_pct || 0).toFixed(0);
-      html += `<button class="lane-pill ${act}" data-lane="${l.lane_id}">${l.query} <span class="pct">${pct}%</span></button>`;
+      html += `<button class="lane-pill ${act}" data-lane="${escHtml(l.lane_id)}">${escHtml(l.query)} <span class="pct">${escHtml(pct)}%</span></button>`;
     });
     switcher.innerHTML = html;
 
@@ -1240,19 +1276,19 @@ const MODEL = __MODEL_JSON__;
         }
       });
       const domF = factionsById[domId];
-      const leaderLabel = domF ? (domF.is_target ? 'YOU (Alpha)' : domF.name.split(' ').slice(0, 2).join(' ')) : 'Regional Pack';
-      const leaderColor = domF ? domF.color : '#64748b';
+      const leaderLabel = domF ? (domF.is_target ? 'YOU (Alpha)' : String(domF.name || '').split(' ').slice(0, 2).join(' ')) : 'Regional Pack';
+      const leaderColor = domF ? safeColor(domF.color, '#64748b') : '#64748b';
       const isAct = state.selectedRing === rIdx ? 'active' : '';
       const radLabel = rIdx === 0 ? '0.0km' : `${Number(grp.radius_km).toFixed(1)}km`;
 
       return `
-        <div class="ring-row ${isAct}" data-ring="${rIdx}" title="Click to highlight Ring ${rIdx} (${radLabel})">
-          <div class="ring-dist">R${rIdx} ${radLabel}</div>
+        <div class="ring-row ${isAct}" data-ring="${rIdx}" title="Click to highlight Ring ${rIdx} (${escHtml(radLabel)})">
+          <div class="ring-dist">R${rIdx} ${escHtml(radLabel)}</div>
           <div class="ring-track">
             <div class="ring-fill" style="width:${Math.max(4, pct)}%;background:${barColor}"></div>
           </div>
           <div class="ring-pct" style="color:${barColor}">${pct}%</div>
-          <div class="ring-leader" style="color:${leaderColor}">${leaderLabel}</div>
+          <div class="ring-leader" style="color:${leaderColor}">${escHtml(leaderLabel)}</div>
         </div>
       `;
     }).join('');
@@ -1287,16 +1323,17 @@ const MODEL = __MODEL_JSON__;
       const archLabel = friendlyArchetype(f.archetype, f.is_target);
       const archStyle = archBadgeStyle(f.archetype, f.is_target);
       const votes = f.votes_count != null ? `${f.votes_count}*` : 'N/A';
+      const fColor = safeColor(f.color, '#64748b');
       return `
-        <div class="faction-card ${isAct}" data-fid="${f.faction_id}" style="border-top-color:${f.color}" title="${f.name} (${f.votes_count || 0} reviews)">
+        <div class="faction-card ${isAct}" data-fid="${escHtml(f.faction_id)}" style="border-top-color:${fColor}" title="${escHtml(f.name)} (${escHtml(f.votes_count || 0)} reviews)">
           <div class="fc-top">
-            <span class="fc-code" style="background:${f.color}">${f.short_code}</span>
-            <span class="fc-solv">${solv}%</span>
+            <span class="fc-code" style="background:${fColor}">${escHtml(f.short_code)}</span>
+            <span class="fc-solv">${escHtml(solv)}%</span>
           </div>
-          <div class="fc-name">${f.name}</div>
+          <div class="fc-name">${escHtml(f.name)}</div>
           <div class="fc-bottom">
-            <span>${votes}</span>
-            <span class="fc-arch" style="${archStyle}">${archLabel}</span>
+            <span>${escHtml(votes)}</span>
+            <span class="fc-arch" style="${archStyle}">${escHtml(archLabel)}</span>
           </div>
         </div>
       `;
@@ -1333,6 +1370,7 @@ const MODEL = __MODEL_JSON__;
       const f = factionsById[state.selectedFactionId];
       const env = (radialPolicy.faction_envelopes && radialPolicy.faction_envelopes[f.faction_id]) || {};
       const archName = f.is_target ? 'COMMANDER HQ' : (f.archetype === 'OVEREXTENDED_TIGER' ? 'PAPER TIGER' : 'FORTRESS');
+      const fColor = safeColor(f.color, '#64748b');
       badgeEl.textContent = f.is_target ? 'YOUR COMMANDER PROFILE' : `${f.short_code} // ${archName}`;
       badgeEl.setAttribute('style', archBadgeStyle(f.archetype, f.is_target));
       coordEl.textContent = `${Number(f.distance_from_center_km || 0).toFixed(1)} km from center`;
@@ -1353,9 +1391,9 @@ const MODEL = __MODEL_JSON__;
         const tSt = (target.lane_stats && target.lane_stats[l.lane_id]) || {};
         return `
           <div style="display:flex;justify-content:space-between;font-size:10.5px;padding:4px 0;border-bottom:1px solid rgba(148,163,184,0.1)">
-            <span style="color:#cbd5e1;font-weight:600">${l.query}</span>
+            <span style="color:#cbd5e1;font-weight:600">${escHtml(l.query)}</span>
             <span style="font-family:var(--font-mono)">
-              <strong style="color:${f.color}">${Number(st.solv_pct || 0).toFixed(1)}%</strong>
+              <strong style="color:${fColor}">${Number(st.solv_pct || 0).toFixed(1)}%</strong>
               ${!f.is_target ? `<span style="color:#64748b"> vs You ${Number(tSt.solv_pct || 0).toFixed(1)}%</span>` : ''}
             </span>
           </div>
@@ -1365,16 +1403,16 @@ const MODEL = __MODEL_JSON__;
       bodyEl.innerHTML = `
         <div class="story-box ${revDiff >= 0 ? 'emerald' : ''}">
           <div class="story-lbl">${f.is_target ? 'STRATEGIC POSTURE' : 'HEAD-TO-HEAD VERDICT'}</div>
-          <div class="story-text">${revCompareText}</div>
+          <div class="story-text">${escHtml(revCompareText)}</div>
         </div>
 
         <div class="story-box cyan">
           <div class="story-lbl">RADIAL EMPIRE &amp; TRAIL-OFF RANGE</div>
           <ul class="story-list">
-            <li><strong>Top-3 Share:</strong> ${Number(f.solv_pct || 0).toFixed(1)}% (${f.top3_count || 0} Top-3 slots across 153 pins)</li>
+            <li><strong>Top-3 Share:</strong> ${Number(f.solv_pct || 0).toFixed(1)}% (${escHtml(f.top3_count || 0)} Top-3 slots across 153 pins)</li>
             <li><strong>Max Top-3 Reach:</strong> ${Number(env.max_top3_reach_km || f.max_top3_distance_km || 0).toFixed(1)} km from its shop</li>
             <li><strong>Outer Trail-Off Horizon:</strong> ${Number(env.trail_off_radius_km || 0).toFixed(1)} km radius</li>
-            <li><strong>Primary Vulnerability:</strong> ${f.primary_vulnerability || 'Localized reach'}</li>
+            <li><strong>Primary Vulnerability:</strong> ${escHtml(f.primary_vulnerability || 'Localized reach')}</li>
           </ul>
         </div>
 
@@ -1436,21 +1474,21 @@ const MODEL = __MODEL_JSON__;
         : ((le && le.target_rank != null && le.target_rank <= 10) ? '#f59e0b' : '#ef4444');
       return `
         <div style="flex:1;background:rgba(15,23,42,0.85);border:1px solid rgba(148,163,184,0.16);border-radius:5px;padding:4px 5px;text-align:center">
-          <div style="font-size:8.5px;color:#94a3b8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${l.query}</div>
-          <div style="font-family:var(--font-mono);font-size:11.5px;font-weight:800;color:${col}">${rk}</div>
+          <div style="font-size:8.5px;color:#94a3b8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(l.query)}</div>
+          <div style="font-family:var(--font-mono);font-size:11.5px;font-weight:800;color:${col}">${escHtml(rk)}</div>
         </div>
       `;
     }).join('');
 
-    const reasonsHtml = (pv.vulnerability_reasons || []).map(r => `<li>${r}</li>`).join('');
+    const reasonsHtml = (pv.vulnerability_reasons || []).map(r => `<li>${escHtml(r)}</li>`).join('');
     const topItems = (pv.top_items || pt.top_items || []).slice(0, 6);
     const youVotes = target.votes_count || 275;
 
     const serpHtml = topItems.map(it => {
       const isYou = it.faction_id === 'TARGET';
       const fObj = it.faction_id && factionsById[it.faction_id];
-      const fColor = fObj ? fObj.color : '#64748b';
-      const fCode = fObj ? fObj.short_code : 'LOC';
+      const fColor = fObj ? safeColor(fObj.color, '#64748b') : '#64748b';
+      const fCode = fObj ? escHtml(fObj.short_code) : 'LOC';
       const itVotes = it.votes_count != null ? it.votes_count : null;
       const isPaperTiger = !isYou && itVotes != null && itVotes < youVotes;
       const badgeText = isYou ? 'YOU' : (isPaperTiger ? `BEATABLE (${itVotes} rev)` : `${itVotes != null ? itVotes + ' rev' : fCode}`);
@@ -1461,14 +1499,14 @@ const MODEL = __MODEL_JSON__;
         <div class="serp-item ${isYou ? 'is-you' : ''}">
           <div class="serp-top">
             <div class="serp-rank-name">
-              <span class="serp-rk" style="border-left:3px solid ${fColor}">#${it.rank}</span>
-              <span class="serp-name" title="${it.title}">${it.title}</span>
+              <span class="serp-rk" style="border-left:3px solid ${fColor}">#${escHtml(it.rank)}</span>
+              <span class="serp-name" title="${escHtml(it.title)}">${escHtml(it.title)}</span>
             </div>
-            <span class="serp-tag" style="background:${badgeBg}">${badgeText}</span>
+            <span class="serp-tag" style="background:${badgeBg}">${escHtml(badgeText)}</span>
           </div>
           <div class="serp-meta">
-            <span>${it.category || 'HVAC'}</span>
-            <span>${it.rating != null ? it.rating + '*' : ''} &bull; ${Number(it.distance_from_pin_km || 0).toFixed(1)} km from shop</span>
+            <span>${escHtml(it.category || 'HVAC')}</span>
+            <span>${it.rating != null ? escHtml(it.rating) + '*' : ''} &bull; ${Number(it.distance_from_pin_km || 0).toFixed(1)} km from shop</span>
           </div>
         </div>
       `;
@@ -1484,11 +1522,11 @@ const MODEL = __MODEL_JSON__;
 
       <div class="story-box cyan">
         <div class="story-lbl">RECOMMENDED COUNTER-MOVE</div>
-        <div class="story-text">${pv.counter_move || 'Build localized review and category signals along this corridor.'}</div>
+        <div class="story-text">${escHtml(pv.counter_move || 'Build localized review and category signals along this corridor.')}</div>
       </div>
 
       <div>
-        <div class="story-lbl" style="margin-bottom:5px">WHO RANKS #1 TO #6 AT THIS PIN (VS YOUR ${youVotes} REVIEWS)</div>
+        <div class="story-lbl" style="margin-bottom:5px">WHO RANKS #1 TO #6 AT THIS PIN (VS YOUR ${escHtml(youVotes)} REVIEWS)</div>
         <div class="serp-list">${serpHtml || '<div style="font-size:11px;color:#64748b">No SERP items recorded</div>'}</div>
       </div>
     `;
@@ -1511,11 +1549,11 @@ const MODEL = __MODEL_JSON__;
       const s = sectorReach[sec];
       return `
         <tr>
-          <td style="font-weight:800;color:#ffffff">${s.sector} (${s.sector_name})</td>
+          <td style="font-weight:800;color:#ffffff">${escHtml(s.sector)} (${escHtml(s.sector_name)})</td>
           <td style="color:#10b981;font-weight:700">${Number(s.target_top3_reach_km).toFixed(1)} km</td>
           <td style="color:#38bdf8">${Number(s.target_top10_reach_km).toFixed(1)} km</td>
           <td style="color:#f59e0b">${Number(s.target_trail_off_km).toFixed(1)} km</td>
-          <td style="color:${s.dominant_rival_color};font-weight:700">${s.dominant_rival_name}</td>
+          <td style="color:${safeColor(s.dominant_rival_color, '#64748b')};font-weight:700">${escHtml(s.dominant_rival_name)}</td>
         </tr>
       `;
     }).join('');
@@ -1523,12 +1561,12 @@ const MODEL = __MODEL_JSON__;
     const corridorCards = corridors.slice(0, 3).map((c, idx) => `
       <div class="move-card ${idx === 0 ? 'emerald' : 'amber'}">
         <div class="move-head">
-          <span>STRIKE CORRIDOR #${idx + 1}: ${c.title}</span>
-          <span style="font-family:var(--font-mono);font-size:11px;color:#fbbf24">AVG OPP ${c.avg_opportunity_score}</span>
+          <span>STRIKE CORRIDOR #${idx + 1}: ${escHtml(c.title)}</span>
+          <span style="font-family:var(--font-mono);font-size:11px;color:#fbbf24">AVG OPP ${escHtml(c.avg_opportunity_score)}</span>
         </div>
         <div class="move-desc">
-          <strong>Beatable Incumbent:</strong> ${c.weak_incumbent_name} (${c.weak_incumbent_vulnerability})<br/>
-          <strong>Order:</strong> ${c.recommended_order}
+          <strong>Beatable Incumbent:</strong> ${escHtml(c.weak_incumbent_name)} (${escHtml(c.weak_incumbent_vulnerability)})<br/>
+          <strong>Order:</strong> ${escHtml(c.recommended_order)}
         </div>
       </div>
     `).join('');
@@ -1536,10 +1574,10 @@ const MODEL = __MODEL_JSON__;
     const unlockCards = unlocks.slice(0, 3).map((u, idx) => `
       <div class="move-card ${idx === 0 ? 'emerald' : 'amber'}">
         <div class="move-head">
-          <span>MOVE #${idx + 1}: ${u.name}</span>
-          <span style="font-family:var(--font-mono);font-size:10px;color:#34d399">${u.unlock_type}</span>
+          <span>MOVE #${idx + 1}: ${escHtml(u.name)}</span>
+          <span style="font-family:var(--font-mono);font-size:10px;color:#34d399">${escHtml(u.unlock_type)}</span>
         </div>
-        <div class="move-desc">${u.impact_rationale}</div>
+        <div class="move-desc">${escHtml(u.impact_rationale)}</div>
       </div>
     `).join('');
 
@@ -2140,16 +2178,26 @@ def render_console(model: dict[str, Any], output_path: str | Path) -> Path:
         or (clean_model.get("business") or {}).get("name")
         or "Target Business"
     )
-    page_title = f"{target_name} // Radial Battlefield Command (legends-geogrid)"
-    model_json = json.dumps(clean_model, ensure_ascii=False).replace("<", "\\u003c")
+    page_title = html.escape(
+        f"{target_name} // Radial Battlefield Command (legends-geogrid)".replace("\u2014", " - "),
+        quote=True,
+    )
+    model_json = (
+        json.dumps(clean_model, ensure_ascii=False)
+        .replace("&", "\\u0026")
+        .replace("<", "\\u003c")
+        .replace(">", "\\u003e")
+        .replace("\u2028", "\\u2028")
+        .replace("\u2029", "\\u2029")
+    )
 
     html_content = (
-        HTML_TEMPLATE.replace("__PAGE_TITLE__", page_title.replace("\u2014", " - "))
+        HTML_TEMPLATE.replace("__PAGE_TITLE__", page_title)
         .replace("__MODEL_JSON__", model_json)
         .replace("\u2014", " - ")
     )
 
-    out = Path(output_path).resolve()
+    out = _safe_local_path(output_path)
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(html_content, encoding="utf-8")
     return out
@@ -2161,9 +2209,9 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--output", required=True, help="Output HTML path")
     args = parser.parse_args(argv)
 
-    model_path = Path(args.model).resolve()
+    model_path = _safe_local_path(args.model)
     model = json.loads(model_path.read_text(encoding="utf-8-sig"))
-    out = render_console(model, Path(args.output).resolve())
+    out = render_console(model, _safe_local_path(args.output))
     print(json.dumps({"status": "ok", "console_html": str(out)}))
     return 0
 

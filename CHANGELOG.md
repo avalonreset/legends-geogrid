@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.6 - 2026-11-10
+
+- **Battlefield Console & Standalone HTML Escaping (`tools/battlefield_console.py`, `tools/companion_standalone.py`, `tools/battlefield_report.py`)**: escape `<title>`, inline `<script>` JSON payloads (`\u003c`, `\u003e`, `\u0026`, `\u2028`, `\u2029`), and all client-side `.innerHTML` string/color interpolations across `renderTopHud`, `renderMissionCard`, `renderFactionDock`, `renderInspector`, and `renderPlaybookModal`; validate hex color tokens in ReportLab Paragraph XML and HTML styles.
+- **Public URL Socket IP Pinning & Redirect Hardening (`tools/study.py`, `tools/business_name_review.py`, `tools/report_basemaps.py`)**: centralize `safe_public_fetch()` with socket-level DNS IP pinning (`_PinnedHTTPConnection` / `_PinnedHTTPSConnection`), `ProxyHandler({})`, bounded `PublicRedirect` (`<= 3` hops), and `_NoRedirect` on Google Static Maps and Street View RPC requests.
+- **Windows Controlled Folder Access Safe Default Vault (`tools/study_library.py`, `docs/STUDY_LIBRARY.md`)**: move the default study bank and library configuration from `~/Documents/legends-geogrid-vault` to `~/.legends-geogrid/vault/GeoGrid` and `~/.legends-geogrid/library.json` outside Windows CFA-protected folders.
+- **Universal Symlink/Reparse Refusal, CLI Parity & Runtime Maintenance (`tools/*.py`, `scripts/check_release.py`, `.github/workflows/ci.yml`)**: enforce ancestor-chain symlink/junction refusal across all runner and report entrypoints, add `--check-playwright` and `--json` flags to `tools/geogrid_doctor.py`, document `study.py query-review`, migrate Pillow 14 `get_flattened_data()` and `pypdf` 7.0 page merging, add `macos-latest` CI, pin `legends-dataforseo` with `#sha256=`, and upgrade `scripts/check_release.py` to ecosystem Gold Standard parity.
+
 ## 0.2.5 - 2026-11-05
 
 - **Ecosystem Gold Standard & Release Gate (`docs/AGENT-RECIPE.md`, `scripts/check_release.py`, `assets/manifest.json`, `assets/preview.png`)**: added the public release static gate, asset manifest, `1024x256` preview banner, and canonical `docs/AGENT-RECIPE.md` agent handoff recipe.

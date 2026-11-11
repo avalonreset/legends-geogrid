@@ -132,8 +132,11 @@ class ReleasePipelineAcceptance(unittest.TestCase):
         payload = {"status_code": 20000, "tasks": [
             {"status_code": 50000, "status_message": "Synthetic provider failure", "result": None}
         ]}
-        argv = ["pollution_gate.py", "--keyword", "bicycle repair",
-                "--points", "38,-100", "--category", "bicycle"]
+        preview_argv = ["pollution_gate.py", "--keyword", "bicycle repair",
+                        "--points", "38,-100", "--category", "bicycle"]
+        with patch.object(sys, "argv", preview_argv), contextlib.redirect_stdout(io.StringIO()):
+            self.assertEqual(2, pollution_gate.main())
+        argv = [*preview_argv, "--execute", "--confirm-cost-usd", "0.01"]
         with patch.object(sys, "argv", argv), patch.dict("os.environ", {
                 "DATAFORSEO_LOGIN": "synthetic-fixture", "DATAFORSEO_PASSWORD": "synthetic-fixture"}), \
                 patch.object(pollution_gate, "post", return_value=payload), \

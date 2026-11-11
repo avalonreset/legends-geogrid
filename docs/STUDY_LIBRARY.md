@@ -8,8 +8,8 @@ runners do not auto-bank; use the explicit bank command for those saved studies.
 
 ## Setup
 
-Default: `~/Documents/legends-geogrid-vault/GeoGrid`. Override with `--vault-dir`,
-then `GEOGRID_VAULT_DIR`, then the saved user config. Configure once:
+Default: `~/.legends-geogrid/vault/GeoGrid`. Override with `--vault-dir`,
+then `GEOGRID_VAULT_DIR`, then the saved user config (`~/.legends-geogrid/library.json`). Configure once:
 
 ```sh
 python tools/study.py library-init --vault-dir /path/to/your/vault

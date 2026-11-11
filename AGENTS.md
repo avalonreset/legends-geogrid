@@ -14,9 +14,9 @@ theme purple or blue. Evidence colors remain distinct from brand decoration.
 - Endpoint security (EDR) guardrail: NEVER spawn `pnpm dev`, `vite`, `node`, or `python -m http.server` using hidden background window flags, detached execution-policy bypass scripts, or `Invoke-WebRequest -UseBasicParsing` localhost polling loops. Enterprise EDR sensors classify hidden PowerShell process trees combined with web-request polling as a malware dropper/beacon and may isolate the host device. Always use `python tools/study.py --open` for agent-driven browser inspection.
 - Fresh scans: install `requirements-dataforseo.txt`. This installs the public
   [legends-dataforseo](https://github.com/avalonreset/legends-dataforseo)
-  dependency. Run `python tools/geogrid_doctor.py --dataforseo` before collection.
-  Release 0.2.5 works with the pinned DataForSEO dependency or `legends-dataforseo`
-  `v0.1.8+` installed via `cto-legends install legends-dataforseo`.
+  dependency. Run `python tools/geogrid_doctor.py --dataforseo --reports --basemaps --check-playwright [--json]` before collection.
+  Release 0.2.6 works with the pinned DataForSEO dependency or `legends-dataforseo`
+  `v0.1.10+` installed via `cto-legends install legends-dataforseo`.
   Do not install an MCP server or copy a second HTTP/authentication client.
 - Optional optical signage accelerator: when investigating business-name discrepancies
   (`tools/business_name_review.py photos`), check whether `legends-jev` (`v0.2.3+`)
@@ -42,7 +42,7 @@ per theme, following `docs/QUERY_SELECTION_POLICY.md`. Fewer requires a cited
 explanation and focused scope; never pad with synonyms.
 Given only a business, research and select queries from website, public GBP and
 DataForSEO evidence; do not ask users to supply keywords by default. Use
-`tools/study.py` for researched studies. Raw runners require explicit `--diagnostic`.
+`tools/study.py` for researched studies (`website`, `research`, `query-review`, `validate`, `proposal`, `assemble`, `run`, `open`). Raw runners require explicit `--diagnostic`.
 Read `docs/START_A_STUDY.md` before paid collection. Establish business identity,
 query, location, language and the decision being studied. Estimate first. Paid
 scans require both `--execute` and `--confirm-cost-usd`; retain these gates.

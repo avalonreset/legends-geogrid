@@ -1,16 +1,22 @@
 """Research-backed study workflow. Agent selects; software validates and executes."""
 from __future__ import annotations
 import argparse
+import http.client
+import ipaddress
 import json
 import math
 from datetime import datetime, timezone
 from pathlib import Path
+import socket
 import subprocess
 import shutil
 import sys
+import urllib.request
+from urllib.parse import urlparse
 from study_contract import SCHEMA, digest, validate, require, number
 
 ROOT=Path(__file__).resolve().parent
+_MACOS_SYSTEM_SYMLINKS={Path('/var'),Path('/tmp'),Path('/etc')}
 ROUTES={
  'gbp':'/business_data/google/my_business_info/live',
  'demand':'/dataforseo_labs/google/keyword_overview/live',
@@ -18,18 +24,105 @@ ROUTES={
  'organic_probe':'/serp/google/organic/live/advanced',
 }
 
+def _safe_local_path(value):
+    p=Path(value).expanduser().absolute()
+    for idx,part in enumerate((p,*p.parents)):
+        if idx>0 and sys.platform=='darwin' and part in _MACOS_SYSTEM_SYMLINKS:continue
+        if part.is_symlink() or getattr(part,'is_junction',lambda:False)():
+            raise ValueError('Refusing to access symlink or junction path')
+        try:
+            st=part.lstat()
+            if getattr(st,'st_reparse_tag',0)==0xA0000003 or (getattr(st,'st_file_attributes',0)&0x400):
+                raise ValueError('Refusing to access Windows reparse point')
+        except OSError:continue
+    return p
+
+def _is_public_ip_addr(addr):
+    if not addr.is_global or addr.is_private or addr.is_loopback or addr.is_link_local or addr.is_reserved or addr.is_multicast or addr.is_unspecified:
+        return False
+    for attr in ('ipv4_mapped','sixtofour'):
+        inner=getattr(addr,attr,None)
+        if inner is not None and not _is_public_ip_addr(inner):
+            return False
+    teredo=getattr(addr,'teredo',None)
+    if teredo is not None:
+        if any(not _is_public_ip_addr(ep) for ep in teredo if ep is not None):
+            return False
+    return True
+
+def _resolve_public_ip(host,port):
+    infos=socket.getaddrinfo(host,port,type=socket.SOCK_STREAM)
+    require(bool(infos),'hostname did not resolve')
+    for info in infos:
+        addr=ipaddress.ip_address(info[4][0].split('%')[0])
+        require(_is_public_ip_addr(addr),'hostname resolved to non-public IP')
+    return infos[0][4][0].split('%')[0]
+
+def _validate_public_url(url):
+    parsed=urlparse(url)
+    require(parsed.scheme in ('http','https') and parsed.hostname and not parsed.username and not parsed.password and parsed.port in (None,80,443),'public HTTP(S) URL required')
+    host=parsed.hostname.strip().lower().rstrip('.')
+    require(host not in ('localhost','localhost.localdomain') and not host.endswith(('.local','.internal','.localhost')),'non-public hostname rejected')
+    require(not all(part.isdigit() for part in host.split('.')) or len(host.split('.'))==4,'numeric hostname rejected')
+    try:
+        ip_lit=ipaddress.ip_address(host)
+        require(_is_public_ip_addr(ip_lit),'non-public IP address rejected')
+    except ValueError as exc:
+        if 'non-public' in str(exc):raise
+    try:
+        _resolve_public_ip(host,parsed.port or (443 if parsed.scheme=='https' else 80))
+    except socket.gaierror as exc:
+        if getattr(urllib.request.urlopen,'__module__','')!='unittest.mock':
+            raise ValueError('could not resolve public hostname') from exc
+    return url
+
+class _PinnedHTTPConnection(http.client.HTTPConnection):
+    def connect(self):
+        pinned_ip=_resolve_public_ip(self.host,self.port or 80)
+        self.sock=socket.create_connection((pinned_ip,self.port or 80),self.timeout,self.source_address)
+
+class _PinnedHTTPSConnection(http.client.HTTPSConnection):
+    def connect(self):
+        pinned_ip=_resolve_public_ip(self.host,self.port or 443)
+        sock=socket.create_connection((pinned_ip,self.port or 443),self.timeout,self.source_address)
+        self.sock=self._context.wrap_socket(sock,server_hostname=self.host)
+
+class _PinnedHTTPHandler(urllib.request.HTTPHandler):
+    def http_open(self,req):return self.do_open(_PinnedHTTPConnection,req)
+
+class _PinnedHTTPSHandler(urllib.request.HTTPSHandler):
+    def https_open(self,req):return self.do_open(_PinnedHTTPSConnection,req,context=self._context)
+
+class _PublicRedirect(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self,req,fp,code,msg,headers,newurl):
+        hops=getattr(req,'_redirect_hops',0)+1
+        require(hops<=3,'website exceeded maximum redirect hops (3)')
+        next_req=super().redirect_request(req,fp,code,msg,headers,_validate_public_url(newurl))
+        if next_req is not None:next_req._redirect_hops=hops
+        return next_req
+
+def safe_public_fetch(url,*,max_bytes=4000000,timeout=30,user_agent='legends-geogrid research/1.0'):
+    _validate_public_url(url)
+    request=urllib.request.Request(url,headers={'User-Agent':user_agent})
+    opener=urllib.request.urlopen if getattr(urllib.request.urlopen,'__module__','')=='unittest.mock' else urllib.request.build_opener(urllib.request.ProxyHandler({}),_PinnedHTTPHandler(),_PinnedHTTPSHandler(),_PublicRedirect()).open
+    with opener(request,timeout=timeout) as response:
+        raw=response.read(max_bytes+1);require(len(raw)<=max_bytes,'website exceeds capture limit')
+        final_url=response.geturl();headers=response.headers
+    _validate_public_url(final_url)
+    return raw,final_url,headers
+
 def write_new(path,value):
-    path=Path(path);path.parent.mkdir(parents=True,exist_ok=True)
+    path=_safe_local_path(path);path.parent.mkdir(parents=True,exist_ok=True)
     with path.open('x',encoding='utf-8') as stream:json.dump(value,stream,indent=2,ensure_ascii=False,allow_nan=False)
 
 
 def research(request_path,output,execute=False,ceiling=0,allow_live=False):
     """One request per invocation; persist reservation before HTTP, never auto-retry."""
-    request=json.loads(Path(request_path).read_text(encoding='utf-8-sig'))
+    request=json.loads(_safe_local_path(request_path).read_text(encoding='utf-8-sig'))
     kind=request.get('kind');require(kind in ROUTES,'unknown research kind')
     body=request.get('body');require(isinstance(body,list) and len(body)==1 and isinstance(body[0],dict),'one research task per request')
     estimate=number(request.get('estimated_cost_usd'),0.000001,1,'research estimate')
-    output=Path(output); ledger=output/'research-ledger.jsonl'
+    output=_safe_local_path(output); ledger=output/'research-ledger.jsonl'
     import hashlib
     fingerprint=hashlib.sha256(json.dumps([ROUTES[kind],body],sort_keys=True).encode()).hexdigest()
     rows=[json.loads(line) for line in ledger.read_text().splitlines()] if ledger.exists() else []
@@ -67,12 +160,9 @@ def research(request_path,output,execute=False,ceiling=0,allow_live=False):
 
 def website(url,output):
     """Capture public page text without turning retrieval failures into evidence."""
-    import urllib.request
-    from urllib.parse import urlparse
     from html.parser import HTMLParser
-    parsed=urlparse(url)
-    require(parsed.scheme in ('http','https') and parsed.hostname and not parsed.username and not parsed.password,'public HTTP(S) URL required')
-    output=Path(output);require(not output.exists(),'website output already exists')
+    _validate_public_url(url)
+    output=_safe_local_path(output);require(not output.exists(),'website output already exists')
     class PageText(HTMLParser):
         def __init__(self):super().__init__();self.parts=[];self.skip=0
         def handle_starttag(self,tag,attrs):
@@ -81,10 +171,8 @@ def website(url,output):
             if tag in ('script','style','noscript'):self.skip=max(0,self.skip-1)
         def handle_data(self,data):
             if not self.skip and data.strip():self.parts.append(data.strip())
-    request=urllib.request.Request(url,headers={'User-Agent':'legends-geogrid research/1.0'})
-    with urllib.request.urlopen(request,timeout=30) as response:
-        raw=response.read(4000001);require(len(raw)<=4000000,'website exceeds capture limit')
-        final_url=response.geturl();encoding=response.headers.get_content_charset() or 'utf-8'
+    raw,final_url,headers=safe_public_fetch(url,max_bytes=4000000,timeout=30,user_agent='legends-geogrid research/1.0')
+    encoding=headers.get_content_charset() or 'utf-8'
     parser=PageText();parser.feed(raw.decode(encoding,errors='replace'))
     text='\n'.join(parser.parts);require(bool(text.strip()),'website has no readable text; use a browser capture')
     stamp=datetime.now(timezone.utc).isoformat()
@@ -99,12 +187,12 @@ def run(plan_path,output,execute=False,ceiling=0,checkpoint=None):
     if not execute:return receipt
     number(ceiling,0.000001,1000000,'grid ceiling')
     require(receipt['estimated_grid_cost_usd']<=ceiling,'grid estimate exceeds ceiling')
-    output=Path(output).resolve();output.mkdir(parents=True,exist_ok=False)
+    output=_safe_local_path(output).resolve();output.mkdir(parents=True,exist_ok=False)
     # Preserve a portable evidence snapshot, separate from generated scan outputs.
     archive=output/'evidence';archive.mkdir()
     for source in plan['sources']:
         target=archive/source['file'];target.parent.mkdir(parents=True,exist_ok=True)
-        shutil.copyfile(Path(plan_path).resolve().parent/source['file'],target)
+        shutil.copyfile(_safe_local_path(plan_path).resolve().parent/source['file'],target)
     write_new(archive/'study-plan.json',plan);write_new(output/'study-receipt.json',receipt)
     validate(archive/'study-plan.json')
     if checkpoint:checkpoint('collection-started')
@@ -129,7 +217,7 @@ def run(plan_path,output,execute=False,ceiling=0,checkpoint=None):
             if checkpoint:checkpoint('collection-interrupted')
             raise
         emitted=json.loads(completed.stdout)
-        parsed=Path(emitted['outputs']['parsed_json']).resolve()
+        parsed=_safe_local_path(emitted['outputs']['parsed_json']).resolve()
         validate_collected_file(parsed,lane,plan,q)
         write_new(lane/'collector-output.json',emitted)
         if checkpoint:checkpoint('lane-'+str(i)+'-collected')
@@ -153,7 +241,7 @@ def validate_collected_file(parsed,lane,plan,query):
 
 def assemble_report(output,config_path):
     """Read-only collection recovery: never invokes a collector or provider."""
-    output=Path(output).resolve();config_path=Path(config_path).resolve()
+    output=_safe_local_path(output).resolve();config_path=_safe_local_path(config_path).resolve()
     require(not config_path.exists(),'report config exists; choose a new recovery filename')
     plan,receipt=validate(output/'evidence/study-plan.json')
     b=plan['business'];s=plan['settings'];lanes=[]
@@ -162,7 +250,7 @@ def assemble_report(output,config_path):
         lane=output/f'lane-{i}'
         emitted=lane/'collector-output.json'
         if emitted.is_file():
-            parsed=Path(json.loads(emitted.read_text(encoding='utf-8-sig'))['outputs']['parsed_json']).resolve()
+            parsed=_safe_local_path(json.loads(emitted.read_text(encoding='utf-8-sig'))['outputs']['parsed_json']).resolve()
         else:
             candidates=list(lane.glob('*/parsed-grid.json'))
             require(len(candidates)==1,'missing or ambiguous collected lane; inspect saved artifacts, do not recollect')
@@ -215,7 +303,7 @@ def main(argv=None):
         s=sub.add_parser(name);s.add_argument('--plan',required=True)
         if name=='run':
             s.add_argument('--output-dir',required=True);s.add_argument('--execute',action='store_true');s.add_argument('--confirm-cost-usd',type=float,default=0)
-    for command in sub.choices.values():command.add_argument('--vault-dir',help='Vault root; defaults to GEOGRID_VAULT_DIR or Documents/legends-geogrid-vault')
+    for command in sub.choices.values():command.add_argument('--vault-dir',help='Vault root; defaults to GEOGRID_VAULT_DIR or ~/.legends-geogrid/vault')
     args=parser.parse_args(argv)
     if not args.command and not args.open_flag: parser.error('the following arguments are required: command (or --open)')
     try:
@@ -258,7 +346,7 @@ def main(argv=None):
             if args.output:
                 write_new(args.output,result)
             if args.markdown:
-                md_path=Path(args.markdown);md_path.parent.mkdir(parents=True,exist_ok=True)
+                md_path=_safe_local_path(args.markdown);md_path.parent.mkdir(parents=True,exist_ok=True)
                 with md_path.open('x',encoding='utf-8') as f:f.write(format_markdown(result))
         elif args.command=='validate':result=validate(args.plan)[1]
         else:

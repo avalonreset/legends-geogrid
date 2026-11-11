@@ -25,6 +25,7 @@ if str(TOOLS_DIR) not in sys.path:
     sys.path.insert(0, str(TOOLS_DIR))
 
 from local_heatmap_poc import (  # noqa: E402
+    _safe_local_path,
     canonical_domain,
     domain_matches,
     extract_items,
@@ -187,11 +188,11 @@ def _normalize_fs_path(raw_path: str | Path, base_dir: Path | None = None) -> Pa
         if candidate.exists():
             return candidate.resolve()
 
-    candidate = Path(text)
+    candidate = _safe_local_path(text)
     if candidate.is_absolute() and candidate.exists():
         return candidate.resolve()
     if base_dir is not None:
-        rel_candidate = (base_dir / text).resolve()
+        rel_candidate = _safe_local_path(base_dir / text).resolve()
         if rel_candidate.exists():
             return rel_candidate
     return candidate
@@ -3150,7 +3151,7 @@ def main(argv: list[str] | None = None) -> int:
     )
     args = parser.parse_args(argv)
 
-    output_dir = Path(args.output_dir).resolve()
+    output_dir = _safe_local_path(args.output_dir).resolve()
     output_dir.mkdir(parents=True, exist_ok=True)
 
     model = build_battlefield_model(args.input)

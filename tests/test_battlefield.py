@@ -473,6 +473,23 @@ class BattlefieldEngineTests(unittest.TestCase):
             self.assertEqual(4, saved_model["grid"]["total_lanes"])
             self.assertEqual(1249, saved_model["grid"]["total_points"])
 
+    def test_battlefield_console_escapes_title_and_script_json(self) -> None:
+        import battlefield_console
+        with tempfile.TemporaryDirectory() as tmp:
+            out_html = Path(tmp) / "console.html"
+            model = {
+                "business": {"name": '</title><script>alert("xss")</script>', "location_label": "Austin, TX"},
+                "lanes": [],
+                "points": [],
+                "factions": [],
+            }
+            battlefield_console.render_console(model, out_html)
+            rendered = out_html.read_text(encoding="utf-8")
+            self.assertNotIn('</title><script>alert("xss")</script>', rendered)
+            self.assertIn("&lt;/title&gt;&lt;script&gt;", rendered)
+            self.assertIn("function escHtml(v)", rendered)
+            self.assertIn("function safeColor(c", rendered)
+
 
 if __name__ == "__main__":
     unittest.main()

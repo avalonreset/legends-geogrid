@@ -23,10 +23,31 @@ STARTER_REPORT_PDF = REPO_ROOT / "examples" / "starter-home-slice" / "report" / 
 STARTER_REPORT_HTML = REPO_ROOT / "examples" / "starter-home-slice" / "report" / "report.html"
 
 
+def _safe_local_path(value: str | Path) -> Path:
+    import sys
+    p = Path(value).expanduser().absolute()
+    for idx, part in enumerate((p, *p.parents)):
+        if idx > 0 and sys.platform == "darwin" and part in {Path("/var"), Path("/tmp"), Path("/etc")}:
+            continue
+        if part.is_symlink() or getattr(part, "is_junction", lambda: False)():
+            raise ValueError("Refusing to access symlink or junction path.")
+        try:
+            st = part.lstat()
+            if getattr(st, "st_reparse_tag", 0) == 0xA0000003 or (
+                getattr(st, "st_file_attributes", 0) & 0x400
+            ):
+                raise ValueError("Refusing to access Windows reparse point.")
+        except OSError:
+            continue
+    return p
+
+
 def _safe_script_json(payload: Any) -> str:
     raw = json.dumps(payload, ensure_ascii=False, allow_nan=False)
     return (
-        raw.replace("</", "<\\/")
+        raw.replace("&", "\\u0026")
+        .replace("<", "\\u003c")
+        .replace(">", "\\u003e")
         .replace("\u2028", "\\u2028")
         .replace("\u2029", "\\u2029")
     )
@@ -37,7 +58,7 @@ def _safe_inline_script(code: str) -> str:
 
 
 def _load_json(path: Path) -> Any:
-    return json.loads(path.read_text(encoding="utf-8-sig"))
+    return json.loads(_safe_local_path(path).read_text(encoding="utf-8-sig"))
 
 
 def _resolve_study_inputs(
@@ -164,7 +185,7 @@ def open_companion(
         "</html>\n"
     )
 
-    out_path = out_path.resolve()
+    out_path = _safe_local_path(out_path).resolve()
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(html, encoding="utf-8")
 

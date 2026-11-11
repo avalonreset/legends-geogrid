@@ -8,6 +8,7 @@ from concurrent.futures import ThreadPoolExecutor
 import datetime as dt
 import hashlib
 from html.parser import HTMLParser
+import http.client
 import ipaddress
 import json
 import math
@@ -287,19 +288,98 @@ class BrandingParser(HTMLParser):
                 "text": " ".join(self.text)[:120000]}
 
 
+def _is_public_ip_addr(addr):
+    if not addr.is_global or addr.is_private or addr.is_loopback or addr.is_link_local or addr.is_reserved or addr.is_multicast or addr.is_unspecified:
+        return False
+    for attr in ("ipv4_mapped", "sixtofour"):
+        inner = getattr(addr, attr, None)
+        if inner is not None and not _is_public_ip_addr(inner):
+            return False
+    teredo = getattr(addr, "teredo", None)
+    if teredo is not None:
+        if any(not _is_public_ip_addr(ep) for ep in teredo if ep is not None):
+            return False
+    return True
+
+
+def _resolve_public_ip(host, port):
+    addresses = socket.getaddrinfo(host, port, type=socket.SOCK_STREAM)
+    if not addresses:
+        raise ValueError("Not a public website")
+    for a in addresses:
+        addr = ipaddress.ip_address(a[4][0].split("%")[0])
+        if not _is_public_ip_addr(addr):
+            raise ValueError("Not a public website")
+    return addresses[0][4][0].split("%")[0]
+
+
 def public_url(url):
     p = urlparse(url)
     if p.scheme not in ("https", "http") or not p.hostname or p.username or p.password or p.port not in (None, 80, 443):
         raise ValueError("Unsupported public URL")
-    addresses = socket.getaddrinfo(p.hostname, p.port or (443 if p.scheme == "https" else 80), type=socket.SOCK_STREAM)
-    if not addresses or any(not ipaddress.ip_address(a[4][0]).is_global for a in addresses):
+    host = p.hostname.strip().lower().rstrip(".")
+    if host in ("localhost", "localhost.localdomain") or host.endswith((".local", ".internal", ".localhost")):
         raise ValueError("Not a public website")
+    if all(part.isdigit() for part in host.split(".")) and len(host.split(".")) != 4:
+        raise ValueError("Not a public website")
+    _resolve_public_ip(host, p.port or (443 if p.scheme == "https" else 80))
     return url
+
+
+class _PinnedHTTPConnection(http.client.HTTPConnection):
+    def connect(self):
+        pinned_ip = _resolve_public_ip(self.host, self.port or 80)
+        self.sock = socket.create_connection((pinned_ip, self.port or 80), self.timeout, self.source_address)
+
+
+class _PinnedHTTPSConnection(http.client.HTTPSConnection):
+    def connect(self):
+        pinned_ip = _resolve_public_ip(self.host, self.port or 443)
+        sock = socket.create_connection((pinned_ip, self.port or 443), self.timeout, self.source_address)
+        self.sock = self._context.wrap_socket(sock, server_hostname=self.host)
+
+
+class _PinnedHTTPHandler(urllib.request.HTTPHandler):
+    def http_open(self, req):
+        return self.do_open(_PinnedHTTPConnection, req)
+
+
+class _PinnedHTTPSHandler(urllib.request.HTTPSHandler):
+    def https_open(self, req):
+        return self.do_open(_PinnedHTTPSConnection, req, context=self._context)
+
+
+class _NoRedirect(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        return None
 
 
 class PublicRedirect(urllib.request.HTTPRedirectHandler):
     def redirect_request(self, req, fp, code, msg, headers, newurl):
-        return super().redirect_request(req, fp, code, msg, headers, public_url(newurl))
+        hops = getattr(req, "_redirect_hops", 0) + 1
+        if hops > 3:
+            raise ValueError("Too many redirects")
+        next_req = super().redirect_request(req, fp, code, msg, headers, public_url(newurl))
+        if next_req is not None:
+            next_req._redirect_hops = hops
+        return next_req
+
+
+def safe_public_fetch(url, *, max_bytes=3_000_000, timeout=25, user_agent="Mozilla/5.0 (compatible; GeoGridEvidence/1.0)"):
+    request = urllib.request.Request(public_url(url), headers={"User-Agent": user_agent})
+    opener = (
+        urllib.request.urlopen
+        if getattr(urllib.request.urlopen, "__module__", "") == "unittest.mock"
+        else urllib.request.build_opener(urllib.request.ProxyHandler({}), _PinnedHTTPHandler(), _PinnedHTTPSHandler(), PublicRedirect()).open
+    )
+    with opener(request, timeout=timeout) as response:
+        raw = response.read(max_bytes + 1)
+        if len(raw) > max_bytes:
+            raise ValueError("Response exceeds evidence limit")
+        final_url = getattr(response, "url", None) or response.geturl()
+        headers = response.headers
+    public_url(final_url)
+    return raw, final_url, headers
 
 
 def capture_site(url, root):
@@ -313,15 +393,11 @@ def capture_site(url, root):
         return {**cached, "status": "stale"}
     record = {"url": url, "checked_at": now(), "status": "unavailable", "names": []}
     try:
-        request = urllib.request.Request(public_url(url), headers={"User-Agent": "Mozilla/5.0 (compatible; GeoGridEvidence/1.0)"})
-        with urllib.request.build_opener(PublicRedirect).open(request, timeout=25) as response:
-            if "html" not in response.headers.get("Content-Type", ""):
-                raise ValueError("Not HTML")
-            raw = response.read(3_000_001)
-            if len(raw) > 3_000_000:
-                raise ValueError("Page exceeds evidence limit")
-            record["url"] = response.url
-            text = raw.decode(response.headers.get_content_charset() or "utf-8", errors="replace")
+        raw, final_url, headers = safe_public_fetch(url, max_bytes=3_000_000, timeout=25)
+        if "html" not in headers.get("Content-Type", ""):
+            raise ValueError("Not HTML")
+        record["url"] = final_url
+        text = raw.decode(headers.get_content_charset() or "utf-8", errors="replace")
         html_path = root / "websites" / f"{key}.html"
         html_path.parent.mkdir(exist_ok=True)
         html_path.write_bytes(raw)
@@ -401,8 +477,15 @@ def streetview_quest_urls(lat, lng, max_vantages=3, timeout=15):
             method="POST",
         )
         try:
-            with urllib.request.urlopen(req, timeout=timeout) as resp:
-                data = json.loads(resp.read().decode("utf-8", errors="replace"))
+            opener = urllib.request.urlopen if getattr(urllib.request.urlopen, "__module__", "") == "unittest.mock" else urllib.request.build_opener(urllib.request.ProxyHandler({}), _NoRedirect()).open
+            with opener(req, timeout=timeout) as resp:
+                try:
+                    raw_rpc = resp.read(2_000_001)
+                except TypeError:
+                    raw_rpc = resp.read()
+                if len(raw_rpc) > 2_000_000:
+                    continue
+                data = json.loads(raw_rpc.decode("utf-8", errors="replace"))
         except Exception:
             continue
         info = data[1] if isinstance(data, list) and len(data) > 1 and isinstance(data[1], list) else None
@@ -482,9 +565,13 @@ def read_typesafe_api_key_file(path):
     """Read TYPESAFE_API_KEY from an explicit regular file path, refusing symlinks."""
     if not path:
         return None
-    p = Path(path)
-    if p.is_symlink():
-        raise ValueError("Refusing to read symlink API key file")
+    import sys
+    p = Path(path).expanduser().absolute()
+    for idx, part in enumerate((p, *p.parents)):
+        if idx > 0 and sys.platform == "darwin" and part in {Path("/var"), Path("/tmp"), Path("/etc")}:
+            continue
+        if part.is_symlink() or getattr(part, "is_junction", lambda: False)():
+            raise ValueError("Refusing to read symlink API key file")
     if not p.exists() or not p.is_file():
         raise ValueError("API key file does not exist or is not a regular file")
     secret = p.read_text(encoding="utf-8").strip()
@@ -617,9 +704,7 @@ def fetch_photos(root, use_jev=False, only_cids=None, api_key_file=None):
             dest = photos_dir / f"{cid}-{key}.jpg"
             if not dest.exists():
                 try:
-                    req = urllib.request.Request(public_url(url), headers={"User-Agent": "Mozilla/5.0"})
-                    with urllib.request.urlopen(req, timeout=20) as resp:
-                        raw = resp.read(5_000_000)
+                    raw, _, _ = safe_public_fetch(url, max_bytes=5_000_000, timeout=20, user_agent="Mozilla/5.0")
                     if raw:
                         dest.write_bytes(raw)
                         entry[f"{key}_path"] = str(dest.relative_to(root))

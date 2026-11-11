@@ -9,15 +9,33 @@ from datetime import datetime, timezone
 from urllib.parse import quote
 
 
+_MACOS_SYSTEM_SYMLINKS={Path('/var'),Path('/tmp'),Path('/etc')}
+
+def _safe_local_path(value):
+    import sys
+    p=Path(value).expanduser().absolute()
+    for idx,part in enumerate((p,*p.parents)):
+        if idx>0 and sys.platform=='darwin' and part in _MACOS_SYSTEM_SYMLINKS:continue
+        if part.is_symlink() or getattr(part,'is_junction',lambda:False)():
+            raise ValueError('Refusing to access symlink or junction path')
+        try:
+            st=part.lstat()
+            if getattr(st,'st_reparse_tag',0)==0xA0000003 or (getattr(st,'st_file_attributes',0)&0x400):
+                raise ValueError('Refusing to access Windows reparse point')
+        except OSError:continue
+    return p
+
 def sha(data):return hashlib.sha256(data).hexdigest()
-def config_path():return Path.home()/'.config'/'legends-geogrid'/'library.json'
+def config_path():return Path.home()/'.legends-geogrid'/'library.json'
 def root_path(value=None):
-    configured=json.loads(config_path().read_text()).get('vault') if not value and not os.environ.get('GEOGRID_VAULT_DIR') and config_path().is_file() else None
-    return Path(value or os.environ.get('GEOGRID_VAULT_DIR') or configured or Path.home()/'Documents'/'legends-geogrid-vault').expanduser().resolve()/'GeoGrid'
+    cfg=_safe_local_path(config_path()) if not value and not os.environ.get('GEOGRID_VAULT_DIR') else None
+    configured=json.loads(cfg.read_text(encoding='utf-8')).get('vault') if cfg and cfg.is_file() else None
+    base=_safe_local_path(value or os.environ.get('GEOGRID_VAULT_DIR') or configured or Path.home()/'.legends-geogrid'/'vault')
+    return base.resolve()/'GeoGrid'
 def configure(vault):
     if not vault:raise ValueError('--vault-dir required to configure library')
-    path=Path(vault).expanduser().resolve();path.mkdir(parents=True,exist_ok=True)
-    config=config_path();config.parent.mkdir(parents=True,exist_ok=True)
+    path=_safe_local_path(vault).resolve();path.mkdir(parents=True,exist_ok=True)
+    config=_safe_local_path(config_path());config.parent.mkdir(parents=True,exist_ok=True)
     with config.open('x',encoding='utf-8') as f:json.dump({'vault':str(path)},f)
     return {'status':'library_configured','vault':str(path),'config':str(config)}
 def text(value):return str(value).replace('\n',' ').replace('[[','(').replace(']]',')').replace('<','&lt;').replace('>','&gt;')

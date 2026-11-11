@@ -14,7 +14,7 @@ python tools/study.py open --study runs/<slug>/companion-study.json
 Before running fresh scans, PDF report rendering, or optional optical signage verification, verify local environment readiness offline:
 
 ```sh
-python tools/geogrid_doctor.py --dataforseo --jev --reports --basemaps
+python tools/geogrid_doctor.py --dataforseo --jev --reports --basemaps --check-playwright --json
 ```
 
 ## 2. Core CLI Workflows
@@ -22,7 +22,7 @@ python tools/geogrid_doctor.py --dataforseo --jev --reports --basemaps
 | Command | Purpose |
 | --- | --- |
 | `python tools/study.py --open` | Build and open the self-contained static Competitive Map Companion in the default browser (`$0`, zero background processes) |
-| `python tools/geogrid_doctor.py [--dataforseo] [--jev] [--reports] [--basemaps]` | Offline readiness check for Python/Node runtimes, `legends-dataforseo`, optional `legends-jev`, ReportLab/Pillow, and Playwright Chromium |
+| `python tools/geogrid_doctor.py [--dataforseo] [--jev] [--reports] [--basemaps] [--check-playwright] [--json]` | Offline readiness check for Python/Node runtimes, `legends-dataforseo`, optional `legends-jev`, ReportLab/Pillow, and Playwright Chromium |
 | `python tools/study.py query-review --plan <plan.json>` | Validate candidate search themes, GBP categories, observation ages, and scope before paid collection |
 | `python tools/study.py proposal --plan <plan.json> --output-dir <dir>` | Generate the pre-collection HTML/PDF study proposal and cost estimate |
 | `python tools/competitive_collect.py --plan <plan.json> --output-dir <dir> [--execute --confirm-cost-usd <max>]` | Preview or execute circular-lattice Google Maps Standard queue collection |

@@ -25,7 +25,7 @@ from pathlib import Path
 from typing import Any
 
 from local_heatmap_poc import (estimate_scan_cost, generate_grid, normalize, RANK_BASIS,
-                               build_tasks, parse_results, calculate_metrics)
+                               build_tasks, parse_results, calculate_metrics, _safe_local_path)
 
 DUPLICATE_STATUSES = {"duplicate", "reused-in-run", "duplicate-error"}
 
@@ -92,7 +92,7 @@ def int_cell(row: dict[str, str], default: int, *names: str) -> int:
 
 
 def load_prospects(args: argparse.Namespace) -> list[ProspectScan]:
-    path = Path(args.prospects).resolve()
+    path = _safe_local_path(args.prospects).resolve()
     scans: list[ProspectScan] = []
     with path.open("r", encoding="utf-8-sig", newline="") as handle:
         reader = csv.DictReader(handle)
@@ -579,12 +579,12 @@ def main(argv: list[str]) -> int:
         raise ValueError("Bulk raw-query execution requires --diagnostic; use tools/study.py for researched studies")
     validate_run_id(args.run_id)
     validate_cost_ceiling(args.confirm_cost_usd)
-    output_root = Path(args.output_root).resolve()
+    output_root = _safe_local_path(args.output_root).resolve()
     run_dir = output_root / args.run_id
     cache_path = output_root / "cache-index.json"
     manifest_path = run_dir / "manifest.json"
     normalized_path = run_dir / "prospects.normalized.csv"
-    vault_note_path = Path(args.vault_data_dir).resolve() / f"{args.run_id}.md" if args.vault_data_dir else None
+    vault_note_path = _safe_local_path(args.vault_data_dir).resolve() / f"{args.run_id}.md" if args.vault_data_dir else None
 
     scans = load_prospects(args)
     if not scans:

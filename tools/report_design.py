@@ -12,7 +12,10 @@ def legends_font():
     value = os.environ.get('GEOGRID_LEGENDS_FONT')
     if not value:
         return None
-    path = Path(value).resolve()
+    p = Path(value).expanduser().absolute()
+    if p.is_symlink() or any(parent.is_symlink() for parent in p.parents if parent not in {Path('/var'), Path('/tmp'), Path('/etc')}):
+        raise ValueError('Refusing symlink font path')
+    path = p.resolve()
     if not path.is_file():
         raise ValueError('GEOGRID_LEGENDS_FONT does not point to a font file')
     return path
@@ -32,8 +35,9 @@ def prepare_banner(output, theme):
         from PIL import Image
         with Image.open(source) as original:
             image = original.convert('RGB')
+            pixels = getattr(image, 'get_flattened_data', image.getdata)()
             image.putdata([(255-r,255-g,255-b) if max(r,g,b)-min(r,g,b)<12 else (r,g,b)
-                           for r,g,b in image.getdata()])
+                           for r,g,b in pixels])
             image.save(target)
     else:
         shutil.copyfile(source, target)
@@ -47,6 +51,7 @@ BRAND_BOTTOM = '<div class="brand-credit brand-credit-bottom"><a href="https://w
 def add_pdf_brand_links(path):
     """Two quiet credits per document, never repeated on every page."""
     from io import BytesIO
+    import warnings
     from pypdf import PdfReader, PdfWriter
     from reportlab.pdfgen.canvas import Canvas
     from reportlab.pdfbase.pdfmetrics import stringWidth
@@ -71,7 +76,9 @@ def add_pdf_brand_links(path):
                 canvas.linkURL(url, (x, baseline-3, x+text_width, baseline+10), relative=0)
             canvas.save()
             overlay.seek(0)
-            page.merge_page(PdfReader(overlay).pages[0])
+            with warnings.catch_warnings():
+                warnings.filterwarnings('ignore', message='.*replace_contents.*', category=DeprecationWarning)
+                page.merge_page(PdfReader(overlay).pages[0])
         writer.add_page(page)
     if reader.metadata:
         writer.add_metadata(dict(reader.metadata))

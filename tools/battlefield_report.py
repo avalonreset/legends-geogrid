@@ -12,8 +12,35 @@ from html import escape
 import json
 import math
 from pathlib import Path
+import re
 import sys
 from typing import Any
+
+_HEX_COLOR_RE = re.compile(r"^#[0-9A-Fa-f]{6}$")
+_MACOS_SYSTEM_SYMLINKS = {Path("/var"), Path("/tmp"), Path("/etc")}
+
+
+def _safe_local_path(value: str | Path) -> Path:
+    p = Path(value).expanduser().absolute()
+    for idx, part in enumerate((p, *p.parents)):
+        if idx > 0 and sys.platform == "darwin" and part in _MACOS_SYSTEM_SYMLINKS:
+            continue
+        if part.is_symlink() or getattr(part, "is_junction", lambda: False)():
+            raise ValueError("Refusing to access symlink or junction path.")
+        try:
+            st = part.lstat()
+            if getattr(st, "st_reparse_tag", 0) == 0xA0000003 or (
+                getattr(st, "st_file_attributes", 0) & 0x400
+            ):
+                raise ValueError("Refusing to access Windows reparse point.")
+        except OSError:
+            continue
+    return p
+
+
+def _safe_hex_color(value: Any, fallback: str = "#64748B") -> str:
+    s = str(value or "").strip()
+    return s if _HEX_COLOR_RE.fullmatch(s) else fallback
 
 from report_design import (
     BRAND_BOTTOM,
@@ -814,8 +841,20 @@ def _draw_tactical_radar_base(
     base = norm.get('basemap')
     has_street = False
     if isinstance(base, dict) and base.get('path') and base.get('bounds'):
-        bpath = Path(str(base['path']))
-        if bpath.is_file():
+        try:
+            bpath = _safe_local_path(str(base['path']))
+            resolved_bpath = bpath.resolve()
+            repo_root = Path(__file__).resolve().parent.parent
+            allowed_roots = [
+                (repo_root / 'assets').resolve(),
+                (repo_root / 'examples').resolve(),
+                *(Path(r).resolve() for r in (norm.get('_allowed_basemap_roots') or [])),
+            ]
+            if not any(resolved_bpath.is_relative_to(root) for root in allowed_roots):
+                bpath = None
+        except ValueError:
+            bpath = None
+        if bpath and bpath.suffix.lower() in {'.png', '.jpg', '.jpeg', '.webp'} and bpath.is_file():
             try:
                 from strategy_report import georeferenced_image
                 terrain = georeferenced_image(
@@ -956,6 +995,7 @@ def render_opportunity_map(norm: dict[str, Any], out_path: Path, fonts: dict[str
     draw.text((width - 8 * SCALE, top_h / 2), right_meta, font=font_hud_mono, fill=muted_rgb, anchor='rm')
 
     # Geographic viewport rect
+    norm.setdefault('_allowed_basemap_roots', []).append(str(_safe_local_path(out_path).resolve().parent))
     rect = (2 * SCALE, top_h + 2 * SCALE, width - 2 * SCALE, height - bot_h - 2 * SCALE)
     proj = ViewportProjection(norm['bounds'], rect, pad_px=28 * SCALE)
     _draw_tactical_radar_base(canvas, rect, proj, norm, fonts, theme)
@@ -1756,7 +1796,8 @@ def _build_pdf_document(
         else:
             rev_str = '-'
         reach_str = f"{f['gravity_radius_km']:.2f}" if f['gravity_radius_km'] else '0.00'
-        code_cell = p_markup(f"<font color=\"{f['color']}\"><b>{escape(f['short_code'])}</b></font>", 'td_mono')
+        safe_col = _safe_hex_color(f['color'])
+        code_cell = p_markup(f"<font color=\"{safe_col}\"><b>{escape(f['short_code'])}</b></font>", 'td_mono')
         matrix_rows.append([
             code_cell,
             p(f['name'], 'td_bold' if f['is_target'] else 'td'),
@@ -2071,7 +2112,7 @@ def _render_battlefield_html(
         avg_r_str = f"{f['average_rank']:.1f}" if f['average_rank'] is not None else '-'
         rev_str = f"{f['votes_count']} ({f['rating']:.1f}*)" if (f['votes_count'] is not None and f['rating'] is not None) else (str(f['votes_count']) if f['votes_count'] is not None else '-')
         parts.append(
-            f"<tr><td><span class=\"faction-badge\" style=\"background:{escape(f['color'])}\">{escape(f['short_code'])}</span></td>"
+            f"<tr><td><span class=\"faction-badge\" style=\"background:{_safe_hex_color(f['color'])}\">{escape(f['short_code'])}</span></td>"
             f"<td><strong>{escape(f['name'])}</strong></td>"
             f"<td>{escape(f['archetype'])}</td>"
             f"<td>{f['solv_pct']:.1f}%</td>"
@@ -2198,14 +2239,18 @@ def render_battlefield_pdf(
         raise ValueError(f'Unsupported theme: {theme}. Expected one of {tuple(THEMES)}')
 
     if isinstance(model, (str, Path)):
-        raw_model = json.loads(Path(model).read_text(encoding='utf-8-sig'))
+        model_file = _safe_local_path(model).resolve()
+        raw_model = json.loads(model_file.read_text(encoding='utf-8-sig'))
+        model_root = str(model_file.parent)
     else:
         raw_model = model
+        model_root = None
 
     norm = normalize_battlefield_model(raw_model)
-    pdf_file = Path(pdf_path).resolve()
+    pdf_file = _safe_local_path(pdf_path).resolve()
     out_dir = pdf_file.parent
     out_dir.mkdir(parents=True, exist_ok=True)
+    norm['_allowed_basemap_roots'] = [str(out_dir), *([model_root] if model_root else [])]
 
     html_file = out_dir / 'battlefield-report.html'
     opp_map_path = out_dir / 'battlefield-opportunity-map.png'
@@ -2239,11 +2284,11 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     try:
-        raw = json.loads(args.model.resolve().read_text(encoding='utf-8-sig'))
-        out_dir = args.output_dir.resolve()
+        model_path = _safe_local_path(args.model).resolve()
+        out_dir = _safe_local_path(args.output_dir).resolve()
         out_dir.mkdir(parents=True, exist_ok=True)
         pdf_path = out_dir / 'battlefield-report.pdf'
-        receipt = render_battlefield_pdf(raw, pdf_path, theme=args.theme)
+        receipt = render_battlefield_pdf(model_path, pdf_path, theme=args.theme)
     except Exception as exc:
         print(f'Battlefield report failed: {exc}', file=sys.stderr)
         return 2

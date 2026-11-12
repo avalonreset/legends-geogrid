@@ -1,6 +1,6 @@
 {
   "name": "legends-geogrid",
-  "version": "0.2.6",
+  "version": "0.2.7",
   "type": "module",
   "description": "Open-source google maps rank checker with geo-grid scans, a competitive map companion, PDF strategy reports, business-name review, and DataForSEO cost controls.",
   "license": "MIT",

@@ -1,4 +1,4 @@
-# 0.2.4 release verification
+# 0.2.7 release verification
 
 The packaged scope is the Competitive Map Companion (including the zero-daemon static HTML launcher via `python tools/study.py --open`), Local Leaders with neighbor-aware OKLab coloring, Strategy Room and head-to-head matchups, Territory Campaigns, circular-lattice sampling with nested radius composition, the Business-Name Review (`Keyword stuffing`) workbench with the `0-5` `title-evidence-v1` confidence scale, business-first research, justified search themes, decision-oriented PDF/HTML reports, automatic street maps, and an Obsidian-readable Markdown/JSON study library. Dark and white-print reports use the same editorial template.
 

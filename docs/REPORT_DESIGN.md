@@ -170,7 +170,7 @@ allow long terms to wrap, and keep core findings visible without opening drawers
 
 ## Brand credits
 
-Proposal and findings documents carry exactly two brand credits: lowercase cto-legends (https://cto-legends.com) at the top right, and ai-marketing-hub-pro (https://www.skool.com/ai-marketing-hub-pro/about) at the bottom right. HTML uses document start/end; PDF uses first/last page only. Keep them small, red and clickable. Center PDF page numbers to avoid footer collisions. Never repeat these credits on every page.
+Proposal and findings documents carry two brand credits: lowercase cto-legends (https://cto-legends.com) at the top right and bottom right. HTML uses document start/end; PDF uses first/last page only. Keep them small, red and clickable. Center PDF page numbers to avoid footer collisions. Never repeat these credits on every page.
 
 
 ### Search keyword identity

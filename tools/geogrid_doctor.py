@@ -14,6 +14,10 @@ import sys
 
 
 ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT / "tools") not in sys.path:
+    sys.path.insert(0, str(ROOT / "tools"))
+
+from report_basemaps import google_stipend_status, has_configured_google_key  # noqa: E402
 
 
 def ok(label: str, detail: str = "") -> None:
@@ -99,8 +103,8 @@ def main() -> int:
         except Exception:
             missing.append('street-map browser')
             record_fail('street-map browser', 'pip install -r requirements-basemaps.txt; python -m playwright install --with-deps chromium (Linux system libraries included)')
-        if os.environ.get('GOOGLE_MAPS_API_KEY'):
-            record_ok('Google Maps key', 'present; optional, not validated; explicit charge opt-in required')
+        if has_configured_google_key(check_dotenv=True):
+            record_ok('Google Maps key', 'present; optional, not validated; zero-overage free-stipend guard active')
         else:
             record_ok('Google Maps', 'optional; free maps work without it. See docs/BASEMAPS.md for setup')
     if args.dataforseo:
@@ -160,6 +164,15 @@ def main() -> int:
     else:
         record_warn("DataForSEO env", "not configured, dashboard and dry-runs still work")
 
+    stipend = google_stipend_status()
+    tiles_s = stipend["skus"]["map_tiles_2d"]
+    static_s = stipend["skus"]["static_maps"]
+    key_label = "configured" if stipend["key_configured"] else "not configured (optional)"
+    record_ok(
+        "Google free-stipend",
+        f"key {key_label}; 2D tiles {tiles_s['used']:,}/{tiles_s['hard_cap']:,} mo cap, static maps {static_s['used']:,}/{static_s['hard_cap']:,} mo cap (zero-overage circuit breaker)",
+    )
+
     if sys.version_info >= (3, 11):
         record_ok("Python", sys.version.split()[0])
     else:
@@ -167,7 +180,7 @@ def main() -> int:
         record_fail("Python", f"3.11+ required; found {sys.version.split()[0]}")
 
     if args.json:
-        print(json.dumps({"ok": not missing, "missing": missing, "checks": checks}, indent=2))
+        print(json.dumps({"ok": not missing, "missing": missing, "checks": checks, "google_stipend": stipend}, indent=2))
     if missing:
         return 1
     return 0

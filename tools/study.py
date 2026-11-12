@@ -116,6 +116,20 @@ def write_new(path,value):
     with path.open('x',encoding='utf-8') as stream:json.dump(value,stream,indent=2,ensure_ascii=False,allow_nan=False)
 
 
+def resolve_target_profile_free_first(query_or_cid,*,prefer_google_free=True):
+    """Attempt zero-overage Google Places free-stipend lookup when available before paid DataForSEO GBP research."""
+    if not prefer_google_free:
+        return None
+    try:
+        from legends_dataforseo import google_places_lookup
+    except (ImportError, AttributeError):
+        return None
+    try:
+        return google_places_lookup(query_or_cid)
+    except Exception:
+        return None
+
+
 def research(request_path,output,execute=False,ceiling=0,allow_live=False):
     """One request per invocation; persist reservation before HTTP, never auto-retry."""
     request=json.loads(_safe_local_path(request_path).read_text(encoding='utf-8-sig'))
@@ -266,6 +280,8 @@ def assemble_report(output,config_path):
             'next_actions':['Review recurring competitors at nearby ranks 4-10. Choose one source-backed relevance hypothesis and remeasure unchanged locations after the intervention; do not infer a ranking cause from this snapshot.'],
             'missing_evidence':['Conversion, profitability and causal ranking factors were not measured.']+(['Website unavailable; study offerings are supported by the public GBP only. '+receipt['website_limitation']] if receipt['evidence_mode']=='profile_supported' else []),
             'verification_notes':['Study scope: '+receipt['scope']+'. '+plan['selection']['coverage_summary']+(' Focused scope reason: '+plan['selection']['fewer_themes']['reason'] if receipt['scope']=='focused' else ''), 'Study plan '+receipt['plan_sha256']+'; source lineage validated, semantic judgments remain agent-authored.']}
+    if (output/'companion-study.json').is_file() and not (output/'companion-study.json').is_symlink():
+        config['companion_study_path']=str((output/'companion-study.json').resolve())
     write_new(config_path,config)
     from report_model import load_config
     load_config(config_path)

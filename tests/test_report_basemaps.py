@@ -8,7 +8,16 @@ from pathlib import Path
 from unittest.mock import patch
 
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'tools'))
-from report_basemaps import BasemapError, BasemapSession, base_record, google, provider_for, validate_image
+from report_basemaps import (
+    BasemapError,
+    BasemapSession,
+    base_record,
+    google,
+    google_stipend_status,
+    provider_for,
+    reserve_google_basemap_stipend,
+    validate_image,
+)
 from report_model import load_config
 from strategy_report import build
 from test_strategy_report import config, observation
@@ -71,6 +80,46 @@ class BasemapTests(unittest.TestCase):
             w,s,e,n=base['bounds'];self.assertLess(w,-75.02);self.assertGreater(e,-74.98)
             self.assertLess(s,39.98);self.assertGreater(n,40.02)
             self.assertAlmostEqual(-75,(w+e)/2)
+
+    def test_google_stipend_circuit_breaker_blocks_overage_and_redacts_key(self):
+        from datetime import datetime, timezone
+        month_key = datetime.now(timezone.utc).strftime('%Y-%m')
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            ledger_path = root / 'google-stipend-ledger.json'
+            res = reserve_google_basemap_stipend('map_tiles_2d', 12, ledger_path=ledger_path)
+            self.assertEqual(12, res['used'])
+            self.assertEqual(85_000, res['hard_cap'])
+            status = google_stipend_status(ledger_path=ledger_path)
+            self.assertEqual(12, status['skus']['map_tiles_2d']['used'])
+
+            ledger_path.write_text(
+                json.dumps({'monthly': {month_key: {'map_tiles_2d': 85_000, 'static_maps': 8_000}}}),
+                encoding='utf-8',
+            )
+            env_tiles = {
+                'LEGENDS_GOOGLE_LEDGER_PATH': str(ledger_path),
+                'GOOGLE_MAP_TILES_API_KEY': 'fixture-tiles-secret-key',
+            }
+            with patch.dict('os.environ', env_tiles, clear=True):
+                with patch('report_basemaps.urllib.request.urlopen', side_effect=AssertionError('must not call network')) as net_call:
+                    session = BasemapSession(root / 'tiles-out', 'geogrid', allow_google=True)
+                    with self.assertRaisesRegex(BasemapError, r'85,000.*refusing paid overage') as err_tiles:
+                        session.acquire('google', [-75.02, 39.98, -74.98, 40.02], 452)
+                    self.assertNotIn('fixture-tiles-secret', str(err_tiles.exception))
+                    self.assertEqual(0, net_call.call_count)
+
+            env_static = {
+                'LEGENDS_GOOGLE_LEDGER_PATH': str(ledger_path),
+                'GOOGLE_MAPS_API_KEY': 'fixture-static-secret-key',
+            }
+            with patch.dict('os.environ', env_static, clear=True):
+                with patch('report_basemaps.urllib.request.urlopen', side_effect=AssertionError('must not call network')) as net_call:
+                    session = BasemapSession(root / 'static-out', 'light', allow_google=True)
+                    with self.assertRaisesRegex(BasemapError, r'8,000.*refusing paid overage') as err_static:
+                        session.acquire('google', [-75.02, 39.98, -74.98, 40.02], 452)
+                    self.assertNotIn('fixture-static-secret', str(err_static.exception))
+                    self.assertEqual(0, net_call.call_count)
 
     def test_identical_views_are_acquired_once(self):
         with tempfile.TemporaryDirectory() as folder:

@@ -8,7 +8,14 @@ from pathlib import Path
 from unittest.mock import patch
 
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'tools'))
-from report_basemaps import BasemapError, BasemapSession, base_record, google, provider_for, validate_image
+from report_basemaps import (
+    BasemapError,
+    BasemapSession,
+    base_record,
+    google,
+    provider_for,
+    validate_image,
+)
 from report_model import load_config
 from strategy_report import build
 from test_strategy_report import config, observation

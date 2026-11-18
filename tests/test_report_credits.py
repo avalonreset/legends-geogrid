@@ -25,5 +25,5 @@ class BrandCreditTests(unittest.TestCase):
                     urls = [a.get_object()['/A']['/URI'] for a in page.get('/Annots', [])]
                     expected = []
                     if index == 0: expected.append('https://cto-legends.com')
-                    if index == count-1: expected.append('https://www.skool.com/ai-marketing-hub-pro/about')
+                    if index == count-1: expected.append('https://cto-legends.com')
                     self.assertEqual(expected, urls)

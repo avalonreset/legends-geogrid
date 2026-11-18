@@ -7,36 +7,324 @@
     {
       "query": "pizza restaurant",
       "regular_rectangular_grid": false,
+      "regular_lattice": true,
+      "boundary": {
+        "counts": {
+          "green": 0,
+          "yellow": 13,
+          "red": 53,
+          "confirmed_nr": 46,
+          "unknown": 0
+        },
+        "action": "consider_directional_probe",
+        "reason": "Top-ten visibility reaches this boundary. Consider a small outward probe only where populated territory, customer access or verified service scope makes it useful.",
+        "uncertain": false
+      },
+      "directions": {
+        "north": {
+          "counts": {
+            "green": 0,
+            "yellow": 0,
+            "red": 6,
+            "confirmed_nr": 33,
+            "unknown": 0
+          },
+          "action": "conditional_probe",
+          "reason": "Lower-ranked visibility reaches this boundary. Probe only with an explicit relevant-territory question or supporting trend; red alone does not justify expansion.",
+          "uncertain": false
+        },
+        "south": {
+          "counts": {
+            "green": 0,
+            "yellow": 7,
+            "red": 22,
+            "confirmed_nr": 10,
+            "unknown": 0
+          },
+          "action": "consider_directional_probe",
+          "reason": "Top-ten visibility reaches this boundary. Consider a small outward probe only where populated territory, customer access or verified service scope makes it useful.",
+          "uncertain": false
+        },
+        "east": {
+          "counts": {
+            "green": 0,
+            "yellow": 11,
+            "red": 19,
+            "confirmed_nr": 9,
+            "unknown": 0
+          },
+          "action": "consider_directional_probe",
+          "reason": "Top-ten visibility reaches this boundary. Consider a small outward probe only where populated territory, customer access or verified service scope makes it useful.",
+          "uncertain": false
+        },
+        "west": {
+          "counts": {
+            "green": 0,
+            "yellow": 1,
+            "red": 23,
+            "confirmed_nr": 15,
+            "unknown": 0
+          },
+          "action": "consider_directional_probe",
+          "reason": "Top-ten visibility reaches this boundary. Consider a small outward probe only where populated territory, customer access or verified service scope makes it useful.",
+          "uncertain": false
+        }
+      },
+      "max_neighbor_spacing_km": 0.806,
+      "edge_origins": 112,
+      "top3_edge_origins": 0,
+      "sharp_rank_transitions": 133,
+      "suggested_same_extent_grid_size": 43,
+      "top3_share": 0.017,
+      "dominant_core": false,
       "excluded_origins": 0,
       "reasons": [
-        "Irregular or duplicate origins: review actual geographic gaps; square-grid heuristics do not apply."
+        "Densify: neighboring origins exceed the declared spatial resolution and measured visibility gives interior refinement a question to answer.",
+        "Inspect/refine rank transitions: adjacent observed ranks cross a rank band with a gap of at least four positions.",
+        "Boundary decision: Top-ten visibility reaches this boundary. Consider a small outward probe only where populated territory, customer access or verified service scope makes it useful."
       ],
       "status": "review_required"
     },
     {
       "query": "new york style pizza",
       "regular_rectangular_grid": false,
+      "regular_lattice": true,
+      "boundary": {
+        "counts": {
+          "green": 37,
+          "yellow": 41,
+          "red": 34,
+          "confirmed_nr": 0,
+          "unknown": 0
+        },
+        "action": "consider_directional_probe",
+        "reason": "Top-ten visibility reaches this boundary. Consider a small outward probe only where populated territory, customer access or verified service scope makes it useful.",
+        "uncertain": false
+      },
+      "directions": {
+        "north": {
+          "counts": {
+            "green": 3,
+            "yellow": 3,
+            "red": 33,
+            "confirmed_nr": 0,
+            "unknown": 0
+          },
+          "action": "consider_directional_probe",
+          "reason": "Top-ten visibility reaches this boundary. Consider a small outward probe only where populated territory, customer access or verified service scope makes it useful.",
+          "uncertain": false
+        },
+        "south": {
+          "counts": {
+            "green": 13,
+            "yellow": 26,
+            "red": 0,
+            "confirmed_nr": 0,
+            "unknown": 0
+          },
+          "action": "consider_directional_probe",
+          "reason": "Top-ten visibility reaches this boundary. Consider a small outward probe only where populated territory, customer access or verified service scope makes it useful.",
+          "uncertain": false
+        },
+        "east": {
+          "counts": {
+            "green": 25,
+            "yellow": 5,
+            "red": 9,
+            "confirmed_nr": 0,
+            "unknown": 0
+          },
+          "action": "consider_directional_probe",
+          "reason": "Top-ten visibility reaches this boundary. Consider a small outward probe only where populated territory, customer access or verified service scope makes it useful.",
+          "uncertain": false
+        },
+        "west": {
+          "counts": {
+            "green": 11,
+            "yellow": 20,
+            "red": 8,
+            "confirmed_nr": 0,
+            "unknown": 0
+          },
+          "action": "consider_directional_probe",
+          "reason": "Top-ten visibility reaches this boundary. Consider a small outward probe only where populated territory, customer access or verified service scope makes it useful.",
+          "uncertain": false
+        }
+      },
+      "max_neighbor_spacing_km": 0.806,
+      "edge_origins": 112,
+      "top3_edge_origins": 37,
+      "sharp_rank_transitions": 39,
+      "suggested_same_extent_grid_size": 43,
+      "top3_share": 0.44,
+      "dominant_core": false,
       "excluded_origins": 0,
       "reasons": [
-        "Irregular or duplicate origins: review actual geographic gaps; square-grid heuristics do not apply."
+        "Densify: neighboring origins exceed the declared spatial resolution and measured visibility gives interior refinement a question to answer.",
+        "Inspect/refine rank transitions: adjacent observed ranks cross a rank band with a gap of at least four positions.",
+        "Boundary decision: Top-ten visibility reaches this boundary. Consider a small outward probe only where populated territory, customer access or verified service scope makes it useful."
       ],
       "status": "review_required"
     },
     {
       "query": "pizza by the slice",
       "regular_rectangular_grid": false,
+      "regular_lattice": true,
+      "boundary": {
+        "counts": {
+          "green": 29,
+          "yellow": 45,
+          "red": 23,
+          "confirmed_nr": 15,
+          "unknown": 0
+        },
+        "action": "consider_directional_probe",
+        "reason": "Top-ten visibility reaches this boundary. Consider a small outward probe only where populated territory, customer access or verified service scope makes it useful.",
+        "uncertain": false
+      },
+      "directions": {
+        "north": {
+          "counts": {
+            "green": 0,
+            "yellow": 6,
+            "red": 18,
+            "confirmed_nr": 15,
+            "unknown": 0
+          },
+          "action": "consider_directional_probe",
+          "reason": "Top-ten visibility reaches this boundary. Consider a small outward probe only where populated territory, customer access or verified service scope makes it useful.",
+          "uncertain": false
+        },
+        "south": {
+          "counts": {
+            "green": 15,
+            "yellow": 21,
+            "red": 3,
+            "confirmed_nr": 0,
+            "unknown": 0
+          },
+          "action": "consider_directional_probe",
+          "reason": "Top-ten visibility reaches this boundary. Consider a small outward probe only where populated territory, customer access or verified service scope makes it useful.",
+          "uncertain": false
+        },
+        "east": {
+          "counts": {
+            "green": 18,
+            "yellow": 12,
+            "red": 7,
+            "confirmed_nr": 2,
+            "unknown": 0
+          },
+          "action": "consider_directional_probe",
+          "reason": "Top-ten visibility reaches this boundary. Consider a small outward probe only where populated territory, customer access or verified service scope makes it useful.",
+          "uncertain": false
+        },
+        "west": {
+          "counts": {
+            "green": 6,
+            "yellow": 23,
+            "red": 9,
+            "confirmed_nr": 1,
+            "unknown": 0
+          },
+          "action": "consider_directional_probe",
+          "reason": "Top-ten visibility reaches this boundary. Consider a small outward probe only where populated territory, customer access or verified service scope makes it useful.",
+          "uncertain": false
+        }
+      },
+      "max_neighbor_spacing_km": 0.806,
+      "edge_origins": 112,
+      "top3_edge_origins": 29,
+      "sharp_rank_transitions": 137,
+      "suggested_same_extent_grid_size": 43,
+      "top3_share": 0.376,
+      "dominant_core": false,
       "excluded_origins": 0,
       "reasons": [
-        "Irregular or duplicate origins: review actual geographic gaps; square-grid heuristics do not apply."
+        "Densify: neighboring origins exceed the declared spatial resolution and measured visibility gives interior refinement a question to answer.",
+        "Inspect/refine rank transitions: adjacent observed ranks cross a rank band with a gap of at least four positions.",
+        "Boundary decision: Top-ten visibility reaches this boundary. Consider a small outward probe only where populated territory, customer access or verified service scope makes it useful."
       ],
       "status": "review_required"
     },
     {
       "query": "pizza takeout",
       "regular_rectangular_grid": false,
+      "regular_lattice": true,
+      "boundary": {
+        "counts": {
+          "green": 0,
+          "yellow": 10,
+          "red": 47,
+          "confirmed_nr": 55,
+          "unknown": 0
+        },
+        "action": "consider_directional_probe",
+        "reason": "Top-ten visibility reaches this boundary. Consider a small outward probe only where populated territory, customer access or verified service scope makes it useful.",
+        "uncertain": false
+      },
+      "directions": {
+        "north": {
+          "counts": {
+            "green": 0,
+            "yellow": 0,
+            "red": 5,
+            "confirmed_nr": 34,
+            "unknown": 0
+          },
+          "action": "conditional_probe",
+          "reason": "Lower-ranked visibility reaches this boundary. Probe only with an explicit relevant-territory question or supporting trend; red alone does not justify expansion.",
+          "uncertain": false
+        },
+        "south": {
+          "counts": {
+            "green": 0,
+            "yellow": 6,
+            "red": 15,
+            "confirmed_nr": 18,
+            "unknown": 0
+          },
+          "action": "consider_directional_probe",
+          "reason": "Top-ten visibility reaches this boundary. Consider a small outward probe only where populated territory, customer access or verified service scope makes it useful.",
+          "uncertain": false
+        },
+        "east": {
+          "counts": {
+            "green": 0,
+            "yellow": 8,
+            "red": 21,
+            "confirmed_nr": 10,
+            "unknown": 0
+          },
+          "action": "consider_directional_probe",
+          "reason": "Top-ten visibility reaches this boundary. Consider a small outward probe only where populated territory, customer access or verified service scope makes it useful.",
+          "uncertain": false
+        },
+        "west": {
+          "counts": {
+            "green": 0,
+            "yellow": 1,
+            "red": 20,
+            "confirmed_nr": 18,
+            "unknown": 0
+          },
+          "action": "consider_directional_probe",
+          "reason": "Top-ten visibility reaches this boundary. Consider a small outward probe only where populated territory, customer access or verified service scope makes it useful.",
+          "uncertain": false
+        }
+      },
+      "max_neighbor_spacing_km": 0.806,
+      "edge_origins": 112,
+      "top3_edge_origins": 0,
+      "sharp_rank_transitions": 194,
+      "suggested_same_extent_grid_size": 43,
+      "top3_share": 0.005,
+      "dominant_core": false,
       "excluded_origins": 0,
       "reasons": [
-        "Irregular or duplicate origins: review actual geographic gaps; square-grid heuristics do not apply."
+        "Densify: neighboring origins exceed the declared spatial resolution and measured visibility gives interior refinement a question to answer.",
+        "Inspect/refine rank transitions: adjacent observed ranks cross a rank band with a gap of at least four positions.",
+        "Boundary decision: Top-ten visibility reaches this boundary. Consider a small outward probe only where populated territory, customer access or verified service scope makes it useful."
       ],
       "status": "review_required"
     }
@@ -45,39 +333,60 @@
     "policy": "Information value first. Costs are disclosed, not minimized at the expense of a useful comparison. The 60%/two-theme threshold is an adjustable review heuristic, not an SEO law.",
     "directions": {
       "north": {
-        "recommendation": "hold_or_evidence_led_exception",
-        "supporting_themes": [],
-        "conditional_themes": [],
+        "recommendation": "selective_probe_review",
+        "supporting_themes": [
+          "new york style pizza",
+          "pizza by the slice"
+        ],
+        "conditional_themes": [
+          "pizza restaurant",
+          "pizza takeout"
+        ],
         "uncertain_themes": [],
         "comparison_themes": [],
         "explanation": "Use individual boundary evidence plus geography, interior trends and the study question. A small sentinel probe may test an evidence-backed exception; do not assume every NR boundary is final.",
         "execution": "Proposal only: specify shared coordinates, incremental per-theme cost and a stop/reassess rule before collection."
       },
       "south": {
-        "recommendation": "hold_or_evidence_led_exception",
-        "supporting_themes": [],
+        "recommendation": "shared_comparison_probe",
+        "supporting_themes": [
+          "pizza restaurant",
+          "new york style pizza",
+          "pizza by the slice",
+          "pizza takeout"
+        ],
         "conditional_themes": [],
         "uncertain_themes": [],
         "comparison_themes": [],
-        "explanation": "Use individual boundary evidence plus geography, interior trends and the study question. A small sentinel probe may test an evidence-backed exception; do not assume every NR boundary is final.",
+        "explanation": "Most themes support investigating this direction. Subject to relevant geography, pitch a small shared outward band for all themes; an NR theme is a comparison/control, not an automatic veto.",
         "execution": "Proposal only: specify shared coordinates, incremental per-theme cost and a stop/reassess rule before collection."
       },
       "east": {
-        "recommendation": "hold_or_evidence_led_exception",
-        "supporting_themes": [],
+        "recommendation": "shared_comparison_probe",
+        "supporting_themes": [
+          "pizza restaurant",
+          "new york style pizza",
+          "pizza by the slice",
+          "pizza takeout"
+        ],
         "conditional_themes": [],
         "uncertain_themes": [],
         "comparison_themes": [],
-        "explanation": "Use individual boundary evidence plus geography, interior trends and the study question. A small sentinel probe may test an evidence-backed exception; do not assume every NR boundary is final.",
+        "explanation": "Most themes support investigating this direction. Subject to relevant geography, pitch a small shared outward band for all themes; an NR theme is a comparison/control, not an automatic veto.",
         "execution": "Proposal only: specify shared coordinates, incremental per-theme cost and a stop/reassess rule before collection."
       },
       "west": {
-        "recommendation": "hold_or_evidence_led_exception",
-        "supporting_themes": [],
+        "recommendation": "shared_comparison_probe",
+        "supporting_themes": [
+          "pizza restaurant",
+          "new york style pizza",
+          "pizza by the slice",
+          "pizza takeout"
+        ],
         "conditional_themes": [],
         "uncertain_themes": [],
         "comparison_themes": [],
-        "explanation": "Use individual boundary evidence plus geography, interior trends and the study question. A small sentinel probe may test an evidence-backed exception; do not assume every NR boundary is final.",
+        "explanation": "Most themes support investigating this direction. Subject to relevant geography, pitch a small shared outward band for all themes; an NR theme is a comparison/control, not an automatic veto.",
         "execution": "Proposal only: specify shared coordinates, incremental per-theme cost and a stop/reassess rule before collection."
       }
     }

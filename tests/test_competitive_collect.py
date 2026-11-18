@@ -394,18 +394,20 @@ class CompetitiveCollectTests(unittest.TestCase):
             adapt_plan(self.plan, phase_filter=99)
 
     def test_source_study_plan_lineage_validation(self):
+        from datetime import datetime, timezone
         self.validation.stop()
         # Build valid study plan fixture
         ev_dir = self.root / "evidence"
         ev_dir.mkdir(parents=True, exist_ok=True)
         sources = []
+        now_iso = datetime.now(timezone.utc).isoformat()
         def src(sid, kind, val):
             p = ev_dir / f"{sid}.json"
             p.write_text(json.dumps(val))
             sources.append({
                 "id": sid, "kind": kind, "file": f"{sid}.json",
                 "sha256": digest(p),
-                "observed_at": "2026-10-18T10:00:00+00:00",
+                "observed_at": now_iso,
                 "url": f"https://example.org/{sid}",
             })
         def env(data, item):

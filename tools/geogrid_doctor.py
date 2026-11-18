@@ -14,6 +14,10 @@ import sys
 
 
 ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT / "tools") not in sys.path:
+    sys.path.insert(0, str(ROOT / "tools"))
+
+from report_basemaps import has_configured_google_key  # noqa: E402
 
 
 def ok(label: str, detail: str = "") -> None:
@@ -29,15 +33,13 @@ def fail(label: str, detail: str = "") -> None:
 
 
 def command_exists(command: str) -> bool:
-    resolved = shutil.which(command)
-    if not resolved and os.name == "nt":
-        resolved = shutil.which(f"{command}.cmd")
+    resolved = (shutil.which(f"{command}.cmd") if os.name == "nt" else None) or shutil.which(command)
     if not resolved:
         return False
     try:
         subprocess.run([resolved, "--version"], capture_output=True, text=True, check=False)
         return True
-    except FileNotFoundError:
+    except OSError:
         return False
 
 
@@ -99,7 +101,7 @@ def main() -> int:
         except Exception:
             missing.append('street-map browser')
             record_fail('street-map browser', 'pip install -r requirements-basemaps.txt; python -m playwright install --with-deps chromium (Linux system libraries included)')
-        if os.environ.get('GOOGLE_MAPS_API_KEY'):
+        if has_configured_google_key(check_dotenv=True):
             record_ok('Google Maps key', 'present; optional, not validated; explicit charge opt-in required')
         else:
             record_ok('Google Maps', 'optional; free maps work without it. See docs/BASEMAPS.md for setup')

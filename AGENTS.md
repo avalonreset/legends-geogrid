@@ -15,8 +15,8 @@ theme purple or blue. Evidence colors remain distinct from brand decoration.
 - Fresh scans: install `requirements-dataforseo.txt`. This installs the public
   [legends-dataforseo](https://github.com/avalonreset/legends-dataforseo)
   dependency. Run `python tools/geogrid_doctor.py --dataforseo --reports --basemaps --check-playwright [--json]` before collection.
-  Release 0.2.6 works with the pinned DataForSEO dependency or `legends-dataforseo`
-  `v0.1.10+` installed via `cto-legends install legends-dataforseo`.
+  Release 0.2.7 works with the pinned DataForSEO dependency or `legends-dataforseo`
+  `v0.1.11+` installed via `cto-legends install legends-dataforseo`.
   Do not install an MCP server or copy a second HTTP/authentication client.
 - Optional optical signage accelerator: when investigating business-name discrepancies
   (`tools/business_name_review.py photos`), check whether `legends-jev` (`v0.2.3+`)

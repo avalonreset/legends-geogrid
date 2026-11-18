@@ -54,9 +54,17 @@ def bounds(value):
 
 
 def local_path(root, value):
+    from local_heatmap_poc import _safe_local_path
     value = text(value, 'local path')
     require('://' not in value, 'only local file paths are supported')
-    path = (root / value).resolve()
+    raw_root = _safe_local_path(root).resolve()
+    candidate = Path(value)
+    if not candidate.is_absolute():
+        require('..' not in candidate.parts, 'relative local path must not contain parent traversal')
+        raw_target = _safe_local_path(raw_root / candidate)
+    else:
+        raw_target = _safe_local_path(candidate)
+    path = raw_target.resolve()
     require(path.is_file(), f'input file does not exist: {path.name}')
     return path
 
@@ -351,6 +359,10 @@ def load_config(path):
         result['profile_review'] = validate_profile(cfg['profile_review'])
         require({t['query'] for t in result['profile_review']['themes']} == {lane['query'] for lane in result['lanes']}, 'profile themes differ from report queries')
     result['decision_brief'] = build_decision_brief(result, cfg.get('decision_brief'))
+    from report_companion_intel import load_companion_intel_for_config
+    companion_intel = load_companion_intel_for_config({**cfg, **result}, path.parent)
+    if companion_intel:
+        result['companion_intel'] = companion_intel
     return result
 
 

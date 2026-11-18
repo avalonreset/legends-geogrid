@@ -45,7 +45,7 @@ def prepare_banner(output, theme):
 
 DESIGN_VERSION = 'legends-editorial-v5'
 BRAND_TOP = '<div class="brand-credit brand-credit-top"><a href="https://cto-legends.com">cto-legends</a></div>'
-BRAND_BOTTOM = '<div class="brand-credit brand-credit-bottom"><a href="https://www.skool.com/ai-marketing-hub-pro/about">ai-marketing-hub-pro</a></div>'
+BRAND_BOTTOM = '<div class="brand-credit brand-credit-bottom"><a href="https://cto-legends.com">cto-legends</a></div>'
 
 
 def add_pdf_brand_links(path):
@@ -63,7 +63,7 @@ def add_pdf_brand_links(path):
         if index == 0:
             credits.append(('cto-legends', 'https://cto-legends.com', height - 31))
         if index == len(reader.pages) - 1:
-            credits.append(('ai-marketing-hub-pro', 'https://www.skool.com/ai-marketing-hub-pro/about', 28))
+            credits.append(('cto-legends', 'https://cto-legends.com', 28))
         if credits:
             overlay = BytesIO()
             canvas = Canvas(overlay, pagesize=(width, height))
@@ -163,7 +163,7 @@ details>summary::-webkit-details-marker{display:none}details[open]>summary{color
 details{padding-bottom:12px}details p{font-size:15px}
 [data-stage="proposal"]>.report-section+details{border-top:0;margin-top:0}
 .report-downloads{border-top:1px solid #FFFFFF}
-.visibility-table{font-size:16px;margin:24px 0}.visibility-table th{color:#FFFFFF;font-weight:400}.visibility-table td,.visibility-table th{padding:16px 8px}.visibility-table td:not(:first-child){font-variant-numeric:tabular-nums}
+.visibility-table{font-size:15px;margin:24px 0}.visibility-table th{color:#FFFFFF;font-weight:600;white-space:nowrap;overflow-wrap:normal;word-break:normal}.visibility-table td,.visibility-table th{padding:14px 10px}.visibility-table td{overflow-wrap:break-word;word-break:normal}.visibility-table td:not(:first-child){font-variant-numeric:tabular-nums}
 .report-legend{font-size:15px;color:#FFFFFF}.summary-note{font-size:15px}
 .report-cover>h2{margin-top:28px}.report-cover>details{margin-top:28px}
 @media(max-width:600px){.visibility-table{font-size:14px}.visibility-table td,.visibility-table th{padding:12px 4px}}
@@ -189,11 +189,18 @@ details{border-color:#404040}
 details>summary{font-size:20px;line-height:1.35;padding:20px 0}
 .query-ticket details>summary,.report-cover details>summary{font-size:14px;color:#BDBDBD}
 .report-section,.report-lane{padding:48px 0;border-color:#404040}
-.visibility-table th{background:#181818;font-size:14px;color:#BDBDBD}
-.visibility-table td{padding-top:20px;padding-bottom:20px}
+.visibility-table th{background:#181818;font-size:13px;color:#BDBDBD;letter-spacing:.02em}
+.visibility-table td{padding-top:16px;padding-bottom:16px}
 .metric-rail{background:#404040}
-@media(max-width:650px){h2{font-size:28px}h3,.query-ticket h3,.decision-card h3{font-size:22px}.report-section,.report-lane{padding:36px 0}}
-@media print{h2{font-size:19pt}h3,.query-ticket h3,.decision-card h3{font-size:15pt}p,.query-ticket p{font-size:11pt}.query-ticket,.decision-card{break-inside:avoid;background:#181818;box-shadow:none}}
+.intel-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;margin:24px 0}
+.intel-card{border:1px solid #404040;background:linear-gradient(145deg,#1C1C1C 0%,#111111 65%);padding:22px;position:relative;min-width:0}
+.intel-card::before{content:"";position:absolute;top:-1px;left:-1px;width:36px;height:3px;background:#FF0000}
+.intel-card h3{margin:8px 0 12px;font-size:20px}
+.intel-card p{font-size:15px;line-height:1.55;margin:0 0 10px}
+.leader-pill{display:inline-block;padding:2px 8px;border:1.5px solid #666666;border-radius:3px;font:700 11px/1.3 ui-monospace,monospace;letter-spacing:.04em;margin-right:6px;white-space:nowrap;color:#FFFFFF;background:#181818}
+.target-row td{background:#231818;font-weight:600}
+@media(max-width:650px){.intel-grid{grid-template-columns:1fr}h2{font-size:28px}h3,.query-ticket h3,.decision-card h3{font-size:22px}.report-section,.report-lane{padding:36px 0}}
+@media print{h2{font-size:19pt}h3,.query-ticket h3,.decision-card h3{font-size:15pt}p,.query-ticket p{font-size:11pt}.query-ticket,.decision-card,.intel-card{break-inside:avoid;background:#181818;box-shadow:none}}
 '''
     if theme == 'light':
         # One layout in both modes; change only ink, surfaces and decoration.
@@ -206,5 +213,5 @@ details>summary{font-size:20px;line-height:1.35;padding:20px 0}
                    '#300909':'#F3F3F3', '#211010':'#FFFFFF'}
         editorial = re.sub(r'#[0-9A-Fa-f]{8}\b|#[0-9A-Fa-f]{6}\b',
                            lambda m: palette.get(m[0], m[0]), editorial)
-        editorial += '\n.query-ticket,.decision-card,.query-token,.notice{background:#FFFFFF;box-shadow:none}.metric-rail{background:#DDDDDD}\n'
+        editorial += '\n.query-ticket,.decision-card,.query-token,.notice,.intel-card,.leader-pill,.target-row td{background:#FFFFFF;box-shadow:none}.metric-rail{background:#DDDDDD}\n'
     return base + editorial + font_css

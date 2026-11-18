@@ -1,6 +1,6 @@
-# Home Slice Pizza: 10-Mile Starter Case Study (v0.2.4)
+# Home Slice Pizza: 10-Mile Starter Case Study (v0.2.7)
 
-This directory and the bundled Companion datasets under `src/data/` provide a complete, pre-built **v0.2.4 starter case study** for **Home Slice Pizza** (`1415 S Congress Ave, Austin, TX 78704`, `homeslicepizza.com`, CID `12299280573550492680`).
+This directory and the bundled Companion datasets under `src/data/` provide a complete, pre-built **v0.2.7 starter case study** for **Home Slice Pizza** (`1415 S Congress Ave, Austin, TX 78704`, `homeslicepizza.com`, CID `12299280573550492680`).
 
 Anyone cloning `legends-geogrid` can immediately launch the browser Companion or open the completed Strategy Report without configuring API credentials or paying for a fresh scan.
 

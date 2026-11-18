@@ -813,7 +813,43 @@ class RenderTests(unittest.TestCase):
             self.assertIn('schema_version',result.stderr)
             self.assertNotIn('Traceback',result.stderr)
 
+    def test_dense_lattice_adaptive_markers_zero_collisions(self):
+        rows=[]
+        idx=0
+        for r in range(-3,4):
+            for c in range(-3,4):
+                idx+=1
+                rank=((idx-1)%25)+1 if idx<=42 else None
+                state='found' if rank is not None else 'not_returned'
+                rows.append(dict(observation(idx,state=state,rank=rank or 4),lat=40.0+r*0.008,lng=-75.0+c*0.010))
+        cfg=config(rows)
+        with tempfile.TemporaryDirectory() as folder:
+            result=self.render(cfg,Path(folder),require_pdf_qa=PDFIUM)
+            self.assertEqual('passed',result['status'])
+            self.assertEqual(49,result['maps'][0]['main']['plotted'])
+            self.assertEqual(0,result['maps'][0]['main']['pin_collisions'])
+
+    def test_starter_home_slice_companion_intelligence_and_zero_map_collisions(self):
+        report_dir=ROOT/'examples/starter-home-slice/report'
+        qa=json.loads((report_dir/'report-qa.json').read_text(encoding='utf-8'))
+        self.assertEqual('passed',qa['status'])
+        for lane_map in qa['maps']:
+            self.assertEqual(0,lane_map['main']['pin_collisions'])
+        self.assertIn('leaders-map.png',qa['sha256'])
+        self.assertTrue((report_dir/'leaders-map.png').exists())
+        html_text=(report_dir/'report.html').read_text(encoding='utf-8').lower()
+        for heading in (
+            'local leaders &amp; territory control',
+            'competitive field &amp; reach matrix',
+            'territory campaigns &amp; action briefs',
+            'business-name &amp; keyword review',
+        ):
+            self.assertIn(heading,html_text)
+
+
+
 
 if __name__=='__main__':
     unittest.main()
+
 

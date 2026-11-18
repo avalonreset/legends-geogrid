@@ -65,24 +65,45 @@ def review(model, target_spacing_km=0.75):
     for lane in model['lanes']:
         rows=lane['records']; coords={(r['lat'],r['lng']):r for r in rows}
         ys=sorted({p[0] for p in coords});xs=sorted({p[1] for p in coords})
-        regular=len(rows)==len(coords)==len(xs)*len(ys) and min(len(xs),len(ys))>1
-        reasons=[]; result=dict(query=lane['query'],regular_rectangular_grid=regular)
-        if not regular:
-            reasons.append('Irregular or duplicate origins: review actual geographic gaps; square-grid heuristics do not apply.')
-        else:
-            pairs=[]
+        regular_rect=len(rows)==len(coords)==len(xs)*len(ys) and min(len(xs),len(ys))>1
+        pairs=[]
+        if len(rows)==len(coords) and min(len(xs),len(ys))>1:
             for iy,y in enumerate(ys):
                 for ix,x in enumerate(xs):
+                    if (y,x) not in coords:
+                        continue
                     for other in ([(y,xs[ix+1])] if ix+1<len(xs) else [])+([(ys[iy+1],x)] if iy+1<len(ys) else []):
-                        pairs.append(((y,x),other))
+                        if other in coords:
+                            pairs.append(((y,x),other))
+        regular_lattice=regular_rect or (len(rows)==len(coords) and min(len(xs),len(ys))>1 and len(pairs)>=len(coords))
+        reasons=[]; result=dict(query=lane['query'],regular_rectangular_grid=regular_rect,regular_lattice=regular_lattice)
+        if not regular_lattice:
+            reasons.append('Irregular or duplicate origins: review actual geographic gaps; square-grid heuristics do not apply.')
+        else:
             gap=max(km(a,b) for a,b in pairs)
-            edge=[r for (y,x),r in coords.items() if y in (ys[0],ys[-1]) or x in (xs[0],xs[-1])]
+            if regular_rect:
+                edge=[r for (y,x),r in coords.items() if y in (ys[0],ys[-1]) or x in (xs[0],xs[-1])]
+                sides={name:boundary_review([r for (y,x),r in coords.items() if condition(y,x)])
+                       for name,condition in [('north',lambda y,x:y==ys[-1]),('south',lambda y,x:y==ys[0]),
+                                              ('east',lambda y,x:x==xs[-1]),('west',lambda y,x:x==xs[0])]}
+            else:
+                row_xs={y:sorted(x for (ry,x) in coords if ry==y) for y in ys}
+                col_ys={x:sorted(y for (y,cx) in coords if cx==x) for x in xs}
+                north_pts={(col_ys[x][-1],x) for x in xs if col_ys[x]}
+                south_pts={(col_ys[x][0],x) for x in xs if col_ys[x]}
+                east_pts={(y,row_xs[y][-1]) for y in ys if row_xs[y]}
+                west_pts={(y,row_xs[y][0]) for y in ys if row_xs[y]}
+                edge_pts=north_pts|south_pts|east_pts|west_pts
+                edge=[coords[p] for p in sorted(edge_pts)]
+                sides={
+                    'north':boundary_review([coords[p] for p in sorted(north_pts)]),
+                    'south':boundary_review([coords[p] for p in sorted(south_pts)]),
+                    'east':boundary_review([coords[p] for p in sorted(east_pts)]),
+                    'west':boundary_review([coords[p] for p in sorted(west_pts)]),
+                }
             valid=lambda r:r.get('state')=='found' and type(r.get('rank')) in (int,float) and r['rank']>0
             strong=sum(valid(r) and r['rank']<=3 for r in edge)
             boundary=boundary_review(edge)
-            sides={name:boundary_review([r for (y,x),r in coords.items() if condition(y,x)])
-                   for name,condition in [('north',lambda y,x:y==ys[-1]),('south',lambda y,x:y==ys[0]),
-                                          ('east',lambda y,x:x==xs[-1]),('west',lambda y,x:x==xs[0])]}
             result.update(boundary=boundary,directions=sides)
             transitions=sum(valid(coords[a]) and valid(coords[b]) and abs(coords[a]['rank']-coords[b]['rank'])>=4 and any((coords[a]['rank']<=c)!=(coords[b]['rank']<=c) for c in (3,10)) for a,b in pairs)
             span=max(km((ys[0],xs[0]),(ys[-1],xs[0])),km((ys[len(ys)//2],xs[0]),(ys[len(ys)//2],xs[-1])))
@@ -98,7 +119,7 @@ def review(model, target_spacing_km=0.75):
             reasons.append('Boundary decision: '+boundary['reason'])
         excluded=sum(r.get('state') in ('error','empty','unmeasured') for r in rows)
         if excluded:reasons.append('Resolve excluded measurements before interpreting apparent geographic gaps; more area is not the remedy for acquisition failure.')
-        needs_review=bool(excluded or not regular or (regular and (gap>target_spacing_km*1.05 and interior_signal or transitions or boundary['action']!='hold_extent')))
+        needs_review=bool(excluded or not regular_lattice or (regular_lattice and (gap>target_spacing_km*1.05 and interior_signal or transitions or boundary['action']!='hold_extent')))
         result.update(excluded_origins=excluded,reasons=reasons,status='review_required' if needs_review else 'no_automatic_trigger')
         lanes.append(result)
     return dict(schema='geogrid-sampling-review/v1',policy='Heuristic review, not proof of adequate coverage. Default 0.75 km is a declared planning preference, not a universal SEO threshold.',target_spacing_km=target_spacing_km,provider_calls=0,lanes=lanes,collective_coverage=collective_coverage(lanes),action='Resolve sampling recommendations before calling the study comprehensive. Keep paired queries comparable; preserve the original baseline. No automatic purchases.')
@@ -114,22 +135,31 @@ def summary(model):
     active_edge_lanes=[l['query'] for l in result['lanes'] if l.get('boundary',{}).get('action')=='consider_directional_probe']
     if active_edge_lanes:
         lines.append(f"Directional expansion opportunity: {', '.join(active_edge_lanes)} show competitive near-miss positions reaching the boundary. The next strategic move is expanding outward at the same high spatial resolution in those active directions using enhance to map adjacent neighborhood conversion opportunities.")
+    lane_buckets={}
     for lane in result['lanes']:
-        if not lane['regular_rectangular_grid']:
-            lines.append(lane['query']+': review the irregular sampling geometry before expanding.')
-            continue
-        parts=[f"{lane['query']}: maximum adjacent spacing {lane['max_neighbor_spacing_km']:.2f} km"]
-        if any(r.startswith('Densify') for r in lane['reasons']):
-            n=lane['suggested_same_extent_grid_size'];parts.append(f"consider {n} x {n} points over the same extent")
-        parts.append(lane['boundary']['reason'])
-        if lane['sharp_rank_transitions']:parts.append('inspect sharp neighboring rank transitions')
-        if lane['excluded_origins']:parts.append('resolve excluded observations before interpreting gaps')
-        lines.append('; '.join(parts)+'.')
+        if not lane.get('regular_lattice', lane['regular_rectangular_grid']):
+            body='review the irregular sampling geometry before expanding.'
+        else:
+            parts=[f"maximum adjacent spacing {lane['max_neighbor_spacing_km']:.2f} km"]
+            if any(r.startswith('Densify') for r in lane['reasons']) and lane['max_neighbor_spacing_km']>0.85:
+                n=lane['suggested_same_extent_grid_size'];parts.append(f"consider {n} x {n} points over the same extent")
+            parts.append(lane['boundary']['reason'].rstrip('.'))
+            if lane['sharp_rank_transitions']:parts.append('inspect sharp neighboring rank transitions')
+            if lane['excluded_origins']:parts.append('resolve excluded observations before interpreting gaps')
+            body='; '.join(parts)+'.'
+        lane_buckets.setdefault(body,[]).append(lane['query'])
+    for body,queries in lane_buckets.items():
+        prefix=', '.join(queries)
+        lines.append(f"{prefix}: {body}")
+    dir_buckets={}
     for direction,pitch in result['collective_coverage']['directions'].items():
         if pitch['recommendation']=='shared_comparison_probe':
-            lines.append(direction.title()+': '+pitch['explanation']+' Additional comparison themes: '+', '.join(pitch['comparison_themes'])+'. Price a bounded first band and reassess, rather than repeatedly extending.')
-    lines.append('Preserve this dated baseline. Reuse only compatible, sufficiently recent observations; estimate incremental collection before execution. No expansion has been collected by this report.')
-    lines.append('Want more detail? Say enhance to your agent. It will assess these results, show the additional data cost, reuse eligible saved observations, and generate a new HTML report with a downloadable PDF within the approved budget. More area requires evidence that the territory is relevant; enhancement does not expand endlessly.')
+            comp=f" Additional comparison themes: {', '.join(pitch['comparison_themes'])}." if pitch['comparison_themes'] else ''
+            msg=pitch['explanation']+comp+' Price a bounded first band and reassess, rather than repeatedly extending.'
+            dir_buckets.setdefault(msg,[]).append(direction.title())
+    for msg,dirs in dir_buckets.items():
+        lines.append(f"{', '.join(dirs)}: {msg}")
+    lines.append('Preserve this dated baseline and reuse compatible recent observations. To expand coverage, say enhance to your agent to estimate incremental collection cost and generate an updated report within your approved budget.')
     return lines
 
 

@@ -1,6 +1,6 @@
 {
   "name": "legends-geogrid",
-  "version": "0.2.7",
+  "version": "0.2.8",
   "type": "module",
   "description": "Open-source google maps rank checker with geo-grid scans, a competitive map companion, PDF strategy reports, business-name review, and DataForSEO cost controls.",
   "license": "MIT",
@@ -21,7 +21,8 @@
   "scripts": {
     "dev": "vite --host 127.0.0.1",
     "build:runtime": "vite build --config vite.runtime.config.js",
-    "build": "pnpm build:runtime && vite build",
+    "build:viewer": "vite build --config vite.viewer.config.js",
+    "build": "pnpm build:runtime && vite build && pnpm build:viewer",
     "preview": "vite preview --host 127.0.0.1",
     "check:python": "python -m compileall -q tools tests",
     "test": "python -m unittest discover -s tests -v",
@@ -38,6 +39,7 @@
     "maplibre-gl": "6.15.0"
   },
   "devDependencies": {
+    "jsdom": "^31.0.1",
     "postcss": "^8.5.18",
     "vite": "^8.2.4"
   },

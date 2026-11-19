@@ -1,5 +1,5 @@
-import L from 'leaflet'
-import { PersistentTileLayer } from './persistent-tiles.js'
+import { createOsmLayer } from './osm-tiles.js'
+import { maplibreWorkerUrl } from './maplibre-worker.js'
 
 export const BASEMAPS = [
   { id: 'osm-dark', name: 'OpenStreetMap · inverted', kind: 'osm', dark: true },
@@ -13,14 +13,35 @@ export const BASEMAPS = [
   { id: 'ofm-liberty', name: 'OpenFreeMap · Liberty', style: 'liberty' },
   { id: 'ofm-positron', name: 'OpenFreeMap · Positron', style: 'positron' },
 ]
+export const OFM_STYLES_URL = 'https://tiles.openfreemap.org/styles'
+export const OFM_ATTRIBUTION_TEXT = 'OpenFreeMap © OpenMapTiles © OpenStreetMap contributors'
+const escapeText = value => String(value).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c])
 const openCredit = '<a href="https://openfreemap.org/">OpenFreeMap</a> · © <a href="https://openmaptiles.org/">OpenMapTiles</a> · © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>'
 
-export function createBasemapSwitcher(map, { announce, onChange, onStatus = () => {} }) {
-  let current, currentSource = null, version = 0
-  return {
+// basemaps: selectable list (shared with the caller, which may remove Google entries). fallbackId: default background.
+// googleSessionPath: enables the Google client against a host-provided session endpoint. onGoogleUnavailable: when given,
+// a failed Google session or tile (HTTP 403/429/5xx) silently returns to fallbackId and ends Google for this session.
+// A layer that failed half-way (for example no WebGL) can throw while detaching; teardown must never mask the real error.
+function removeLayerSafely(map, layer) {
+  try { if (layer && map.hasLayer(layer)) map.removeLayer(layer) } catch { /* already detached */ }
+}
+
+export function createBasemapSwitcher(map, { announce, onChange, onStatus = () => {}, basemaps = BASEMAPS, fallbackId = null,
+  googleSessionPath, tileStyleBase = OFM_STYLES_URL, attribution = null, onGoogleUnavailable = null }) {
+  let current, currentSource = null, version = 0, googleDown = false
+  const silentGoogle = typeof onGoogleUnavailable === 'function'
+  const credit = attribution ? escapeText(attribution) : openCredit
+  const googleFailed = () => {
+    if (googleDown) return
+    googleDown = true
+    onGoogleUnavailable()
+    if (fallbackId && (!current || currentSource?.google)) void api.set(fallbackId)
+  }
+  const api = {
     async set(id) {
-      const source = BASEMAPS.find(s => s.id === id)
+      const source = basemaps.find(s => s.id === id)
       if (!source) throw new Error('Unknown basemap')
+      if (source.google && googleDown) return
       const revision = ++version
       // If the requested basemap is already active (or another OSM style shares the active OSM tile layer),
       // switch/confirm immediately so returning from a failed Google attempt never hangs or stays stuck.
@@ -48,24 +69,20 @@ export function createBasemapSwitcher(map, { announce, onChange, onStatus = () =
         // Load WebGL only when requested, keeping the raster startup small.
         if (source.google) {
           const { createGoogleTiles } = await import('./google-tiles.js')
-          layer = await createGoogleTiles(map, source.google, announce)
+          layer = await createGoogleTiles(map, source.google, announce, { sessionPath: googleSessionPath, onFailure: silentGoogle ? googleFailed : null })
           if (revision !== version) return
         } else if (source.style) {
-          const [{ MaplibreGL }, , maplibre, worker] = await Promise.all([
+          const [{ MaplibreGL }, , maplibre, workerUrl] = await Promise.all([
             import('@maplibre/maplibre-gl-leaflet'), import('maplibre-gl/dist/maplibre-gl.css'),
-            import('maplibre-gl'), import('maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url'),
+            import('maplibre-gl'), maplibreWorkerUrl(),
           ])
           if (revision !== version) return
-          maplibre.setWorkerUrl(worker.default)
-          layer = new MaplibreGL({ style: `https://tiles.openfreemap.org/styles/${source.style}`,
+          maplibre.setWorkerUrl(workerUrl)
+          layer = new MaplibreGL({ style: `${tileStyleBase}/${source.style}`,
             interactive: false, attributionControl: false, pane: 'tilePane' })
-          layer.getAttribution = () => openCredit
+          layer.getAttribution = () => credit
         } else {
-          layer = new PersistentTileLayer(import.meta.env.VITE_MAP_TILE_URL || 'https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: import.meta.env.VITE_MAP_TILE_ATTRIBUTION || '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>',
-            maxZoom: 19, maxNativeZoom: 19,
-            className: source.muted ? 'osm-inverted osm-legends' : source.dark ? 'osm-inverted' : '',
-          })
+          layer = createOsmLayer(source)
         }
         const previous = current
         const readyPromise = source.style
@@ -94,7 +111,7 @@ export function createBasemapSwitcher(map, { announce, onChange, onStatus = () =
         const container = layer.getContainer()
         if (container) container.style.opacity = '0'
         await readyPromise
-        if (revision !== version) { map.removeLayer(layer); return }
+        if (revision !== version) { removeLayerSafely(map, layer); return }
         current = layer
         currentSource = source
         const duration = matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 300
@@ -102,11 +119,12 @@ export function createBasemapSwitcher(map, { announce, onChange, onStatus = () =
           container.style.transition = `opacity ${duration}ms ease`
           container.style.opacity = '1'
         }
-        if (previous && previous !== layer) setTimeout(() => { if (map.hasLayer(previous)) map.removeLayer(previous) }, duration)
+        if (previous && previous !== layer) setTimeout(() => removeLayerSafely(map, previous), duration)
         onChange(id)
         onStatus({ phase: 'ready', id })
       } catch (error) {
-        if (layer && map.hasLayer(layer)) map.removeLayer(layer)
+        removeLayerSafely(map, layer)
+        if (source.google && silentGoogle) { googleFailed(); return }
         if (revision === version) {
           const detail = error?.message || (source.google ? 'Google Maps could not load.' : 'Street map resources could not load.')
           const message = `${source.name} is unavailable. ${detail} ${current ? 'The previous background remains visible.' : 'The ranking evidence is loaded; choose another background or retry.'}`
@@ -116,4 +134,5 @@ export function createBasemapSwitcher(map, { announce, onChange, onStatus = () =
       }
     },
   }
+  return api
 }

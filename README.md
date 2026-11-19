@@ -173,6 +173,10 @@ Read the finished report at [`examples/starter-home-slice/report/report.pdf`](ex
 
 <a id="cost"></a>
 
+## Embeddable viewer
+
+`pnpm build:viewer` also writes a standalone report viewer to `dist-viewer/`. It is one script, one stylesheet and one worker file, mounted with `GeoGridViewer.mount(element, model, options)`, and it works under a strict Content Security Policy. It renders the rank pin map, scores, zone statistics, the competitor table and the change since the previous scan from a small `geogrid-viewer/v1` model, and it can also open a full `geogrid-companion/v1` study. See [`docs/VIEWER.md`](docs/VIEWER.md) and [`docs/viewer-model.md`](docs/viewer-model.md).
+
 ## Cost
 
 Fresh studies bill to your own DataForSEO account at that provider's task rates. This tool adds nothing on top.

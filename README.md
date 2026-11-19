@@ -175,7 +175,7 @@ Read the finished report at [`examples/starter-home-slice/report/report.pdf`](ex
 
 ## Embeddable viewer
 
-`pnpm build:viewer` also writes a standalone report viewer to `dist-viewer/`. It is one script, one stylesheet and one worker file, mounted with `GeoGridViewer.mount(element, model, options)`, and it works under a strict Content Security Policy. It renders the rank pin map, scores, zone statistics, the competitor table and the change since the previous scan from a small `geogrid-viewer/v1` model, and it can also open a full `geogrid-companion/v1` study. See [`docs/VIEWER.md`](docs/VIEWER.md) and [`docs/viewer-model.md`](docs/viewer-model.md).
+`pnpm build:viewer` also writes a standalone report viewer to `dist-viewer/`. It is one script, one stylesheet and one worker file, mounted with `GeoGridViewer.mount(element, model, options)`, and it works under a strict Content Security Policy. It renders the rank pin map, scores, zone statistics, the competitor table and the change since the previous scan from a small `geogrid-viewer/v1` model, and it can also open a full `geogrid-companion/v1` study. With `perPointListings` on, a full study shows every captured ranking: the top 20 at each location with a show all control, the actual rank beyond 20, and a competitor panel across the grid. See [`docs/VIEWER.md`](docs/VIEWER.md), [`docs/viewer-model.md`](docs/viewer-model.md) and the fixture `examples/viewer-companion-depth100-fixture.json`.
 
 ## Cost
 

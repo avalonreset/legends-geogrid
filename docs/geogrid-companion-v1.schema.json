@@ -1,0 +1,116 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/avalonreset/legends-geogrid/docs/geogrid-companion-v1.schema.json",
+  "title": "geogrid-companion/v1 full study, rankings profile (viewer 0.2.9)",
+  "description": "The fields a host app sends to GeoGridViewer.mount() to show every captured ranking, with opaque competitor keys. The viewer ignores fields it does not know, so this schema lists what the viewer reads and what a host must provide. Local study files that identify businesses by listing ids also open in the viewer; they are outside this profile.",
+  "type": "object",
+  "required": ["schema", "business", "factions", "lanes", "points"],
+  "properties": {
+    "schema": { "enum": ["geogrid-companion/v1", "geogrid-battlefield/v1"] },
+    "generated_at": { "type": "string" },
+    "business": { "type": "object", "required": ["name"], "properties": { "name": { "type": "string", "minLength": 1 } } },
+    "location": { "type": "string" },
+    "factions": {
+      "description": "Businesses the host names up front. Must include the primary business (is_target true). Other competitors may be listed here or appear only in points and profiles.",
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/faction" }
+    },
+    "profiles": {
+      "description": "Optional display details for competitors, keyed by the same opaque key the items carry in faction_id.",
+      "type": "object",
+      "additionalProperties": { "$ref": "#/$defs/profile" }
+    },
+    "lanes": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/lane" } },
+    "points": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/point" } },
+    "study": {
+      "type": "object",
+      "properties": {
+        "geometry": { "enum": ["square_grid", "radius_grid", "competitive_irregular"] },
+        "depth": { "description": "How many results were requested per point (for example 100).", "type": "integer", "minimum": 1 },
+        "score_window": { "description": "Scores are computed from ranks 1 to this number (normally 20). Deeper ranks never change a score.", "type": "integer", "minimum": 1 },
+        "sampling": { "type": "object" },
+        "controls": { "type": "object" }
+      }
+    },
+    "evidence": { "type": "object" }
+  },
+  "$defs": {
+    "faction": {
+      "type": "object",
+      "required": ["faction_id", "name"],
+      "properties": {
+        "faction_id": { "description": "Opaque key. The viewer never parses it.", "type": "string", "minLength": 1 },
+        "name": { "type": "string", "minLength": 1 },
+        "is_target": { "type": "boolean" },
+        "lat": { "type": "number", "minimum": -90, "maximum": 90 },
+        "lng": { "type": "number", "minimum": -180, "maximum": 180 },
+        "location_estimated": { "type": "boolean" },
+        "rating": { "type": "number", "minimum": 0, "maximum": 5 },
+        "votes_count": { "type": "integer", "minimum": 0 },
+        "category": { "type": "string" },
+        "address": { "type": "string" }
+      }
+    },
+    "profile": {
+      "type": "object",
+      "properties": {
+        "title": { "type": "string", "minLength": 1 },
+        "rating": { "type": "number", "minimum": 0, "maximum": 5 },
+        "votes_count": { "type": "integer", "minimum": 0 },
+        "category": { "type": "string" }
+      }
+    },
+    "share": { "type": "number", "minimum": 0, "maximum": 1 },
+    "lane": {
+      "type": "object",
+      "required": ["lane_id", "query"],
+      "properties": {
+        "lane_id": { "type": "string", "minLength": 1 },
+        "query": { "type": "string", "minLength": 1 },
+        "scores": {
+          "description": "Precomputed scores for the primary business in the score window. When present the viewer shows these numbers and does not derive them from ranks.",
+          "type": "object",
+          "properties": {
+            "found_share": { "$ref": "#/$defs/share" },
+            "top3_share": { "$ref": "#/$defs/share" },
+            "avg_rank": { "type": ["number", "null"], "minimum": 1 }
+          }
+        }
+      }
+    },
+    "point": {
+      "type": "object",
+      "required": ["tag", "lat", "lng", "by_lane"],
+      "properties": {
+        "tag": { "type": "string", "minLength": 1 },
+        "lat": { "type": "number", "minimum": -90, "maximum": 90 },
+        "lng": { "type": "number", "minimum": -180, "maximum": 180 },
+        "distance_from_target_km": { "type": "number", "minimum": 0 },
+        "by_lane": { "type": "object", "additionalProperties": { "$ref": "#/$defs/observation" } }
+      }
+    },
+    "observation": {
+      "type": "object",
+      "required": ["status", "target_rank", "top_items"],
+      "properties": {
+        "status": { "enum": ["found", "not_returned_depth_reached", "not_returned_sample", "pending", "missing_result", "error"] },
+        "target_rank": { "description": "Actual rank of the primary business, including beyond 20 (for example 37). null when not found in the captured results.", "type": ["integer", "null"], "minimum": 1 },
+        "sampled_at": { "type": "string" },
+        "top_items": { "description": "Every captured result for this point, best first. More than 20 is fine; the viewer shows 20 and offers the rest on request.", "type": "array", "items": { "$ref": "#/$defs/item" } }
+      }
+    },
+    "item": {
+      "type": "object",
+      "required": ["faction_id", "rank"],
+      "properties": {
+        "faction_id": { "description": "Opaque competitor key, stable across points and queries in one report. Not a provider id.", "type": "string", "minLength": 1 },
+        "rank": { "type": "integer", "minimum": 1 },
+        "title": { "type": "string", "minLength": 1 },
+        "rating": { "type": "number", "minimum": 0, "maximum": 5 },
+        "votes_count": { "type": "integer", "minimum": 0 },
+        "category": { "type": "string" }
+      }
+    }
+  }
+}

@@ -31,7 +31,7 @@ function resolveBasemaps(options) {
   return { list, fallback, preferred }
 }
 
-// mount(el, model, options) -> { destroy() }
+// mount(el, model, options) -> { destroy() } (the full study also returns selectPoint(tag))
 //   model: "geogrid-viewer/v1" (lean hosted model) or "geogrid-companion/v1" (full study)
 //   options.capabilities: { perPointListings, profiles, nameReview, campaignResearch, strategyRoom }. A panel is shown only when its flag is true;
 //     a missing flag means off. Flags matter for geogrid-companion/v1 models; the lean model never shows these panels.
@@ -54,7 +54,8 @@ function mount(el, model, options = {}) {
     const app = createCompanion({ embedded: true, root: node, study: model, capabilities, basemaps: list.map(b => b.id),
       defaultBasemap: preferred, googleSessionPath: common.googleSessionPath, attribution: common.attribution,
       campaignResearch: options.campaignResearch, nameReview: options.nameReview })
-    return { destroy: () => app.destroy() }
+    // selectPoint(tag) opens that location's rankings (needs capabilities.perPointListings); it throws for an unknown tag.
+    return { destroy: () => app.destroy(), selectPoint: id => app.selectPoint(id) }
   }
   throw new Error(`GeoGridViewer.mount: unsupported model schema ${String(model.schema)}`)
 }

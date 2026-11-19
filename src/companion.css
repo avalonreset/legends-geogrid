@@ -491,3 +491,12 @@ footer{display:none}
   background:#222222;
   border-color:#666666;
 }
+
+/* Full rankings: location listings and the competitor panel */
+.listing-target{color:#e1e1e1 !important;font-size:12px !important}
+.listing-target strong{font-family:Manrope,system-ui,sans-serif;font-size:15px;color:var(--accent)}
+.listing-list .listing-rank{width:26px;flex:0 0 26px;font-size:13px;font-weight:650;color:#f1f1f1}
+.listing-gap{margin:0;padding:2px 0;text-align:center;color:var(--muted);letter-spacing:4px;font-size:11px}
+.listing-expander{padding:6px 16px 4px}
+.rival-meta{display:block;font-size:9px;color:var(--muted);line-height:1.4;margin-top:3px;font-variant-numeric:tabular-nums}
+.competitor-list .business-score{white-space:nowrap}

@@ -1,0 +1,3 @@
+.ggv-root{position:relative;height:100%;min-height:480px;overflow:hidden;font-family:'DM Sans',system-ui,sans-serif;color:#f1f1f1;background:#000;color-scheme:dark;--muted:#969696;--border:#262626;--accent:#ff4d4d;--paper:#0c0c0c}
+.ggv-root .app-bar{display:none}
+@media(max-width:700px){.ggv-root{height:auto;overflow:visible}}

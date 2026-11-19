@@ -1,0 +1,381 @@
+{
+  "schema": "geogrid-viewer/v1",
+  "business": {
+    "name": "Example Plumbing Co",
+    "lat": 30.2672,
+    "lng": -97.7431
+  },
+  "scan": {
+    "id": "scan-0001",
+    "keyword": "emergency plumber",
+    "gridSize": 5,
+    "radiusM": 4000,
+    "createdAt": "2026-11-19T15:00:00Z",
+    "device": "mobile"
+  },
+  "points": [
+    {
+      "row": 0,
+      "col": 0,
+      "lat": 30.303132,
+      "lng": -97.784704,
+      "rank": 4,
+      "label": "Rank 4",
+      "heat": 0.85
+    },
+    {
+      "row": 0,
+      "col": 1,
+      "lat": 30.303132,
+      "lng": -97.763902,
+      "rank": 6,
+      "label": "Rank 6",
+      "heat": 0.75
+    },
+    {
+      "row": 0,
+      "col": 2,
+      "lat": 30.303132,
+      "lng": -97.7431,
+      "rank": 8,
+      "label": "Rank 8",
+      "heat": 0.65
+    },
+    {
+      "row": 0,
+      "col": 3,
+      "lat": 30.303132,
+      "lng": -97.722298,
+      "rank": null,
+      "label": "Not found in the top 20",
+      "heat": 0.0
+    },
+    {
+      "row": 0,
+      "col": 4,
+      "lat": 30.303132,
+      "lng": -97.701496,
+      "rank": 11,
+      "label": "Rank 11",
+      "heat": 0.5
+    },
+    {
+      "row": 1,
+      "col": 0,
+      "lat": 30.285166,
+      "lng": -97.784704,
+      "rank": 14,
+      "label": "Rank 14",
+      "heat": 0.35
+    },
+    {
+      "row": 1,
+      "col": 1,
+      "lat": 30.285166,
+      "lng": -97.763902,
+      "rank": 1,
+      "label": "Rank 1",
+      "heat": 1.0
+    },
+    {
+      "row": 1,
+      "col": 2,
+      "lat": 30.285166,
+      "lng": -97.7431,
+      "rank": 2,
+      "label": "Rank 2",
+      "heat": 0.95
+    },
+    {
+      "row": 1,
+      "col": 3,
+      "lat": 30.285166,
+      "lng": -97.722298,
+      "rank": 2,
+      "label": "Rank 2",
+      "heat": 0.95
+    },
+    {
+      "row": 1,
+      "col": 4,
+      "lat": 30.285166,
+      "lng": -97.701496,
+      "rank": null,
+      "label": "Not found in the top 20",
+      "heat": 0.0
+    },
+    {
+      "row": 2,
+      "col": 0,
+      "lat": 30.2672,
+      "lng": -97.784704,
+      "rank": 9,
+      "label": "Rank 9",
+      "heat": 0.6
+    },
+    {
+      "row": 2,
+      "col": 1,
+      "lat": 30.2672,
+      "lng": -97.763902,
+      "rank": 3,
+      "label": "Rank 3",
+      "heat": 0.9
+    },
+    {
+      "row": 2,
+      "col": 2,
+      "lat": 30.2672,
+      "lng": -97.7431,
+      "rank": 1,
+      "label": "Rank 1",
+      "heat": 1.0
+    },
+    {
+      "row": 2,
+      "col": 3,
+      "lat": 30.2672,
+      "lng": -97.722298,
+      "rank": 4,
+      "label": "Rank 4",
+      "heat": 0.85
+    },
+    {
+      "row": 2,
+      "col": 4,
+      "lat": 30.2672,
+      "lng": -97.701496,
+      "rank": 7,
+      "label": "Rank 7",
+      "heat": 0.7
+    },
+    {
+      "row": 3,
+      "col": 0,
+      "lat": 30.249234,
+      "lng": -97.784704,
+      "rank": 12,
+      "label": "Rank 12",
+      "heat": 0.45
+    },
+    {
+      "row": 3,
+      "col": 1,
+      "lat": 30.249234,
+      "lng": -97.763902,
+      "rank": 3,
+      "label": "Rank 3",
+      "heat": 0.9
+    },
+    {
+      "row": 3,
+      "col": 2,
+      "lat": 30.249234,
+      "lng": -97.7431,
+      "rank": 2,
+      "label": "Rank 2",
+      "heat": 0.95
+    },
+    {
+      "row": 3,
+      "col": 3,
+      "lat": 30.249234,
+      "lng": -97.722298,
+      "rank": 5,
+      "label": "Rank 5",
+      "heat": 0.8
+    },
+    {
+      "row": 3,
+      "col": 4,
+      "lat": 30.249234,
+      "lng": -97.701496,
+      "rank": 18,
+      "label": "Rank 18",
+      "heat": 0.15
+    },
+    {
+      "row": 4,
+      "col": 0,
+      "lat": 30.231268,
+      "lng": -97.784704,
+      "rank": 5,
+      "label": "Rank 5",
+      "heat": 0.8
+    },
+    {
+      "row": 4,
+      "col": 1,
+      "lat": 30.231268,
+      "lng": -97.763902,
+      "rank": 15,
+      "label": "Rank 15",
+      "heat": 0.3
+    },
+    {
+      "row": 4,
+      "col": 2,
+      "lat": 30.231268,
+      "lng": -97.7431,
+      "rank": null,
+      "label": "Not found in the top 20",
+      "heat": 0.0
+    },
+    {
+      "row": 4,
+      "col": 3,
+      "lat": 30.231268,
+      "lng": -97.722298,
+      "rank": 22,
+      "label": "Rank 22",
+      "heat": 0.0
+    },
+    {
+      "row": 4,
+      "col": 4,
+      "lat": 30.231268,
+      "lng": -97.701496,
+      "rank": 10,
+      "label": "Rank 10",
+      "heat": 0.55
+    }
+  ],
+  "scores": {
+    "foundShare": 0.88,
+    "solv": 0.598,
+    "visibleShare": 0.28,
+    "arp": 7.5,
+    "atrp": 9.1,
+    "centerRank": 1
+  },
+  "zones": {
+    "rings": [
+      {
+        "id": "ring-0",
+        "label": "Center",
+        "points": 1,
+        "foundShare": 1.0,
+        "avgRank": 1.0
+      },
+      {
+        "id": "ring-1",
+        "label": "Inner ring",
+        "points": 8,
+        "foundShare": 1.0,
+        "avgRank": 2.8
+      },
+      {
+        "id": "ring-2",
+        "label": "Outer ring",
+        "points": 16,
+        "foundShare": 0.812,
+        "avgRank": 10.8
+      }
+    ],
+    "quadrants": [
+      {
+        "id": "nw",
+        "label": "North west",
+        "points": 4,
+        "foundShare": 1.0,
+        "avgRank": 6.2
+      },
+      {
+        "id": "ne",
+        "label": "North east",
+        "points": 6,
+        "foundShare": 0.667,
+        "avgRank": 5.8
+      },
+      {
+        "id": "sw",
+        "label": "South west",
+        "points": 6,
+        "foundShare": 1.0,
+        "avgRank": 7.8
+      },
+      {
+        "id": "se",
+        "label": "South east",
+        "points": 9,
+        "foundShare": 0.889,
+        "avgRank": 8.6
+      }
+    ]
+  },
+  "competitors": [
+    {
+      "name": "Harbor Pipe & Drain",
+      "top3Share": 0.4,
+      "outrankShare": 0.52,
+      "avgRank": 3.8,
+      "presenceShare": 0.92
+    },
+    {
+      "name": "Lone Star Rooter",
+      "top3Share": 0.28,
+      "outrankShare": 0.44,
+      "avgRank": 5.1,
+      "presenceShare": 0.88
+    },
+    {
+      "name": "Capital City Plumbing",
+      "top3Share": 0.16,
+      "outrankShare": 0.32,
+      "avgRank": 7.4,
+      "presenceShare": 0.8
+    },
+    {
+      "name": "Bluebonnet Water Works",
+      "top3Share": 0.08,
+      "outrankShare": 0.2,
+      "avgRank": 9.9,
+      "presenceShare": 0.64
+    }
+  ],
+  "delta": {
+    "previousScanId": "scan-0000",
+    "previousCreatedAt": "2026-10-19T15:00:00Z",
+    "scores": {
+      "foundShare": 0.08,
+      "solv": 0.05,
+      "visibleShare": 0.12,
+      "arp": -0.9,
+      "atrp": -2.1,
+      "centerRank": 0
+    },
+    "improved": 9,
+    "declined": 3,
+    "unchanged": 13
+  },
+  "zoneCompetitors": [
+    {
+      "zoneId": "ring-2",
+      "top": [
+        {
+          "name": "Harbor Pipe & Drain",
+          "presenceShare": 0.94,
+          "top3Share": 0.44,
+          "outrankShare": 0.62
+        },
+        {
+          "name": "Lone Star Rooter",
+          "presenceShare": 0.88,
+          "top3Share": 0.31,
+          "outrankShare": 0.5
+        }
+      ]
+    },
+    {
+      "zoneId": "ring-0",
+      "top": [
+        {
+          "name": "Harbor Pipe & Drain",
+          "presenceShare": 1.0,
+          "top3Share": 0.0,
+          "outrankShare": 0.0
+        }
+      ]
+    }
+  ]
+}

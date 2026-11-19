@@ -10,6 +10,7 @@ import { BASEMAPS, createBasemapSwitcher } from './basemap-switcher.js'
 import { RankCanvasLayer } from './rank-canvas.js'
 import { localLeaders, profileColor } from './local-leaders.js'
 import { winnerAt } from './leader-colors.js'
+import { pointPanelHTML, competitorPanelHTML } from './point-listings.js'
 import { distanceLabel, distanceText, distanceRings } from './distance-units.js'
 import { territoryIntelligence } from './territory-intelligence.js'
 import { strategyIntelligence, strategyMatchup } from './strategy-engine.js'
@@ -38,6 +39,7 @@ const initialParams = new URLSearchParams(embedded ? '' : location.search)
 let model = normalizeStudy(config.study ?? sample)
 const state = { query: 'q1', business: 'TARGET', point: null, view: 'visibility', tab: 'factions', region: 'all', rival: null, rings: true, translucent: false, blends: true, coverage: true, clipCircle: false, units: 'mi', leaderMinimum: 1 }
 const fieldBrowser = { scope: 'shortlist', search: '', page: 0 }
+const listingsUi = { allListings: false, allRivals: false, point: null }
 const campaign = { lens: 'overview', area: null, research: null }
 let investigationIds = null
 let investigationId = null
@@ -97,7 +99,7 @@ root.innerHTML = `
         <div class="finding-strip"><span class="eyebrow">READ THE MAP</span><p id="finding"></p><button id="inspect-near" class="text-button">Explore campaign areas →</button></div>
       </div>
       <aside class="sidebar">
-        <div class="side-tabs" role="group" aria-label="Study details"><button data-tab="strategy" hidden>Area</button><button data-tab="campaigns">Campaigns</button><button data-tab="factions">Businesses</button><button data-tab="study">Study</button></div>
+        <div class="side-tabs" role="group" aria-label="Study details"><button data-tab="strategy" hidden>Area</button><button data-tab="campaigns">Campaigns</button><button data-tab="factions">Businesses</button><button data-tab="point"${caps.perPointListings ? '' : ' hidden'}>Location</button><button data-tab="competitors"${caps.perPointListings ? '' : ' hidden'}>Competitors</button><button data-tab="study">Study</button></div>
         <div id="side-content"></div>
       </aside>
     </section>
@@ -153,6 +155,8 @@ function selectBusiness(id) {
 function selectPoint(id) {
   if (!model.points.some(p => p.id === id)) throw new Error('Unknown location')
   state.point = id
+  // The embedded report opens the location's rankings when a point is picked from the plain ranking map.
+  if (embedded && caps.perPointListings && state.view === 'visibility' && ['factions', 'point', 'competitors', 'study'].includes(state.tab)) state.tab = 'point'
   if (state.region !== 'all' && workbench.classList.contains('strategy-docked')) {
     state.region = strategyIntelligence(model).regions.find(r => r.id !== 'all' && r.originIds.includes(id))?.id || 'all'
   }
@@ -297,6 +301,13 @@ function renderBusinesses() {
       ${selected.selection ? `<p>Saved shortlist selection #${escape(selected.selection.position)} · all-query visibility score ${escape(selected.selection.visibility_score.toLocaleString())}<br>${escape(selected.selection.categories?.join(' · ') || '')}</p>` : '<p>Observed profile. Appearance in search results does not establish service fit or business relevance.</p>'}</div>`
 }
 
+function renderPoint() {
+  if (listingsUi.point !== state.point) { listingsUi.point = state.point; listingsUi.allListings = false }
+  return pointPanelHTML(model, state, listingsUi)
+}
+
+function renderCompetitors() { return competitorPanelHTML(model, state, listingsUi) }
+
 function renderLeaders() {
   const leaders = localLeaders(model, state.query, 1)
   const rows = leaders.rows
@@ -401,7 +412,7 @@ function render() {
   $('[data-tab="strategy"]').hidden = state.region === 'all' && state.view !== 'matchup' && state.tab !== 'strategy'
   $('#side-content').innerHTML = state.tab === 'strategy'
     ? state.view === 'matchup' ? matchupPanelHTML(strategyMatchup(model, state.query, state.rival, state.region), model, state.query) : regionPanelHTML(model, selectedRegion(), state.query)
-    : state.tab === 'campaigns' ? campaignPanelHTML(territoryIntelligence(model, state.query), campaign.lens, campaign.area, model.name, campaign.research, state.query) : state.tab === 'factions' ? renderBusinesses() : renderStudy()
+    : state.tab === 'campaigns' ? campaignPanelHTML(territoryIntelligence(model, state.query), campaign.lens, campaign.area, model.name, campaign.research, state.query) : state.tab === 'factions' ? renderBusinesses() : state.tab === 'point' && caps.perPointListings ? renderPoint() : state.tab === 'competitors' && caps.perPointListings ? renderCompetitors() : renderStudy()
   $('#finding').textContent = `${selected.name} appears in the top 3 at ${m.top3} of ${model.points.length} sampled locations for “${model.queries.find(q => q.id === state.query).name}”. ${m.near} locations rank 4–10${m.unknown ? `; ${m.unknown} have incomplete evidence` : ''}.`
   $('#inspect-near').disabled = false
   if (state.view === 'factions') {
@@ -748,6 +759,7 @@ function loadStudy(input, restore = false) {
   fieldBrowser.scope = model.businesses.find(b => b.id === state.business)?.shortlisted === false ? 'all' : 'shortlist'
   fieldBrowser.search = ''
   fieldBrowser.page = 0
+  listingsUi.allRivals = false
   fitStudy()
   render()
   const isBundledSample = input === sample
@@ -913,6 +925,10 @@ $('#side-content').addEventListener('click', e => {
   if (rival) { selectBusiness(rival.dataset.campaignRival); return }
   const query = e.target.closest('[data-location-query]')
   if (query) { state.query = query.dataset.locationQuery; campaign.area = null; render(); return }
+  const allListings = e.target.closest('[data-listing-all]')
+  if (allListings) { listingsUi.allListings = allListings.dataset.listingAll === '1'; $('#side-content').innerHTML = renderPoint(); return }
+  const allRivals = e.target.closest('[data-rivals-all]')
+  if (allRivals) { listingsUi.allRivals = allRivals.dataset.rivalsAll === '1'; $('#side-content').innerHTML = renderCompetitors(); return }
   const b = e.target.closest('[data-business]')
   if (b) selectBusiness(b.dataset.business)
   const scope = e.target.closest('[data-field-scope]')

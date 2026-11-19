@@ -2,6 +2,17 @@
 const finite = value => typeof value === 'number' && Number.isFinite(value)
 const rankOf = value => Number.isInteger(value) && value > 0 ? value : null
 const idOf = item => item.faction_id || (item.cid ? `cid:${item.cid}` : item.place_id ? `place:${item.place_id}` : `name:${item.title}`)
+const textOrNull = value => (typeof value === 'string' && value.trim() ? value.trim() : null)
+// A string key chosen by the host. It is never parsed and is only used when the item carries no provider identifiers.
+const opaqueKeyOf = item => (typeof item.faction_id === 'string' && item.faction_id && !item.cid && !item.place_id ? item.faction_id : null)
+const share = value => (finite(value) && value >= 0 && value <= 1 ? value : null)
+// Precomputed target scores, in the window the host chose (normally the top 20). Shares are fractions 0..1.
+function normalizeTargetScores(input) {
+  if (!input || typeof input !== 'object') return null
+  const scores = { foundShare: share(input.found_share), top3Share: share(input.top3_share ?? input.visible_share),
+    avgRank: finite(input.avg_rank) && input.avg_rank >= 1 ? input.avg_rank : null }
+  return Object.values(scores).some(v => v !== null) ? scores : null
+}
 const validLocation = (lat, lng) => finite(lat) && finite(lng) && Math.abs(lat) <= 90 && Math.abs(lng) <= 180
 // Models are immutable evidence snapshots. Keep derived lookups out of exports.
 const observationIndexes = new WeakMap()
@@ -35,7 +46,7 @@ export function normalizeStudy(input) {
       rating: typeof f.rating === 'object' && f.rating ? f.rating.value : f.rating,
       reviews: f.votes_count ?? f.rating?.votes_count, domain: f.domain, cid: f.cid, placeId: f.place_id,
       selection: f.selection,
-      address: f.address,
+      address: f.address, category: textOrNull(f.category),
     }))
     if (!businesses.some(b => b.target)) throw new Error('This study has no identified primary business.')
     const resolveIdentity = item => {
@@ -47,10 +58,13 @@ export function normalizeStudy(input) {
           (item.faction_id && b.id === item.faction_id)
       })
       if (matching.length === 1) return matching[0].id
+      // An opaque key (no provider identifiers on the item) stands for itself; the host decides what it means.
+      const key = opaqueKeyOf(item)
+      if (key) return key
       // Conflicting identity must not retain a stamped faction ID.
       return idOf({ ...item, faction_id: null })
     }
-    const queries = input.lanes.map(l => ({ id: l.lane_id, name: l.query || l.keyword }))
+    const queries = input.lanes.map(l => ({ id: l.lane_id, name: l.query || l.keyword, targetScores: normalizeTargetScores(l.scores) }))
     const profileDirectory = input.profiles && typeof input.profiles === 'object' ? input.profiles : {}
     const points = input.points.map(p => ({
       id: p.tag, lat: p.lat, lng: p.lng, distance: p.distance_from_target_km,
@@ -62,11 +76,13 @@ export function normalizeStudy(input) {
           collectionMethod: o?.provenance?.method ||
             (['standard', 'live'].includes(input.study?.controls?.method) ? input.study.controls.method : undefined),
           items: (o?.top_items || []).map(rawItem => {
-            const prof = (rawItem.cid && profileDirectory[String(rawItem.cid)]) || {}
+            const opaque = opaqueKeyOf(rawItem)
+            const prof = (rawItem.cid && profileDirectory[String(rawItem.cid)]) || (opaque && profileDirectory[opaque]) || {}
             const i = { ...prof, ...rawItem }
+            const id = resolveIdentity(i)
             return {
-              id: resolveIdentity(i), name: i.title, rank: rankOf(i.rank ?? i.rank_group),
-              rating: i.rating, reviews: i.votes_count, address: i.address, cid: i.cid, placeId: i.place_id,
+              id, opaque: id === opaque, name: i.title ?? i.name, rank: rankOf(i.rank ?? i.rank_group), category: textOrNull(i.category),
+              rating: typeof i.rating === 'object' && i.rating ? i.rating.value : i.rating, reviews: i.votes_count, address: i.address, cid: i.cid, placeId: i.place_id,
               lat: validLocation(i.latitude, i.longitude) ? i.latitude : null,
               lng: validLocation(i.latitude, i.longitude) ? i.longitude : null,
             }
@@ -84,16 +100,16 @@ export function normalizeStudy(input) {
         }
         continue
       }
-      if (!(item.cid || item.placeId)) continue
+      if (!(item.cid || item.placeId || item.opaque)) continue
       const business = { id: item.id, name: item.name || 'Unnamed profile', target: false,
-        shortlisted: false, cid: item.cid, placeId: item.placeId, address: item.address,
+        shortlisted: false, cid: item.cid, placeId: item.placeId, address: item.address, category: item.category,
         rating: item.rating, reviews: item.reviews, lat: item.lat, lng: item.lng }
       directory.set(business.id, business)
       businesses.push(business)
     }
     return validate({
       name: input.business?.name || input.target?.name, location: input.location || '',
-      generatedAt: input.generated_at, depth: input.study?.depth || null,
+      generatedAt: input.generated_at, depth: input.study?.depth || null, scoreWindow: rankOf(input.study?.score_window),
       kind: input.evidence?.pending_tasks > 0 ? `Collecting · ${input.evidence.pending_tasks} searches queued` : input.evidence?.observed_from ? 'Measured study' : 'Saved study', targetId: businesses.find(b => b.target).id,
       evidence: input.evidence, controls: input.study?.controls,
       geometry: input.study?.geometry, sampling: input.study?.sampling, studyViews: input.study_views,
@@ -162,7 +178,10 @@ export function businessMetrics(model, queryId, businessId) {
   const cache = metricCaches.get(model), key = JSON.stringify([queryId, businessId])
   if (cache.has(key)) return cache.get(key)
   const observations = model.points.map(p => observationFor(model, p, queryId, businessId))
-  const ranked = observations.filter(o => o.rank)
+  // Scores stay anchored to the score window (normally the top 20) when the study names one, so deeper
+  // captured ranks never move them. Without a window the behavior is unchanged.
+  const limit = model.scoreWindow || Infinity
+  const ranked = observations.filter(o => o.rank && o.rank <= limit)
   const top3 = ranked.filter(o => o.rank <= 3).length
   const metrics = {
     top3, top3Pct: top3 / observations.length * 100,
@@ -171,8 +190,60 @@ export function businessMetrics(model, queryId, businessId) {
     near: ranked.filter(o => o.rank >= 4 && o.rank <= 10).length,
     average: ranked.length ? ranked.reduce((sum, o) => sum + o.rank, 0) / ranked.length : null,
   }
+  // Precomputed target scores (lane.scores in the study) win over anything derived here.
+  const given = businessId === model.targetId ? model.queries?.find(q => q.id === queryId)?.targetScores : null
+  if (given) {
+    if (given.top3Share !== null) { metrics.top3Pct = given.top3Share * 100; metrics.top3 = Math.round(given.top3Share * observations.length) }
+    if (given.foundShare !== null) metrics.found = Math.round(given.foundShare * observations.length)
+    if (given.avgRank !== null) metrics.average = given.avgRank
+  }
   cache.set(key, metrics)
   return metrics
+}
+
+// Listings for one location: every captured result in rank order, split at the default window.
+export const LISTING_WINDOW = 20
+export function pointListing(model, pointId, queryId, window = LISTING_WINDOW) {
+  const point = model.points.find(p => p.id === pointId)
+  const o = point?.observations[queryId]
+  if (!o) return null
+  const unusable = ['pending', 'missing', 'missing_result', 'error', 'provider_error', 'empty_results'].includes(o.status)
+  const items = unusable ? [] : o.items
+  const target = observationFor(model, point, queryId, model.targetId)
+  const targetListed = items.some(i => i.id === model.targetId)
+  const captured = items.length
+  return { point, status: o.status, items, captured, top: items.filter(i => i.rank <= window), extra: items.filter(i => i.rank > window),
+    target, targetListed, depth: items.reduce((max, i) => Math.max(max, i.rank), 0) || model.depth || 0 }
+}
+
+// Competitor presence across the grid for one query. Appearances count every captured result, so a
+// rival seen only at rank 40 still counts; score metrics elsewhere stay inside the score window.
+export function competitorStats(model, queryId) {
+  const measured = model.points.filter(p => {
+    const o = p.observations[queryId]
+    return o && !['pending', 'missing', 'missing_result', 'error', 'provider_error', 'empty_results'].includes(o.status)
+  })
+  const rows = new Map()
+  const add = (id, rank) => {
+    const row = rows.get(id) || { id, appearances: 0, rankSum: 0, best: Infinity, top3: 0 }
+    row.appearances++; row.rankSum += rank; row.best = Math.min(row.best, rank); if (rank <= 3) row.top3++
+    rows.set(id, row)
+  }
+  for (const p of measured) {
+    const o = p.observations[queryId]
+    const seen = new Set()
+    for (const item of o.items) {
+      if (item.id === model.targetId || seen.has(item.id)) continue
+      seen.add(item.id); add(item.id, item.rank)
+    }
+    if (o.targetRank) add(model.targetId, o.targetRank)
+  }
+  const directory = new Map(model.businesses.map(b => [b.id, b]))
+  const total = measured.length
+  const all = [...rows.values()].map(r => ({ business: directory.get(r.id) || { id: r.id, name: 'Unnamed profile' }, appearances: r.appearances,
+    share: total ? r.appearances / total : 0, averageRank: r.rankSum / r.appearances, bestRank: r.best, top3: r.top3 }))
+    .sort((a, b) => b.appearances - a.appearances || a.averageRank - b.averageRank || a.business.name.localeCompare(b.business.name) || a.business.id.localeCompare(b.business.id))
+  return { measured: total, target: all.find(r => r.business.id === model.targetId) || null, rows: all.filter(r => r.business.id !== model.targetId) }
 }
 
 export function businessLeaderboard(model, queryId) {

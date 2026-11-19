@@ -66,3 +66,7 @@ img-src 'self' data: blob: https://tiles.openfreemap.org;
 - No raster tiles from `tile.openstreetmap.org`, no web fonts, and no other third party origin.
 
 Note on the worker: the MapLibre GL worker (third party, BSD 3-Clause) contains a script loader that falls back to `globalThis.eval` for a classic script fetched by URL (this is how MapLibre loads its optional right-to-left text plugin). The viewer never asks the worker to load an extra script, so the code path does not run and a policy without `'unsafe-eval'` works. The viewer script and stylesheet contain no `eval` and no `new Function`.
+
+## Full rankings (0.2.9)
+
+For a `geogrid-companion/v1` study with `capabilities.perPointListings: true`, the viewer adds a Location tab (ranked listings for the selected point, top 20 with a `Show all N` control, and the primary business at its actual rank beyond 20) and a Competitors tab (appearances, share of points and average rank across the grid). `mount()` on a full study returns `{ destroy(), selectPoint(tag) }`. The exact fields a host sends are in `docs/viewer-model.md` (section "Full study with every ranking"), with a schema in `docs/geogrid-companion-v1.schema.json` and a depth-100 example in `examples/viewer-companion-depth100-fixture.json`. No change is needed to the Content Security Policy above.

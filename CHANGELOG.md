@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.10 - 2026-11-21
+
+- **Outlined Legends Font SVG Card Architecture & README Refresh (`scripts/render_cards.py`, `assets/cards/r1/*.svg`, `README.md`)**: add deterministic outlined SVG cards (`slot-1-agent-handoff.svg`, `slot-2-three-pillars.svg`, `slot-3-plain-english-chains.svg`, `slot-4-circular-vs-square.svg`, `slot-5-saas-vs-geogrid.svg`, `slot-collection-star-shrine.svg`, and `slot-7-message-avalon-reset.svg`) with all glyph runs converted to vector `<path>` outlines, evergreen documentation framing, and collapsible `cto-legends` agent setup and CLI reference drawers.
+
 ## 0.2.9 - 2026-11-19
 
 - **Full per-point rankings in the embeddable viewer (`src/point-listings.js`, `src/study-model.js`, `src/companion-app.js`, `src/viewer-entry.js`)**: with `capabilities.perPointListings` on, a full `geogrid-companion/v1` study gets two new side tabs. Location shows the ranked listings for the selected point, top 20 first with a show all N control when more were captured, and the primary business pinned at its actual rank when that is beyond 20 (for example 37). Competitors lists every other business seen across the grid with its appearances, share of points and average rank, most frequent first; selecting one recolors the map to that business. `mount()` on a full study now also returns `selectPoint(tag)`.

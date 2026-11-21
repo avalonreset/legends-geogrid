@@ -420,3 +420,8 @@ Independence note: `legends-geogrid` is not affiliated with or endorsed by DataF
 Installed and routed by [cto-legends](https://github.com/avalonreset/cto-legends). The module page and the rest of the family are at [cto-legends.com](https://cto-legends.com/modules/legends-geogrid).
 
 [Back to top](#top)
+
+---
+
+<p align="center"><a href="https://github.com/stars/avalonreset/lists/cto-legends"><img src="assets/collection-star-shrine.svg" width="100%" alt="GitHub Star List: The complete cto-legends collection on one page. Bookmark or star the router and every module from a single GitHub list."></a></p>
+

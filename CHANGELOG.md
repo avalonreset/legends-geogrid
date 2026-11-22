@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.11 - 2026-11-22
+
+- Sync vendored `cto-legends` router skill pin (`69ddc4f68faa`), enforce LF line endings via `.gitattributes`, and standardize release artifact checksums.
+
 ## 0.2.10 - 2026-11-21
 
 - **Outlined Legends Font SVG Card Architecture & README Refresh (`scripts/render_cards.py`, `assets/cards/r1/*.svg`, `README.md`)**: add deterministic outlined SVG cards (`slot-1-agent-handoff.svg`, `slot-2-three-pillars.svg`, `slot-3-plain-english-chains.svg`, `slot-4-circular-vs-square.svg`, `slot-5-saas-vs-geogrid.svg`, `slot-collection-star-shrine.svg`, and `slot-7-message-avalon-reset.svg`) with all glyph runs converted to vector `<path>` outlines, evergreen documentation framing, and collapsible `cto-legends` agent setup and CLI reference drawers.

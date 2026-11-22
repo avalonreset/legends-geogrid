@@ -1,6 +1,6 @@
 ---
 name: cto-legends
-description: Route ordinary requests to the matching Legends module without per-module skills. Discover the live capability index, preview installs, and keep modules updated through the cto-legends CLI. Also use for Legends setup and updates.
+description: Route plain-English requests across 21 tools via cto-legends CLI without per-module skills (capabilities, preview installs, handoffs, setup, updates). Trigger for DataForSEO SEO, SERPs, keywords, backlinks, Google Business Profile; Firecrawl and Alexandria web scraping, crawling, search, PDF/doc parsing; GeoGrid Google Maps rank grids and heatmaps; Hetzner Cloud VPS/servers; Coolify self-hosted apps; Cloudflare DNS; Astro v7 and WordPress migrations; Stripe billing, invoicing, webhooks; GoHighLevel (GHL) CRM, workflows, snapshots; GitHub repo discovery and releases; US grant discovery and proposals; Jev optical OCR and storefront signage checks; YouTube channel ops, analytics, draft uploads; yt-dlp video downloads and archiving; active-word video captions; OBS Studio screen recording; Stable Audio AI music and SFX; Ambient Intelligence offline voice-memo transcription; HyperYap local voice dictation; Block Buzz Nostr relay messaging; and Empire or Markdown vault memory, stewardship, ontology.
 ---
 
 # cto-legends

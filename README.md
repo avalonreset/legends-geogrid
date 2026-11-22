@@ -420,5 +420,5 @@ Running a multi-location business or agency and want circular-lattice territory 
 
 **Specification & benchmarks on cto-legends.com:**
 - **Module specification & architecture matrix:** [cto-legends.com/modules/legends-geogrid](https://cto-legends.com/modules/legends-geogrid)
-- **Related engineering dispatches:** [Google Maps Ranking Factors: Spatial Geo-Grid Study](https://cto-legends.com/blog?post=google-maps-ranking-factors-geogrid-study) · [How to Build AI Agents: Production CLI & MCP Routing](https://cto-legends.com/blog?post=how-to-build-ai-agents-cli-mcp-routing) · [AI Agent Governance: Markdown Knowledge Base & Vault Architecture](https://cto-legends.com/blog?post=ai-agent-governance)
+- **Related engineering dispatches:** [The 60-Minute AI Visibility Audit and Fix Scorecard](https://cto-legends.com/blog?post=ai-visibility-audit) · [How to Choose MCP vs CLI Tools Without Context Bloat](https://cto-legends.com/blog?post=mcp-vs-cli) · [AI Agent Governance: Markdown Knowledge Base & Vault Architecture](https://cto-legends.com/blog?post=ai-agent-governance)
 - **Ecosystem hub:** [cto-legends.com/home](https://cto-legends.com/home)

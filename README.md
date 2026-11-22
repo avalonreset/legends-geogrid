@@ -15,6 +15,8 @@ Home Slice Pizza ranks in the top three at 549 of 1,249 search points around Aus
 
 `legends-geogrid` turns your coding agent into a local rank tracker, circular-lattice Google Maps study engine, Street View signage auditor, and 19-page vector PDF strategy studio. Clone the repository or install it through [`cto-legends`](https://github.com/avalonreset/cto-legends), and the complete 1,249-point Austin pizza territory opens in your browser with no API keys and zero spend.
 
+**Specification & local visibility guide:** [cto-legends.com/modules/legends-geogrid](https://cto-legends.com/modules/legends-geogrid) · [The 60-Minute AI Visibility Audit and Fix Scorecard](https://cto-legends.com/blog?post=ai-visibility-audit)
+
 <p align="center"><img src="assets/cards/r1/slot-1-agent-handoff.svg" width="100%" alt="Agent handoff: paste this into Claude Code, Codex, or any coding agent and it does the setup"></p>
 
 ```text

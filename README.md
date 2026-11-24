@@ -198,24 +198,24 @@ Rates in the code: $0.0006 per Standard Queue Maps search at depth 30, $0.0012 f
 
 Full agent instructions live in [`AGENTS.md`](AGENTS.md) and [`docs/STUDY-RECIPE.md`](docs/STUDY-RECIPE.md).
 
-## Zero-Keys Hosted Option ($10 PAYG)
+## Optional MCP Plug-In: Legends Gambit (Open Beta)
 
-Want a local rank grid and a client-ready PDF without wiring up data sources?
+Want a circular hexagonal Google Maps rank grid and a 19-page vector hex PDF without wiring up vendor accounts?
 
-This module is free, MIT licensed, and runs on your own accounts. That does not change.
+This module stays 100% local, free, and MIT open source on your own accounts. That does not change.
 
-If you would rather not manage provider accounts or API keys at all, [CTO Legends Recon](https://cto-legends.com/recon) is a separate hosted MCP server that answers the same kind of questions from one endpoint:
+If you want pay-per-run audits without vendor accounts or subscriptions, [Legends Gambit](https://cto-legends.com/gambit) (**Legends Gambit: SEO MCP Server & Market Intelligence (by CTO Legends)**, open beta) is one optional MCP intelligence plug-in beside it:
 
-- One URL and one API key. Works in Claude Code, Cursor, Antigravity, Claude Desktop, and OpenCode
-- Pay as you go from a $10 prepaid wallet. No subscription
-- From $0.05 a run. Anything above your limit is quoted first
-- Failed runs and 24-hour repeats cost $0.00
+- One Streamable HTTP endpoint (`https://gambit.cto-legends.com/mcp`) and one Bearer API key. Works in Claude Code, Cursor, Antigravity, Claude Desktop, and OpenCode (open read-only `initialize` and `tools/list` discovery)
+- Non-expiring prepaid wallet ($10 starter top-up), zero vendor accounts, zero subscriptions
+- From $0.05/run: verified SERP ($0.05), keyword demand ($0.05 for up to 25 keywords), competitor teardown ($0.15), market dossier ($0.50), and circular hexagonal Google Maps rank grids ($0.04/hex point: $0.76 for 19 pts, $1.48 for 37 pts, up to $6.76 for 169 pts across 0.5-50 km radius, with a 19-page vector hex PDF)
+- Anything above your per-call limit (default $0.25) is quoted first. Failed runs and 24-hour same-wallet repeats cost $0.00, and verified cache hits are at least 60% off
 
 ```bash
-claude mcp add --transport http recon-concierge https://recon.cto-legends.com/mcp --header "Authorization: Bearer YOUR_API_KEY"
+claude mcp add --transport http legends-gambit https://gambit.cto-legends.com/mcp --header "Authorization: Bearer YOUR_API_KEY"
 ```
 
-Create a key at [recon.cto-legends.com](https://recon.cto-legends.com/login). Prefer to self-host? Keep reading. Everything below needs nothing from us.
+Create an API key at [gambit.cto-legends.com/wallet](https://gambit.cto-legends.com/wallet) or read the docs at [cto-legends.com/gambit](https://cto-legends.com/gambit). Prefer to run 100% locally? Keep reading. Everything below needs nothing from us.
 
 <a id="boundaries"></a>
 

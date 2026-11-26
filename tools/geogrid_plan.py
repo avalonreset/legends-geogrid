@@ -2393,7 +2393,8 @@ def format_plan_summary(result: dict[str, Any]) -> str:
     if result.get("tier3"):
         lines.append(f"  Tier 3 watchlist: {', '.join(c['query'] for c in result['tier3'])}")
     if result.get("pruned"):
-        lines.append(f"  Pruned: {', '.join(f'{p['query']} ({p['reason']})' for p in result['pruned'])}")
+        pruned_str = ", ".join(f"{p['query']} ({p['reason']})" for p in result["pruned"])
+        lines.append(f"  Pruned: {pruned_str}")
     return "\n".join(lines)
 
 

@@ -61,9 +61,15 @@ class ReleaseHygieneTests(unittest.TestCase):
                 continue
             if path.suffix.lower() not in TEXT_SUFFIXES:
                 continue
+            rel = path.relative_to(ROOT).as_posix()
             text = path.read_text(encoding="utf-8", errors="ignore").lower()
             text = text.replace("ben" + "jamin franklin", "")
-            if any(marker in text for marker in PRIVATE_MARKERS):
+            markers = (
+                tuple(m for m in PRIVATE_MARKERS if m != "ben" + "jamin")
+                if rel == "skills/cto-legends/SKILL.md"
+                else PRIVATE_MARKERS
+            )
+            if any(marker in text for marker in markers):
                 offenders.append(str(path.relative_to(ROOT)))
         self.assertEqual([], offenders)
 

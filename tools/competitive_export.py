@@ -86,6 +86,10 @@ def export_study(run_dir: Path, radius_miles: float | None = None, compact: bool
                 "distance_from_target_km": haversine_km(target["lat"], target["lng"], raw_point["lat"], raw_point["lng"]),
                 "roles": source.get("roles", []), "phase": source.get("phase"),
                 "anchor_factions": source.get("anchor_factions", []), "by_lane": {},
+                **({"hex": {"unit_q": source.get("unit_q"), "unit_r": source.get("unit_r"),
+                            "first_rung_miles": source.get("first_rung_miles"),
+                            "rung_membership": source.get("rung_membership", [])},
+                    "sampled_at": source.get("sampled_at")} if "hex_radius" in source.get("roles", []) else {}),
             })
             items, seen = [], set()
             for item in result["top_items"]:
@@ -214,7 +218,7 @@ def export_study(run_dir: Path, radius_miles: float | None = None, compact: bool
             "view_equivalent_scan_cost_usd": None if receipt.get("composition") else round((receipt.get("run_total_cost_usd") or 0) * len(points) * len(lanes) / receipt["total_tasks"], 6),
             "export_is_subset": radius_miles is not None,
             "plan_sha256": receipt["plan_sha256"], "source_query_plan": source_query_plan,
-            "roster_policy": "Primary Google Business Profile plus nine competing profiles. Separate locations remain separate competitors even when names and websites match. Rank-weighted visibility sums 21 minus organic rank (ranks 1–20) over all origins and queries equally. Ties: top-three appearances, then appearances, then CID. The roster stays fixed across queries. " + (
+            "roster_policy": "Primary Google Business Profile plus nine competing profiles. Separate locations remain separate competitors even when names and websites match. Rank-weighted visibility sums 21 minus organic rank (ranks 1-20) over all origins and queries equally. Ties: top-three appearances, then appearances, then CID. The roster stays fixed across queries. " + (
                 "Eligibility follows the service-category filter recorded in the study plan. " if category_pattern else ""
             ) + "All returned listings through the requested depth remain available in location evidence. This measures visibility on this footprint, not revenue or market share.",
             "roster_limit": 9,

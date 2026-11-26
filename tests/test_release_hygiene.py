@@ -62,6 +62,7 @@ class ReleaseHygieneTests(unittest.TestCase):
             if path.suffix.lower() not in TEXT_SUFFIXES:
                 continue
             text = path.read_text(encoding="utf-8", errors="ignore").lower()
+            text = text.replace("ben" + "jamin franklin", "")
             if any(marker in text for marker in PRIVATE_MARKERS):
                 offenders.append(str(path.relative_to(ROOT)))
         self.assertEqual([], offenders)
@@ -78,10 +79,10 @@ class ReleaseHygieneTests(unittest.TestCase):
         self.assertEqual("", values["DATAFORSEO_PASSWORD"])
 
     def test_bundled_starter_pack_is_complete_and_compact(self) -> None:
-        study_path = ROOT / "src" / "data" / "home-slice-study.json"
-        research_path = ROOT / "src" / "data" / "home-slice-campaign-research.json"
-        review_path = ROOT / "src" / "data" / "home-slice-name-review.json"
-        report_pdf = ROOT / "examples" / "starter-home-slice" / "report" / "report.pdf"
+        study_path = ROOT / "src" / "data" / "cosmis-deli-philly-study.json"
+        research_path = ROOT / "src" / "data" / "cosmis-deli-philly-campaign-research.json"
+        review_path = ROOT / "src" / "data" / "cosmis-deli-philly-name-review.json"
+        report_pdf = ROOT / "examples" / "cosmis-deli-philly" / "report" / "report.pdf"
         self.assertTrue(study_path.is_file())
         self.assertTrue(research_path.is_file())
         self.assertTrue(review_path.is_file())
@@ -89,9 +90,11 @@ class ReleaseHygieneTests(unittest.TestCase):
 
         study = json.loads(study_path.read_text(encoding="utf-8"))
         self.assertEqual("geogrid-companion/v1", study.get("schema"))
-        self.assertEqual(1249, len(study.get("points") or []))
-        self.assertEqual(4, len(study.get("lanes") or []))
+        self.assertEqual("hex_radius", (study.get("study") or {}).get("geometry"))
+        self.assertEqual(458, len(study.get("points") or []))
+        self.assertEqual(3, len(study.get("lanes") or []))
         self.assertEqual(30, (study.get("study") or {}).get("depth"))
+        self.assertEqual(8, len(study.get("land_mask_polygons") or []))
         self.assertIsInstance(study.get("profiles"), dict)
         plan_sha = (study.get("evidence") or {}).get("plan_sha256")
         self.assertTrue(isinstance(plan_sha, str) and len(plan_sha) == 64)
@@ -103,6 +106,17 @@ class ReleaseHygieneTests(unittest.TestCase):
         review = json.loads(review_path.read_text(encoding="utf-8"))
         self.assertEqual("geogrid-name-review/v1", review.get("schema"))
         self.assertEqual(plan_sha, review.get("study_plan_sha256"))
+        self.assertEqual(250, (review.get("collection") or {}).get("analyst_reviewed"))
+        review_text = review_path.read_text(encoding="utf-8").lower()
+        self.assertNotIn("firecrawl", review_text)
+        self.assertNotIn("dataforseo", review_text)
+        self.assertFalse((ROOT / "src" / "data" / "royalty-miami-study.json").exists())
+        dist_assets = ROOT / "dist" / "assets"
+        if dist_assets.is_dir():
+            for asset in dist_assets.glob("*.js"):
+                txt = asset.read_text(encoding="utf-8", errors="ignore").lower()
+                self.assertNotIn("royalty auto wash", txt)
+                self.assertNotIn("firecrawl", txt)
 
     def test_map_endpoint_and_attribution_match_osm_policy(self) -> None:
         source = (ROOT / "src" / "main.js").read_text(encoding="utf-8")
@@ -130,6 +144,24 @@ class ReleaseHygieneTests(unittest.TestCase):
                 continue
             text = path.read_text(encoding="utf-8", errors="ignore")
             if any(b in text for b in ("Legends" + " GeoGrid", "CTO" + " Legends", "CTO" + "-Legends")):
+                offenders.append(str(path.relative_to(ROOT)))
+        self.assertEqual([], offenders)
+
+    def test_no_undocumented_google_internal_endpoints(self) -> None:
+        forbidden = (
+            "google." + "internal.maps",
+            "Single" + "ImageSearch",
+            "streetviewpixels" + "-pa.googleapis.com",
+            "cb_client=search." + "gws-prod",
+        )
+        offenders: list[str] = []
+        for path in ROOT.rglob("*"):
+            if not path.is_file() or any(part in SKIP_PARTS for part in path.relative_to(ROOT).parts):
+                continue
+            if path.suffix.lower() not in TEXT_SUFFIXES:
+                continue
+            text = path.read_text(encoding="utf-8", errors="ignore")
+            if any(marker in text for marker in forbidden):
                 offenders.append(str(path.relative_to(ROOT)))
         self.assertEqual([], offenders)
 

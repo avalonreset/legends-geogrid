@@ -56,15 +56,15 @@ The refresh passes 174 tests and four offline PDF workflows. The version and rel
 - There are no background daemons, historical trend charts, multi-user accounts, hosted service, or support SLA.
 - Scans represent bounded point observations, not certified market coverage or guaranteed ranking predictions.
 
-## Starter case study dataset (v0.2.0)
+## Starter case study dataset (v0.3.0)
 
-The bundled Home Slice Pizza starter case study (`src/data/home-slice-study.json`, `src/data/home-slice-campaign-research.json`, `src/data/home-slice-name-review.json`, and `examples/starter-home-slice/report/`) is a complete v0.2.0 Austin study for `Home Slice Pizza` (`1415 S Congress Ave, Austin, TX 78704`, CID `12299280573550492680`), collected October 19, 2026:
+The bundled Cosmi's Deli starter case study (`src/data/cosmis-deli-philly-study.json`, `src/data/cosmis-deli-philly-campaign-research.json`, `src/data/cosmis-deli-philly-name-review.json`, and `examples/cosmis-deli-philly/report/report.pdf`) is a complete v0.3.0 South Philadelphia study for `Cosmi's Deli` (`1501 S 8th St, Philadelphia, PA 19147`, CID `16185332969118112427`), collected November 25, 2026:
 
-- Footprint: `10-mile` radius (`16.09344 km`), `0.5-mile` spacing (`0.804672 km`), `1,249` shared circular-lattice origins (`radius_grid`).
-- Queries (4 distinct themes): `pizza restaurant` (`21` top-3, `261` top-10, `917` found), `new york style pizza` (`549` top-3, `1,023` top-10, `1,249` found), `pizza by the slice` (`470` top-3, `952` top-10, `1,183` found), and `pizza takeout` (`6` top-3, `222` top-10, `850` found).
-- Controls: DataForSEO Google Maps Standard Queue, `depth = 30`, `zoom = 13`, `search_this_area = false` (`4,996` tasks, `$2.9976` SERP collection spend).
-- Business-name review: `165` first-place winning profiles verified via Standard Queue GBP tasks (`$0.2475`) and `139` captured websites, with `79` recurring leaders source-reviewed and scored on the `0-5` `title-evidence-v1` rubric.
-- Completed report: 18-page PDF (`examples/starter-home-slice/report/report.pdf`) and HTML (`examples/starter-home-slice/report/report.html`) with OpenFreeMap street basemaps and `pypdfium2` QA verification.
+- Footprint: `6.0-mile` radius, `0.5-mile` uniform circular honeycomb (`hex_radius`), `458` dry-land pins clipped against 8 OSM Delaware and Schuylkill river polygons (`291` Pennsylvania home-landmass pins, `167` detached New Jersey pins).
+- Queries (3 distinct themes): `sandwich shop`, `hoagie`, and `cheesesteak` (`1,374` shared search observations at `depth = 30`, `1,170` observed business profiles).
+- Campaigns: 4 grounded agent campaign plans + 5 avoid zones (including detached New Jersey landmass and Point Breeze / PES Refinery non-serviceable industrial tract).
+- Business-name review: all `250` first-place winning profiles audited (`Pending 0`) with live GBP profile refreshes, website captures, GBP storefront/logo photos, and official keyless Street View links (`14` corroborated discrepancies).
+- Completed report: 5-page 30-layer vector-hex PDF (`examples/cosmis-deli-philly/report/report.pdf`) with marching-squares rank topography and river-clipped Local Leaders hex grid.
 
 It is a saved demonstration snapshot, not a live real-time ranking claim.
 

@@ -117,7 +117,7 @@ describe('Territory intelligence evidence and spatial rules', () => {
     assert.equal(r.serviceGapAreas[0].label, 'Service gap')
     assert.equal(r.serviceGapAreas[0].lens, 'serviceGap')
   })
-  it('frontier uses only direct top-ten adjacency, not an entire connected rank11–30 patch', () => {
+  it('frontier uses only direct top-ten adjacency, not an entire connected rank11-30 patch', () => {
     const m = fixture()
     set(m, '0,0', 3); set(m, '1,0', 12); set(m, '2,0', 20); set(m, '1,1', 21)
     const r = territoryIntelligence(m, 'q1')
@@ -149,5 +149,114 @@ describe('Territory intelligence evidence and spatial rules', () => {
     assert.notEqual(r, territoryIntelligence(m, 'q2'))
     assert.equal(JSON.stringify(m), before)
     assert.equal(territoryIntelligence(m, 'invalid').available, false)
+  })
+})
+
+describe('Territory intelligence on hex_radius lattices (including coastal water-clipped grids)', () => {
+  function hexFixture({ dropEastOcean = false, omitHexMeta = false } = {}) {
+    const center = { lat: 25.8043047, lng: -80.1955704 }
+    const spacingKm = 0.5 * MILE_KM
+    const radiusKm = 1.55 * MILE_KM
+    const cosLat = Math.cos((center.lat * Math.PI) / 180)
+    const points = []
+    for (let q = -3; q <= 3; q++) {
+      for (let r = -3; r <= 3; r++) {
+        const eastKm = spacingKm * (q + r / 2)
+        const northKm = spacingKm * (Math.sqrt(3) / 2) * r
+        if (Math.hypot(eastKm, northKm) > radiusKm) continue
+        if (dropEastOcean && eastKm > spacingKm * 0.4) continue
+        const pt = {
+          id: `hex_${q}_${r}`,
+          lat: Number((center.lat + northKm / 111.195).toFixed(7)),
+          lng: Number((center.lng + eastKm / (111.195 * cosLat)).toFixed(7)),
+          observations: { q1: observation(), q2: observation(null, 'q2') },
+        }
+        if (!omitHexMeta) pt.hex = { unit_q: q, unit_r: r, rung_miles: 0.5 }
+        points.push(pt)
+      }
+    }
+    return {
+      depth: 30,
+      targetId: 'TARGET',
+      businesses: [{ id: 'TARGET', name: 'Primary', cid: 'primary', target: true }],
+      queries: [{ id: 'q1', name: 'car detailing' }, { id: 'q2', name: 'car wash' }],
+      sampling: { geometry: 'hex_radius', center, spacing_km: spacingKm, radius_km: radiusKm, hex: { step: 1, unit_miles: 0.5 } },
+      points,
+    }
+  }
+
+  it('clusters 6-neighbor hex adjacencies (including diagonal axial neighbors [1,-1] and [-1,1])', () => {
+    const m = hexFixture()
+    // (0,0) and (1,-1) are direct hex neighbors (not orthogonal on a square grid!)
+    set(m, 'hex_0_0', 1); set(m, 'hex_1_-1', 2)
+    // (-1,1) touches (0,0) -> advance; (-1,0) touches (-1,1) -> advance -> connected 2-pin advance area!
+    set(m, 'hex_-1_1', 5); set(m, 'hex_-1_0', 7)
+    // Service gap: (-1,1) ranks #2 on q2
+    set(m, 'hex_-1_1', 2, 'q2')
+    // Frontier: (-2,1) is build (rank 15) touching (-1,1) and (-1,0)
+    set(m, 'hex_-2_1', 15)
+    // Non-frontier build: (0,2) has no neighbor in top-10
+    set(m, 'hex_0_2', 22)
+
+    const r = territoryIntelligence(m, 'q1')
+    assert.equal(r.available, true)
+    assert.equal(r.counts.defend, 2)
+    assert.equal(r.counts.advance, 2)
+    assert.equal(r.counts.serviceGap, 1)
+    assert.equal(r.counts.frontier, 1)
+    assert.equal(r.counts.build, 2)
+    assert.equal(r.missingOrigins, 0)
+
+    const defendAreas = r.areas.filter(a => a.band === 'defend')
+    assert.equal(defendAreas.length, 1, '(0,0) and (1,-1) must form one connected hex defend cluster')
+    assert.deepEqual(defendAreas[0].originIds.sort(), ['hex_0_0', 'hex_1_-1'])
+
+    const advanceAreas = r.areas.filter(a => a.band === 'advance')
+    assert.equal(advanceAreas.length, 1)
+    assert.equal(advanceAreas[0].count, 2)
+    assert.equal(advanceAreas[0].serviceGapCount, 1)
+    assert.ok(r.featuredAreas.length >= 2)
+    assert.equal(r.frontierAreas.length, 1)
+    assert.deepEqual(r.frontierAreas[0].originIds, ['hex_-2_1'])
+  })
+
+  it('handles coastal water-clipped hex grids cleanly without inventing missing ocean cells', () => {
+    const m = hexFixture({ dropEastOcean: true })
+    set(m, 'hex_0_0', 2); set(m, 'hex_-1_0', 3)
+    set(m, 'hex_-2_0', 6); set(m, 'hex_-1_1', 8)
+    set(m, 'hex_-2_1', 14); set(m, 'hex_-3_1', 18)
+    const r = territoryIntelligence(m, 'q1')
+    assert.equal(r.available, true)
+    assert.equal(r.missingOrigins, 0, 'clipped ocean pins must not become synthetic missing cells')
+    assert.equal(r.counts.unknown, 0)
+    assert.equal(r.expectedOrigins, m.points.length)
+    assert.ok(r.featuredAreas.length >= 2)
+    assert.ok(r.frontierAreas.some(a => a.originIds.includes('hex_-2_1')))
+  })
+
+  it('supports spacing-based fallback adjacency when p.hex metadata is absent', () => {
+    const m = hexFixture({ dropEastOcean: true, omitHexMeta: true })
+    set(m, 'hex_0_0', 4); set(m, 'hex_-1_0', 6); set(m, 'hex_-1_1', 9)
+    const r = territoryIntelligence(m, 'q1')
+    assert.equal(r.available, true)
+    const adv = r.areas.filter(a => a.band === 'advance')
+    assert.equal(adv.length, 1)
+    assert.equal(adv[0].count, 3)
+  })
+
+  it('populates featured areas, frontiers, and service gaps on the bundled Cosmi Deli South Philadelphia hex study', async () => {
+    const { readFileSync } = await import('node:fs')
+    const { resolve } = await import('node:path')
+    const { normalizeStudy } = await import('../src/study-model.js')
+    const raw = JSON.parse(readFileSync(resolve(import.meta.dirname, '../src/data/cosmis-deli-philly-study.json'), 'utf8'))
+    const model = normalizeStudy(raw)
+    for (const q of model.queries) {
+      const intel = territoryIntelligence(model, q.id)
+      assert.equal(intel.available, true, `territoryIntelligence must be available for ${q.name}`)
+      assert.equal(intel.expectedOrigins, 458)
+      assert.equal(intel.missingOrigins, 0)
+      if (q.id !== 'q2') assert.equal(intel.counts.unknown, 0)
+      assert.ok(intel.featuredAreas.length >= 1, `expected featured areas for ${q.name}`)
+    }
   })
 })

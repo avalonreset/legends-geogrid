@@ -440,48 +440,147 @@ class BusinessNameReviewTests(unittest.TestCase):
         review.attach_source_reviews(self.root, [case])
         self.assertNotIn("source_review", case)
 
-    def test_streetview_quest_filters_time_machine_and_steps_along_road(self):
+    def test_official_streetview_static_api_requires_key_and_never_leaks_key(self):
         from unittest import mock
-        # Simulate an indoor 1-node response at radius=18 followed by an outdoor road graph at radius=30
-        indoor_resp = [None, [None, [2, "indoor_pano"], None, None, None, [[
-            [1], [[None, None, 30.3000, -97.7000]], None,
-            [[[[2, "indoor_pano"], None, [[None, None, 30.3000, -97.7000]]]]],
-            None, None, None, None, []
-        ]]]]
-        outdoor_resp = [None, [None, [2, "pano_v0"], None, None, None, [[
-            [1], [[None, None, 30.30015, -97.7000]], None,
-            [[
-                [[2, "pano_v0"], None, [[None, None, 30.30015, -97.7000]]],
-                [[2, "pano_v1"], None, [[None, None, 30.30015, -97.70015]]],
-                [[2, "pano_old_2018"], None, [[None, None, 30.30016, -97.7000]]],
-                [[2, "pano_v2"], None, [[None, None, 30.30015, -97.69985]]],
-            ]],
-            None, None, None, None, [[2, [2018, 5]]]
-        ]]]]
-        calls = iter([indoor_resp, outdoor_resp])
+        # Keyless official Maps URL clickout works with zero API keys
+        map_url = review.official_streetview_map_url(39.930312, -75.158037)
+        self.assertEqual(
+            map_url,
+            "https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=39.930312,-75.158037",
+        )
+        # Opt-in --official-streetview refuses without API key
+        self.profile("22")
+        with mock.patch.dict("os.environ", {"GOOGLE_STREETVIEW_API_KEY": "", "GOOGLE_MAPS_API_KEY": ""}, clear=False):
+            with self.assertRaisesRegex(ValueError, "GOOGLE_STREETVIEW_API_KEY"):
+                review.fetch_photos(self.root, official_streetview=True)
+
+        # Official Metadata + Static API call computes compass heading and never writes API key to manifest
+        meta_resp = {
+            "status": "OK",
+            "pano_id": "official_pano_123",
+            "date": "2025-07",
+            "copyright": "© Google",
+            "location": {"lat": 39.9305, "lng": -75.1580},
+        }
+        seen_urls = []
         class FakeResp:
-            def __init__(self, payload):
-                self.payload = payload
+            def __init__(self, body):
+                self.body = body
             def __enter__(self):
                 return self
             def __exit__(self, *args):
                 pass
-            def read(self):
-                return json.dumps(self.payload).encode("utf-8")
-        with mock.patch("urllib.request.urlopen", side_effect=lambda *a, **k: FakeResp(next(calls))):
-            urls = review.streetview_quest_urls(30.3000, -97.7000, max_vantages=3)
-        self.assertEqual(len(urls), 3)
-        self.assertTrue(any("panoid=pano_v0" in u for u in urls))
-        self.assertTrue(any("panoid=pano_v1" in u for u in urls))
-        self.assertTrue(any("panoid=pano_v2" in u for u in urls))
-        self.assertFalse(any("pano_old_2018" in u for u in urls))
-        self.assertFalse(any("indoor_pano" in u for u in urls))
+            def read(self, _n=-1):
+                return self.body
+
+        def fake_open(req, timeout=15):
+            seen_urls.append(req.full_url)
+            if "/streetview/metadata" in req.full_url:
+                return FakeResp(json.dumps(meta_resp).encode("utf-8"))
+            return FakeResp(b"\xff\xd8\xff\xd9")
+
+        with mock.patch("urllib.request.urlopen", side_effect=fake_open):
+            raw_img, meta = review.official_streetview_fetch_image(39.9303, -75.1580, "secret-gmaps-key-xyz")
+        self.assertEqual(raw_img, b"\xff\xd8\xff\xd9")
+        self.assertEqual(meta["pano_id"], "official_pano_123")
+        self.assertTrue(any("maps.googleapis.com/maps/api/streetview/metadata" in u and "source=outdoor" in u for u in seen_urls))
+        self.assertTrue(any("maps.googleapis.com/maps/api/streetview?" in u and "pano=official_pano_123" in u for u in seen_urls))
+        self.assertNotIn("secret-gmaps-key-xyz", json.dumps(meta))
+
+    def test_firecrawl_website_capture_parses_branding_and_records_provider(self):
+        from unittest import mock
+        fake_fc = {
+            "success": True,
+            "data": {
+                "rawHtml": '<html><head><title>Example Deli</title><meta property="og:site_name" content="Example Deli"></head><body><h1>Example Deli</h1></body></html>',
+                "metadata": {"sourceURL": "https://example.test/", "title": "Example Deli", "ogSiteName": "Example Deli"},
+            },
+        }
+        class FakeResp:
+            def __enter__(self):
+                return self
+            def __exit__(self, *args):
+                pass
+            def read(self, _n=-1):
+                return json.dumps(fake_fc).encode("utf-8")
+
+        with mock.patch.dict("os.environ", {"FIRECRAWL_API_KEY": "fc-test-secret"}, clear=False):
+            with mock.patch("business_name_review.public_url", side_effect=lambda u: u):
+                with mock.patch("urllib.request.urlopen", return_value=FakeResp()) as m_open:
+                    rec = review.capture_site("https://example.test/", self.root, provider="firecrawl")
+        self.assertEqual(rec["status"], "captured")
+        self.assertEqual(rec["capture_provider"], "firecrawl")
+        self.assertTrue(any(n["name"] == "Example Deli" for n in rec["names"]))
+        req_sent = m_open.call_args[0][0]
+        self.assertEqual(req_sent.full_url, "https://api.firecrawl.dev/v1/scrape")
+        self.assertNotIn("fc-test-secret", json.dumps(rec))
 
     def test_optional_jev_signage_graceful_when_absent(self):
         from unittest import mock
         with mock.patch.dict("sys.modules", {"legends_jev": None, "legends_jev.core": None}):
             res = review.try_jev_optical_signage("Example Pizza", ["Pizza"], {"main": self.root / "missing.jpg"})
         self.assertEqual(res["status"], "unavailable")
+
+    def test_jev_signage_v2_and_v1_receipts_preserve_fields_through_export(self):
+        import types
+        from unittest import mock
+
+        img = self.root / "sample.jpg"
+        img.write_bytes(b"\xff\xd8\xff\xd9")
+
+        v2_receipt = {
+            "schema": "legends-jev/signage-receipt-v2",
+            "status": "suggestion",
+            "verdict": "different_business",
+            "best_image": "streetview_v1",
+            "best_streetview": "streetview_v1",
+            "physical_sign_visible": 0.93,
+            "suspect_terms_shown": 0.02,
+            "core_brand": "Example Heating",
+            "core_brand_shown": 0.05,
+            "verdict_confidence": 0.91,
+            "latency_ms": 205.0,
+        }
+        v1_receipt = {
+            "schema": "legends-jev/signage-receipt-v1",
+            "status": "suggestion",
+            "verdict": "omits_suspect_terms",
+            "best_image": "streetview",
+            "best_streetview": "streetview",
+            "physical_sign_visible": 0.87,
+            "suspect_terms_shown": 0.11,
+            "latency_ms": 180.0,
+        }
+
+        for receipt in (v2_receipt, v1_receipt):
+            fake_jev = types.ModuleType("legends_jev")
+            fake_core = types.ModuleType("legends_jev.core")
+            fake_provider = types.ModuleType("legends_jev.provider")
+            fake_core.load_image_entry = lambda p: {"path": str(p)}
+            fake_core.inspect_signage = lambda title, terms, images, call_fn, _r=receipt: dict(_r)
+            fake_provider.call = lambda *a, **k: {}
+            with mock.patch.dict("sys.modules", {
+                "legends_jev": fake_jev,
+                "legends_jev.core": fake_core,
+                "legends_jev.provider": fake_provider,
+            }):
+                res = review.try_jev_optical_signage("Example Heating Best AC", ["Best AC"], {"main": img})
+            self.assertEqual(res["verdict"], receipt["verdict"])
+            self.assertEqual(res.get("core_brand"), receipt.get("core_brand"))
+            self.assertEqual(res.get("core_brand_shown"), receipt.get("core_brand_shown"))
+            self.assertEqual(res.get("verdict_confidence"), receipt.get("verdict_confidence"))
+
+        # Confirm export preserves v2 jev_optical fields from photos-manifest.json
+        profile_path = self.profile()
+        pdata = review.load(profile_path)
+        pdata["checked_at"] = review.now()
+        review.save(profile_path, pdata)
+        review.save(self.root / "photos-manifest.json", {"22": {"jev_optical": v2_receipt}})
+        exported = next(c for c in review.export(self.root)["cases"] if c["cid"] == "22")
+        self.assertEqual(exported["profile"]["jev_optical"]["verdict"], "different_business")
+        self.assertEqual(exported["profile"]["jev_optical"]["core_brand"], "Example Heating")
+        self.assertEqual(exported["profile"]["jev_optical"]["core_brand_shown"], 0.05)
+        self.assertEqual(exported["profile"]["jev_optical"]["verdict_confidence"], 0.91)
 
     def test_typesafe_api_key_file_and_symlink_refusal(self):
         key_file = self.root / "typesafe.key"

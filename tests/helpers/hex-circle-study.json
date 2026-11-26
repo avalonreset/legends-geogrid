@@ -1,0 +1,638 @@
+{
+ "schema": "geogrid-companion/v1",
+ "generated_at": "2026-11-20T18:41:02+00:00",
+ "business": {
+  "name": "Biz",
+  "cid": "1"
+ },
+ "target": {
+  "name": "Biz",
+  "cid": "1",
+  "lat": 30,
+  "lng": -97
+ },
+ "location": "Here",
+ "factions": [
+  {
+   "faction_id": "cid:1",
+   "name": "Biz",
+   "is_target": true,
+   "cid": "1",
+   "place_id": null,
+   "domain": null,
+   "lat": 30,
+   "lng": -97,
+   "location_estimated": false,
+   "discovered": false,
+   "rating": 4.8,
+   "votes_count": 50,
+   "address": null
+  },
+  {
+   "faction_id": "cid:99",
+   "name": "Rival",
+   "is_target": false,
+   "cid": "99",
+   "place_id": null,
+   "domain": null,
+   "lat": 30.0,
+   "lng": -97.0,
+   "location_estimated": false,
+   "discovered": true,
+   "rating": 4.5,
+   "votes_count": 10,
+   "address": null,
+   "selection": {
+    "position": 1,
+    "visibility_score": 280
+   }
+  }
+ ],
+ "lanes": [
+  {
+   "lane_id": "q1",
+   "query": "a"
+  },
+  {
+   "lane_id": "q2",
+   "query": "b"
+  }
+ ],
+ "points": [
+  {
+   "tag": "hex_-2_0",
+   "lat": 30.0,
+   "lng": -97.025,
+   "distance_from_target_km": 2.414,
+   "roles": [
+    "coarse"
+   ],
+   "phase": "coarse",
+   "anchor_factions": [],
+   "by_lane": {
+    "q1": {
+     "target_rank": 1,
+     "status": "ok",
+     "sampled_at": null,
+     "top_items": [
+      {
+       "title": "Biz",
+       "rank": 1,
+       "cid": "1",
+       "rating": 4.8,
+       "votes_count": 50,
+       "latitude": 30.0,
+       "longitude": -97.0
+      },
+      {
+       "title": "Rival",
+       "rank": 1,
+       "cid": "99",
+       "rating": 4.5,
+       "votes_count": 10,
+       "latitude": 30.0,
+       "longitude": -97.0
+      }
+     ]
+    },
+    "q2": {
+     "target_rank": 1,
+     "status": "ok",
+     "sampled_at": null,
+     "top_items": [
+      {
+       "title": "Biz",
+       "rank": 1,
+       "cid": "1",
+       "rating": 4.8,
+       "votes_count": 50,
+       "latitude": 30.0,
+       "longitude": -97.0
+      },
+      {
+       "title": "Rival",
+       "rank": 1,
+       "cid": "99",
+       "rating": 4.5,
+       "votes_count": 10,
+       "latitude": 30.0,
+       "longitude": -97.0
+      }
+     ]
+    }
+   },
+   "hex": {
+    "unit_q": -2,
+    "unit_r": 0,
+    "first_rung_miles": 0.75,
+    "rung_miles": 1.5
+   }
+  },
+  {
+   "tag": "hex_-2_2",
+   "lat": 30.018826639212705,
+   "lng": -97.0125,
+   "distance_from_target_km": 2.414,
+   "roles": [
+    "coarse"
+   ],
+   "phase": "coarse",
+   "anchor_factions": [],
+   "by_lane": {
+    "q1": {
+     "target_rank": 1,
+     "status": "ok",
+     "sampled_at": null,
+     "top_items": [
+      {
+       "title": "Biz",
+       "rank": 1,
+       "cid": "1",
+       "rating": 4.8,
+       "votes_count": 50,
+       "latitude": 30.0,
+       "longitude": -97.0
+      },
+      {
+       "title": "Rival",
+       "rank": 1,
+       "cid": "99",
+       "rating": 4.5,
+       "votes_count": 10,
+       "latitude": 30.0,
+       "longitude": -97.0
+      }
+     ]
+    },
+    "q2": {
+     "target_rank": 1,
+     "status": "ok",
+     "sampled_at": null,
+     "top_items": [
+      {
+       "title": "Biz",
+       "rank": 1,
+       "cid": "1",
+       "rating": 4.8,
+       "votes_count": 50,
+       "latitude": 30.0,
+       "longitude": -97.0
+      },
+      {
+       "title": "Rival",
+       "rank": 1,
+       "cid": "99",
+       "rating": 4.5,
+       "votes_count": 10,
+       "latitude": 30.0,
+       "longitude": -97.0
+      }
+     ]
+    }
+   },
+   "hex": {
+    "unit_q": -2,
+    "unit_r": 2,
+    "first_rung_miles": 0.75,
+    "rung_miles": 1.5
+   }
+  },
+  {
+   "tag": "hex_0_-2",
+   "lat": 29.981173360787295,
+   "lng": -97.0125,
+   "distance_from_target_km": 2.414,
+   "roles": [
+    "coarse"
+   ],
+   "phase": "coarse",
+   "anchor_factions": [],
+   "by_lane": {
+    "q1": {
+     "target_rank": 1,
+     "status": "ok",
+     "sampled_at": null,
+     "top_items": [
+      {
+       "title": "Biz",
+       "rank": 1,
+       "cid": "1",
+       "rating": 4.8,
+       "votes_count": 50,
+       "latitude": 30.0,
+       "longitude": -97.0
+      },
+      {
+       "title": "Rival",
+       "rank": 1,
+       "cid": "99",
+       "rating": 4.5,
+       "votes_count": 10,
+       "latitude": 30.0,
+       "longitude": -97.0
+      }
+     ]
+    },
+    "q2": {
+     "target_rank": 1,
+     "status": "ok",
+     "sampled_at": null,
+     "top_items": [
+      {
+       "title": "Biz",
+       "rank": 1,
+       "cid": "1",
+       "rating": 4.8,
+       "votes_count": 50,
+       "latitude": 30.0,
+       "longitude": -97.0
+      },
+      {
+       "title": "Rival",
+       "rank": 1,
+       "cid": "99",
+       "rating": 4.5,
+       "votes_count": 10,
+       "latitude": 30.0,
+       "longitude": -97.0
+      }
+     ]
+    }
+   },
+   "hex": {
+    "unit_q": 0,
+    "unit_r": -2,
+    "first_rung_miles": 0.75,
+    "rung_miles": 1.5
+   }
+  },
+  {
+   "tag": "hex_0_0",
+   "lat": 30.0,
+   "lng": -97.0,
+   "distance_from_target_km": 0.0,
+   "roles": [
+    "coarse"
+   ],
+   "phase": "coarse",
+   "anchor_factions": [],
+   "by_lane": {
+    "q1": {
+     "target_rank": 1,
+     "status": "ok",
+     "sampled_at": null,
+     "top_items": [
+      {
+       "title": "Biz",
+       "rank": 1,
+       "cid": "1",
+       "rating": 4.8,
+       "votes_count": 50,
+       "latitude": 30.0,
+       "longitude": -97.0
+      },
+      {
+       "title": "Rival",
+       "rank": 1,
+       "cid": "99",
+       "rating": 4.5,
+       "votes_count": 10,
+       "latitude": 30.0,
+       "longitude": -97.0
+      }
+     ]
+    },
+    "q2": {
+     "target_rank": 1,
+     "status": "ok",
+     "sampled_at": null,
+     "top_items": [
+      {
+       "title": "Biz",
+       "rank": 1,
+       "cid": "1",
+       "rating": 4.8,
+       "votes_count": 50,
+       "latitude": 30.0,
+       "longitude": -97.0
+      },
+      {
+       "title": "Rival",
+       "rank": 1,
+       "cid": "99",
+       "rating": 4.5,
+       "votes_count": 10,
+       "latitude": 30.0,
+       "longitude": -97.0
+      }
+     ]
+    }
+   },
+   "hex": {
+    "unit_q": 0,
+    "unit_r": 0,
+    "first_rung_miles": 0.75,
+    "rung_miles": 1.5
+   }
+  },
+  {
+   "tag": "hex_0_2",
+   "lat": 30.018826639212705,
+   "lng": -96.9875,
+   "distance_from_target_km": 2.414,
+   "roles": [
+    "coarse"
+   ],
+   "phase": "coarse",
+   "anchor_factions": [],
+   "by_lane": {
+    "q1": {
+     "target_rank": 1,
+     "status": "ok",
+     "sampled_at": null,
+     "top_items": [
+      {
+       "title": "Biz",
+       "rank": 1,
+       "cid": "1",
+       "rating": 4.8,
+       "votes_count": 50,
+       "latitude": 30.0,
+       "longitude": -97.0
+      },
+      {
+       "title": "Rival",
+       "rank": 1,
+       "cid": "99",
+       "rating": 4.5,
+       "votes_count": 10,
+       "latitude": 30.0,
+       "longitude": -97.0
+      }
+     ]
+    }
+   },
+   "hex": {
+    "unit_q": 0,
+    "unit_r": 2,
+    "first_rung_miles": 0.75,
+    "rung_miles": 1.5
+   }
+  },
+  {
+   "tag": "hex_2_-2",
+   "lat": 29.981173360787295,
+   "lng": -96.9875,
+   "distance_from_target_km": 2.414,
+   "roles": [
+    "coarse"
+   ],
+   "phase": "coarse",
+   "anchor_factions": [],
+   "by_lane": {
+    "q1": {
+     "target_rank": 1,
+     "status": "ok",
+     "sampled_at": null,
+     "top_items": [
+      {
+       "title": "Biz",
+       "rank": 1,
+       "cid": "1",
+       "rating": 4.8,
+       "votes_count": 50,
+       "latitude": 30.0,
+       "longitude": -97.0
+      },
+      {
+       "title": "Rival",
+       "rank": 1,
+       "cid": "99",
+       "rating": 4.5,
+       "votes_count": 10,
+       "latitude": 30.0,
+       "longitude": -97.0
+      }
+     ]
+    }
+   },
+   "hex": {
+    "unit_q": 2,
+    "unit_r": -2,
+    "first_rung_miles": 0.75,
+    "rung_miles": 1.5
+   }
+  },
+  {
+   "tag": "hex_2_0",
+   "lat": 30.0,
+   "lng": -96.975,
+   "distance_from_target_km": 2.414,
+   "roles": [
+    "coarse"
+   ],
+   "phase": "coarse",
+   "anchor_factions": [],
+   "by_lane": {
+    "q1": {
+     "target_rank": 1,
+     "status": "ok",
+     "sampled_at": null,
+     "top_items": [
+      {
+       "title": "Biz",
+       "rank": 1,
+       "cid": "1",
+       "rating": 4.8,
+       "votes_count": 50,
+       "latitude": 30.0,
+       "longitude": -97.0
+      },
+      {
+       "title": "Rival",
+       "rank": 1,
+       "cid": "99",
+       "rating": 4.5,
+       "votes_count": 10,
+       "latitude": 30.0,
+       "longitude": -97.0
+      }
+     ]
+    }
+   },
+   "hex": {
+    "unit_q": 2,
+    "unit_r": 0,
+    "first_rung_miles": 0.75,
+    "rung_miles": 1.5
+   }
+  },
+  {
+   "tag": "hex_1_0",
+   "lat": 30.0,
+   "lng": -96.9875,
+   "distance_from_target_km": 1.207,
+   "roles": [
+    "refine_0.75"
+   ],
+   "phase": "refine_0.75",
+   "anchor_factions": [],
+   "by_lane": {
+    "q1": {
+     "target_rank": 3,
+     "status": "ok",
+     "sampled_at": null,
+     "top_items": [
+      {
+       "title": "Rival",
+       "rank": 1,
+       "cid": "99",
+       "rating": 4.5,
+       "votes_count": 10,
+       "latitude": 30.0,
+       "longitude": -97.0
+      },
+      {
+       "title": "Biz",
+       "rank": 3,
+       "cid": "1",
+       "rating": 4.8,
+       "votes_count": 50,
+       "latitude": 30.0,
+       "longitude": -97.0
+      }
+     ]
+    }
+   },
+   "hex": {
+    "unit_q": 1,
+    "unit_r": 0,
+    "first_rung_miles": 0.75,
+    "rung_miles": 0.75
+   }
+  },
+  {
+   "tag": "hex_0_1",
+   "lat": 30.009413319606352,
+   "lng": -96.99375,
+   "distance_from_target_km": 1.207,
+   "roles": [
+    "refine_0.75"
+   ],
+   "phase": "refine_0.75",
+   "anchor_factions": [],
+   "by_lane": {
+    "q1": {
+     "target_rank": null,
+     "status": "not_returned_depth_reached",
+     "sampled_at": null,
+     "top_items": [
+      {
+       "title": "Rival",
+       "rank": 1,
+       "cid": "99",
+       "rating": 4.5,
+       "votes_count": 10,
+       "latitude": 30.0,
+       "longitude": -97.0
+      }
+     ]
+    }
+   },
+   "hex": {
+    "unit_q": 0,
+    "unit_r": 1,
+    "first_rung_miles": 0.75,
+    "rung_miles": 0.75
+   }
+  },
+  {
+   "tag": "hex_-1_0",
+   "lat": 30.0,
+   "lng": -97.0125,
+   "distance_from_target_km": 1.207,
+   "roles": [
+    "refine_0.75"
+   ],
+   "phase": "refine_0.75",
+   "anchor_factions": [],
+   "by_lane": {
+    "q1": {
+     "target_rank": null,
+     "status": "instrument_limited",
+     "sampled_at": null,
+     "top_items": [
+      {
+       "title": "Rival",
+       "rank": 1,
+       "cid": "99",
+       "rating": 4.5,
+       "votes_count": 10,
+       "latitude": 30.0,
+       "longitude": -97.0
+      }
+     ]
+    }
+   },
+   "hex": {
+    "unit_q": -1,
+    "unit_r": 0,
+    "first_rung_miles": 0.75,
+    "rung_miles": 0.75
+   }
+  }
+ ],
+ "study": {
+  "geometry": "hex_radius",
+  "depth": 20,
+  "total_points": 10,
+  "sampling": {
+   "geometry": "hex_radius",
+   "radius_km": 2.5749504000000005,
+   "spacing_km": 2.414016,
+   "center": {
+    "lat": 30,
+    "lng": -97
+   },
+   "description": "2.57495 km radius \u00b7 2.414016 km honeycomb",
+   "study_radius_miles": 1.6,
+   "hex": {
+    "unit_miles": 0.75,
+    "step": 2
+   }
+  },
+  "controls": {
+   "zoom": 12,
+   "device": "desktop",
+   "depth": 20
+  },
+  "edge_signal": {
+   "q1": {
+    "ring_points": 6,
+    "scored": 6,
+    "top3": 6,
+    "share": 1.0,
+    "radius_miles": 1.6,
+    "extends": true
+   },
+   "q2": {
+    "ring_points": 3,
+    "scored": 3,
+    "top3": 3,
+    "share": 1.0,
+    "radius_miles": 1.6,
+    "extends": true
+   }
+  }
+ },
+ "study_views": [
+  {
+   "label": "Full circle 2.414016 km honeycomb, all rungs",
+   "url": "/runs/demo/companion/view-1.5/companion-study.json"
+  }
+ ],
+ "evidence": {
+  "source_run": "demo",
+  "note": "Exported from saved run results; no new searches."
+ }
+}

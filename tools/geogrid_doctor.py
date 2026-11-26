@@ -17,7 +17,7 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT / "tools") not in sys.path:
     sys.path.insert(0, str(ROOT / "tools"))
 
-from report_basemaps import has_configured_google_key  # noqa: E402
+from report_basemaps import google_key_status  # noqa: E402
 
 
 def ok(label: str, detail: str = "") -> None:
@@ -50,6 +50,7 @@ def main() -> int:
     parser.add_argument('--jev', action='store_true', help='Check optional legends-jev v0.2.0+ optical recognition readiness')
     parser.add_argument('--basemaps', action='store_true', help='Check local street-map browser setup; no network or paid requests')
     parser.add_argument('--check-playwright', action='store_true', help='Verify local Playwright Chromium launch readiness for street basemaps')
+    parser.add_argument('--via-gambit', action='store_true', help='Show optional legends-gambit onboarding alongside 100%% free local BYO setup')
     parser.add_argument('--json', action='store_true', help='Emit machine-readable JSON readiness summary')
     args = parser.parse_args()
     checks: list[dict[str, str]] = []
@@ -72,10 +73,10 @@ def main() -> int:
     required = [
         "package.json",
         "src/main.js",
-        "src/data/home-slice-study.json",
-        "src/data/home-slice-campaign-research.json",
-        "src/data/home-slice-name-review.json",
-        "examples/starter-home-slice/report/report.pdf",
+        "src/data/cosmis-deli-philly-study.json",
+        "src/data/cosmis-deli-philly-campaign-research.json",
+        "src/data/cosmis-deli-philly-name-review.json",
+        "examples/cosmis-deli-philly/report/report.pdf",
         "assets/companion-runtime.js",
         "assets/companion-runtime.css",
         "tools/companion_standalone.py",
@@ -101,10 +102,22 @@ def main() -> int:
         except Exception:
             missing.append('street-map browser')
             record_fail('street-map browser', 'pip install -r requirements-basemaps.txt; python -m playwright install --with-deps chromium (Linux system libraries included)')
-        if has_configured_google_key(check_dotenv=True):
-            record_ok('Google Maps key', 'present; optional, not validated; explicit charge opt-in required')
+        key_status = google_key_status(check_dotenv=True)
+        key_present = bool(key_status["present"])
+        key_source = str(key_status["source"])
+        if key_present:
+            detail = f"present (source: {key_source}); optional, not validated; explicit charge opt-in required"
         else:
-            record_ok('Google Maps', 'optional; free maps work without it. See docs/BASEMAPS.md for setup')
+            detail = "missing (source: missing); optional; free maps work without it. See docs/BASEMAPS.md for setup"
+        checks.append({
+            "status": "ok",
+            "label": "Google Maps key",
+            "detail": detail,
+            "present": key_present,
+            "source": key_source,
+        })
+        if not args.json:
+            ok("Google Maps key", detail)
     if args.dataforseo:
         try:
             import legends_dataforseo
@@ -142,7 +155,7 @@ def main() -> int:
             record_fail("file", rel)
 
     try:
-        payload = json.loads((ROOT / "src/data/home-slice-study.json").read_text(encoding="utf-8"))
+        payload = json.loads((ROOT / "src/data/cosmis-deli-philly-study.json").read_text(encoding="utf-8"))
         pts = len(payload.get("points") or [])
         lanes = len(payload.get("lanes") or [])
         record_ok("starter dataset", f"{pts} points, {lanes} queries")
@@ -162,6 +175,35 @@ def main() -> int:
     else:
         record_warn("DataForSEO env", "not configured, dashboard and dry-runs still work")
 
+    gambit_info = None
+    if args.via_gambit:
+        gambit_key_present = bool(
+            (os.environ.get("LEGENDS_GAMBIT_API_KEY") or os.environ.get("GAMBIT_API_KEY") or "").strip()
+        )
+        gambit_info = {
+            "service": "legends-gambit",
+            "optional": True,
+            "byo_local_free": True,
+            "wallet_url": "https://gambit.cto-legends.com/wallet",
+            "mcp_url": "https://gambit.cto-legends.com/mcp",
+            "starter_pack": "$10 starter pack (skips $50+ upstream deposits, $0/mo, non-expiring balance)",
+            "api_key_configured": gambit_key_present,
+        }
+        record_ok(
+            "BYO local mode",
+            "100% free open-source with your own DataForSEO keys (DATAFORSEO_LOGIN + DATAFORSEO_PASSWORD, zero markup)",
+        )
+        if gambit_key_present:
+            record_ok(
+                "legends-gambit (optional)",
+                "API key detected in env; MCP endpoint https://gambit.cto-legends.com/mcp ($10 starter pack, $0/mo)",
+            )
+        else:
+            record_ok(
+                "legends-gambit (optional)",
+                "Connect at https://gambit.cto-legends.com/wallet ($10 starter pack skips $50+ upstream deposits, $0/mo)",
+            )
+
     if sys.version_info >= (3, 11):
         record_ok("Python", sys.version.split()[0])
     else:
@@ -169,7 +211,15 @@ def main() -> int:
         record_fail("Python", f"3.11+ required; found {sys.version.split()[0]}")
 
     if args.json:
-        print(json.dumps({"ok": not missing, "missing": missing, "checks": checks}, indent=2))
+        out_payload = {
+            "ok": not missing,
+            "missing": missing,
+            "google_maps_key": google_key_status(check_dotenv=True),
+            "checks": checks,
+        }
+        if gambit_info is not None:
+            out_payload["legends_gambit"] = gambit_info
+        print(json.dumps(out_payload, indent=2))
     if missing:
         return 1
     return 0

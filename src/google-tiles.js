@@ -33,11 +33,12 @@ export async function createGoogleTiles(map, style, announce, { sessionPath = DE
   const info = await viewport()
   const layer = new PersistentTileLayer(`${base}/${session.id}/tiles/{z}/{x}/{y}`, {
     attribution: `${credit}<span class="google-data-credit">${escape(info.copyright)}</span>`,
-    maxZoom: 18, maxNativeZoom: 18, keepBuffer: 0, updateWhenIdle: true,
+    maxZoom: 18, maxNativeZoom: 18, keepBuffer: 6, updateWhenZooming: false, updateWhenIdle: true,
     className: 'google-interactive-tiles',
   })
   let timer, revision = 0, warned = false, failed = false
   const updateCredit = () => {
+    if (map._smoothZooming) return
     clearTimeout(timer)
     const id = ++revision
     timer = setTimeout(async () => {
@@ -57,8 +58,8 @@ export async function createGoogleTiles(map, style, announce, { sessionPath = DE
       }
     }, 350)
   }
-  layer.on('add', () => map.on('moveend', updateCredit))
-  layer.on('remove', () => { clearTimeout(timer); revision++; map.off('moveend', updateCredit) })
+  layer.on('add', () => { map.on('moveend', updateCredit); map.on('smoothzoomend', updateCredit) })
+  layer.on('remove', () => { clearTimeout(timer); revision++; map.off('moveend', updateCredit); map.off('smoothzoomend', updateCredit) })
   layer.on('tileerror', event => {
     if (onFailure) {
       if (failed) return

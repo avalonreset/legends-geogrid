@@ -59,36 +59,114 @@ def _check_no_symlink(path: Path) -> None:
             raise BasemapError('Refusing to access symlinked or reparse path.')
 
 
-def load_dotenv_google_keys(dotenv_path: Path | None = None) -> dict[str, str]:
-    """Read GOOGLE_MAP_TILES_API_KEY / GOOGLE_MAPS_API_KEY from repo .env when present."""
+MAX_ENV_FILE_BYTES = 65536
+
+
+def _parse_google_env_file(path: Path) -> dict[str, str]:
     found: dict[str, str] = {}
-    candidates = [dotenv_path] if dotenv_path else [Path(__file__).resolve().parents[1] / '.env', Path.cwd() / '.env']
-    for candidate in candidates:
+    _check_no_symlink(path)
+    if not path.is_file():
+        return found
+    if path.stat().st_size > MAX_ENV_FILE_BYTES:
+        return found
+    with path.open('rb') as handle:
+        raw = handle.read(MAX_ENV_FILE_BYTES + 1)
+    if len(raw) > MAX_ENV_FILE_BYTES:
+        return found
+    for raw_line in raw.decode('utf-8').splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith('#') or '=' not in line:
+            continue
+        if line.startswith('export '):
+            line = line[7:].strip()
+        k, v = line.split('=', 1)
+        k, v = k.strip(), v.strip()
+        if len(v) >= 2 and v[0] == v[-1] and v[0] in ('"', "'"):
+            v = v[1:-1].strip()
+        if k in ('GOOGLE_MAP_TILES_API_KEY', 'GOOGLE_MAPS_API_KEY') and v and k not in found:
+            found[k] = v
+    return found
+
+
+def _google_env_candidates(
+    root_dir: Path | None = None,
+    user_home: Path | None = None,
+    env_file: str | Path | None = None,
+) -> list[tuple[str, Path]]:
+    raw: list[tuple[str, Path]] = []
+    explicit = env_file if env_file is not None else os.environ.get('LEGENDS_GEOGRID_ENV_FILE', '').strip()
+    if explicit:
+        raw.append(('explicit_env_file', Path(explicit)))
+    home = Path(user_home) if user_home is not None else Path.home()
+    raw.append(('user_secrets_env', home / '.cto-legends' / 'secrets' / 'geogrid.env'))
+    repo_root = Path(root_dir) if root_dir is not None else Path(__file__).resolve().parents[1]
+    raw.append(('repo_dotenv', repo_root / '.env.local'))
+    raw.append(('repo_dotenv', repo_root / '.env'))
+    if root_dir is None:
+        cwd = Path.cwd()
+        if cwd != repo_root:
+            raw.append(('repo_dotenv', cwd / '.env.local'))
+            raw.append(('repo_dotenv', cwd / '.env'))
+    deduped: list[tuple[str, Path]] = []
+    seen: set[str] = set()
+    for source, candidate in raw:
+        key = str(candidate)
+        if key in seen:
+            continue
+        seen.add(key)
+        deduped.append((source, candidate))
+    return deduped
+
+
+def load_dotenv_google_keys(
+    dotenv_path: Path | None = None,
+    *,
+    root_dir: Path | None = None,
+    user_home: Path | None = None,
+    env_file: str | Path | None = None,
+) -> dict[str, str]:
+    """Read GOOGLE_MAP_TILES_API_KEY / GOOGLE_MAPS_API_KEY from persistent or repo env files."""
+    found: dict[str, str] = {}
+    candidates = (
+        [('explicit_env_file', Path(dotenv_path))]
+        if dotenv_path
+        else _google_env_candidates(root_dir=root_dir, user_home=user_home, env_file=env_file)
+    )
+    for _, candidate in candidates:
         if not candidate:
             continue
         try:
-            _check_no_symlink(Path(candidate))
-            if not Path(candidate).is_file():
-                continue
-            for raw_line in Path(candidate).read_text(encoding='utf-8').splitlines():
-                line = raw_line.strip()
-                if not line or line.startswith('#') or '=' not in line:
-                    continue
-                k, v = line.split('=', 1)
-                k, v = k.strip(), v.strip().strip('"').strip("'")
-                if k in ('GOOGLE_MAP_TILES_API_KEY', 'GOOGLE_MAPS_API_KEY') and v and k not in found:
+            parsed = _parse_google_env_file(Path(candidate))
+            for k, v in parsed.items():
+                if k not in found:
                     found[k] = v
-        except (OSError, BasemapError):
+        except (OSError, UnicodeDecodeError, BasemapError):
             continue
     return found
 
 
-def has_configured_google_key(check_dotenv: bool = False) -> bool:
-    if os.environ.get('GOOGLE_MAPS_API_KEY', '').strip() or os.environ.get('GOOGLE_MAP_TILES_API_KEY', '').strip():
-        return True
+def google_key_status(
+    check_dotenv: bool = True,
+    *,
+    root_dir: Path | None = None,
+    user_home: Path | None = None,
+    env_file: str | Path | None = None,
+) -> dict[str, object]:
+    """Report boolean presence and source type for Google Maps keys without exposing values."""
+    if os.environ.get('GOOGLE_MAP_TILES_API_KEY', '').strip() or os.environ.get('GOOGLE_MAPS_API_KEY', '').strip():
+        return {'present': True, 'source': 'env'}
     if check_dotenv:
-        return bool(load_dotenv_google_keys())
-    return False
+        for source, candidate in _google_env_candidates(root_dir=root_dir, user_home=user_home, env_file=env_file):
+            try:
+                if _parse_google_env_file(candidate):
+                    return {'present': True, 'source': source}
+            except (OSError, UnicodeDecodeError, BasemapError):
+                continue
+    return {'present': False, 'source': 'missing'}
+
+
+def has_configured_google_key(check_dotenv: bool = False) -> bool:
+    return bool(google_key_status(check_dotenv=check_dotenv)['present'])
 
 
 class BasemapError(ValueError):

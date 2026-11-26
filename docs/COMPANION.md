@@ -71,10 +71,12 @@ See [Search-window policy](SEARCH_WINDOW_POLICY.md).
   exposes the full retained field, searchable by name, address or profile ID in
   pages of 25. Search expands beyond the shortlist. These are observed listings,
   not all verified direct competitors. Selecting any profile changes its Rankings
-  and Strike zones maps. Recurring winners (three or more first places) use business colors;
-  All winners includes even single-point winners. Both modes ignore shortlist or
-  business address. Smaller winners stay hollow, except the selected profile.
-  The Local leaders business panel orders these profiles by first-place count.
+  and Strike zones maps. All first-place winners are shown across the study
+  footprint, ignoring shortlist or base distance; target owns crimson, the top
+  15 rival brands get unique high-contrast hues, and multi-location branches
+  share a hue family. Clicking any territory or diamond focuses its 3-pack and
+  top-10 reach and pulls that profile into view in the searchable Local leaders
+  panel, ordered by first-place count.
 - **Citadels** are supplied business locations, shown as diamonds in Local leaders
   and a small ring for the selected business in Rankings. Estimated
   locations are omitted. A supplied coordinate is not independently verified by
@@ -186,17 +188,15 @@ levels solely to eliminate pixel enlargement on high-DPI screens. That experimen
 made labels too small and was reverted at the owner's request. Smooth zoom and
 tile crossfades remain enabled; OpenFreeMap vector styles are an alternative.
 
-Local leaders defaults to Recurring winners: at least three first places for
-the selected query. All winners colors every identified first-place profile;
-missing first-place evidence stays distinct. The coverage choice persists in
-the URL (`leaders=all` or `leaders=recurring`). The selected profile is an explicit
-exception. A hollow point identifies a smaller winner; hover shows its name and
-win count. It does not mean the area is vacant. Supplied business coordinates
-are retained for all observed profiles, including outside the study radius.
-Every qualifying base gets a matching diamond. Bases more than two miles beyond
-the circle edge get a dashed connector to the center of their largest connected
-winning patch (four-neighbor adjacency at the recorded spacing). Inside and
-nearby-outside bases get no connector. These lines do not imply routes, service
+Local leaders colors every identified first-place profile across the study
+footprint, while missing first-place evidence stays distinct. Clicking a
+territory or base diamond focuses its 3-pack plateau and top-10 reach and
+scrolls that leader directly into view in the searchable Businesses rail;
+double-clicking frames its full empire. Supplied business coordinates are
+retained for all observed profiles, including outside the study radius.
+Every qualifying base gets a matching diamond. Bases outside the circle draw
+a dashed connector to the center of their largest connected winning patch.
+Inside bases get no connector. These lines do not imply routes, service
 areas or additional measurements. Missing coordinates are labeled and never
 inferred. The explicit Fit circle + leader bases control reveals outside bases
 without automatically shrinking the scan on every query change. Selecting a
@@ -208,6 +208,14 @@ The optional `study_views` field contains `{label, url}` entries for related
 same-origin saved studies. The footprint selector loads each independently; it
 never merges denominators or moves observations. Each file needs its own evidence
 timestamps. Local file imports without this field work as before.
+
+## Honeycomb studies
+
+A `hex_radius` study (a honeycomb ladder) opens in the same companion. Each point carries `hex: { unit_q, unit_r }`, its lattice coordinates in half-mile units. `study.sampling.hex.step` gives the view spacing in those units. `python scripts/hex_to_companion.py runs/<run> [--location "City, ST area"] [--rivals 9] [--no-current] [--detail-views]` writes the study from the run's saved `grid/grid_points.json`, without searching, to `runs/<run>/companion/view-<s0 miles>/companion-study.json`, then points `runs/current-study.json` at it. The lattice unit is fitted from each point's `east`/`north` miles and `unit_q`/`unit_r`, so any ladder spacing works.
+
+**Circle contract.** The coarse pass fills the full circle at the study radius R (`study_radius` in the grid, `study.sampling.study_radius_miles` and `radius_km` in the study) for every query, with no early stop inside R. The main view is one view per query with every rung nested inside the circle: each point carries `hex.rung_miles`, the coarsest rung whose lattice holds it. A refined point draws at its own rung size and replaces the estimates within half its spacing. Only view-lattice points feed the estimate layers. `--detail-views` also writes the old one-spacing `refine_<miles>` studies as an option, listed in `study_views`. Nothing outside R is ever searched: the planner (`grid.py`) has no expansion step, refinement stays inside R, and `send()` refuses any task outside the circle. Points beyond R that an older run already paid for stay in the raw grid file, but the exporter drops them from the study entirely (no layer, no toggle). Edge signal: `study.edge_signal[<query>]` counts the target on the outermost base ring inside R (`ring_points`, `scored`, `top3`, `share`). When it holds the top 3 at 50% or more of at least 3 scored ring points, `extends` is true and the finding strip adds a text note that the territory likely extends past R and offers growing the circle (a new, larger full-circle study, run as an explicit paid step). It never adds pins. A point where the business lies outside the search screen and was not found has status `instrument_limited`. It draws as a small muted dotted outline ("can't see from here"), is never omitted and never counts as a loss: stats use the scored points as the denominator and the found card names the can't-see count. A found point beyond the screen keeps its rank.
+
+Rankings draw the locked 12 -> 6 -> 3 layers. Sizes follow the v6 ladder, kept small so the basemap stays readable. Measured locations are pointy-top hexagons with a corner radius of 0.13 of the spacing. Their corners face the layer-2 estimates and their flat sides face the layer-3 estimates. Layer 2 is flat-top hexagons (0.075) and layer 3 is triangles (0.045). The business is a 12-point star (0.24, always the largest shape) whose corners blend a quarter of its own color with three quarters of the point each corner faces. **estimate layers** (on by default) toggles layers 2 and 3, including the first triangle ring that the star's corners point at. On the Rankings map the star replaces the business base ring. They are visual blends of measured neighbors, never searches or ranks. A failed parent leaves an estimate unfilled, and the radius circle clips both layers. Hollow shapes are confirmed absent at the study depth, dashed shapes are failed collection, and outlines are black. Rank-one shapes glow, and a corner glints only when the point it faces is also first. A location collected for one query only is skipped for the others.
 
 ## Linked strategy workspace
 
@@ -234,22 +242,13 @@ visible, and it preserves its scroll position when a cell is selected.
 
 ## Campaign recommendations and business-title findings
 
-**Campaigns** separates agent-researched campaign options from spatial ranking
-filters. A prepared option names the business objective, evidence, proposed work,
-launch requirements, and outcomes to measure. It is a recommendation, not proof
-of customer demand or work already published. **Read plans in Strategy room**
-opens the wider view; ranking-pattern controls remain available below the plans.
-Plans may legitimately recommend further diagnosis when the data does not yet
-support an intervention. Never invent additional campaigns to satisfy a count.
+**Campaigns** renders **Winnability relief**, a deterministic Strike-Zone and Leverage Engine (`geogrid-campaign-engine/v1`) over observed complete depth-30 evidence:
+- Landmass component detection separates the home landmass from detached islands when `sampling.land_clipped === true` so water-separated clusters become Avoid entries rather than false campaigns.
+- Per-pin Winnability index `W = 100 * (0.40*Gap + 0.25*Weak + 0.20*Lift + 0.15*Reach) * (Fort ? 0.5 : 1) * (Detached ? 0.5 : 1)` ranks observed structure only. It is not a ranking probability, demand estimate, or revenue forecast.
+- Plays group home-landmass pins by mechanism (`service_gap > weak_pack > seam > long_climb`, plus `hold_thin`) and name blockers directly rather than using compass directions. Attached agent plans render beside engine plays and merge validated `avoidZones` into **Where not to spend**.
+- All five map-appearance buttons (`topography`, `triangles`, `contested`, `pins`, `rings`) remain live in Campaigns and Keyword stuffing on hexagonal studies.
 
-**Keyword stuffing** evaluates business names/titles only. Its default scope is
-the union of recurring Local leaders across all queries: at least three first-place
-results in any query. Titles do not depend on the selected map keyword. A
-selected-keyword scope is optional, and updates both the summary and case list.
-Cases show disputed words, captured branding, sources, contrary evidence and
-the next agent action. A source discrepancy is not a confirmed Google policy
-violation. Metadata-only names are explicitly labeled as unverified trading names.
-See [BUSINESS_NAME_REVIEW.md](BUSINESS_NAME_REVIEW.md).
+**Keyword stuffing** preserves the single spatial anchor across all four tabs: map on the left, Flagged Businesses rail on the right at the same width, and an inline Inspector pane (or bottom sheet at 1024px) that opens when a profile is selected. Its default scope is the union of recurring Local leaders across all queries: at least three first-place results in any query. Each row carries an explicit evidence-state chip (`signage checked`, `sources reviewed`, `lexical screen only`, or `not investigated`) and honest territory metrics (`First places`, `Overlaps you`, `You would inherit`) without accusatory wording. A source discrepancy is not a confirmed Google policy violation. See [BUSINESS_NAME_REVIEW.md](BUSINESS_NAME_REVIEW.md).
 
 Both research types can follow a study-only URL through a same-origin sidecar:
 `companion-study.attachments.json` beside `companion-study.json`. The manifest

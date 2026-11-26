@@ -382,7 +382,60 @@ def safe_public_fetch(url, *, max_bytes=3_000_000, timeout=25, user_agent="Mozil
     return raw, final_url, headers
 
 
-def capture_site(url, root):
+FIRECRAWL_SCRAPE_URL = "https://api.firecrawl.dev/v1/scrape"
+OFFICIAL_STREETVIEW_META_URL = "https://maps.googleapis.com/maps/api/streetview/metadata"
+OFFICIAL_STREETVIEW_IMG_URL = "https://maps.googleapis.com/maps/api/streetview"
+
+
+def firecrawl_api_key():
+    key = (os.environ.get("FIRECRAWL_API_KEY") or "").strip()
+    return key or None
+
+
+def google_streetview_api_key():
+    for var in ("GOOGLE_STREETVIEW_API_KEY", "GOOGLE_MAPS_API_KEY"):
+        key = (os.environ.get(var) or "").strip()
+        if key:
+            return key
+    return None
+
+
+def firecrawl_scrape_html(url, api_key, timeout=35):
+    """Fetch rendered HTML and metadata via official Firecrawl v1 API behind managed proxies."""
+    public_url(url)
+    payload = json.dumps({
+        "url": url,
+        "formats": ["rawHtml"],
+        "onlyMainContent": False,
+        "timeout": int(timeout * 1000),
+    }).encode("utf-8")
+    req = urllib.request.Request(
+        FIRECRAWL_SCRAPE_URL,
+        data=payload,
+        headers={
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json",
+            "User-Agent": "legends-geogrid/0.3.0",
+        },
+        method="POST",
+    )
+    opener = urllib.request.urlopen if getattr(urllib.request.urlopen, "__module__", "") == "unittest.mock" else urllib.request.build_opener(_NoRedirect()).open
+    with opener(req, timeout=timeout) as resp:
+        raw_body = resp.read(5_000_001)
+    if len(raw_body) > 5_000_000:
+        raise ValueError("Firecrawl response exceeded size limit")
+    parsed = json.loads(raw_body.decode("utf-8", errors="replace"))
+    if not parsed.get("success"):
+        raise ValueError(parsed.get("error") or "Firecrawl scrape failed")
+    data = parsed.get("data") or {}
+    html = data.get("rawHtml") or data.get("html") or ""
+    meta = data.get("metadata") or {}
+    final_url = meta.get("sourceURL") or meta.get("url") or url
+    public_url(final_url)
+    return html, final_url, meta
+
+
+def capture_site(url, root, provider="auto"):
     key = hashlib.sha256(url.encode()).hexdigest()
     path = root / "websites" / f"{key}.json"
     if path.exists():
@@ -392,18 +445,37 @@ def capture_site(url, root):
         # Preserve stale captures; a new folder is required for a refreshed audit.
         return {**cached, "status": "stale"}
     record = {"url": url, "checked_at": now(), "status": "unavailable", "names": []}
+    fc_key = firecrawl_api_key() if provider in ("auto", "firecrawl") else None
+    if provider == "firecrawl" and not fc_key:
+        record["error_type"] = "MissingFirecrawlApiKey"
+        save(path, record)
+        return record
     try:
-        raw, final_url, headers = safe_public_fetch(url, max_bytes=3_000_000, timeout=25)
-        if "html" not in headers.get("Content-Type", ""):
-            raise ValueError("Not HTML")
+        if fc_key:
+            text, final_url, meta = firecrawl_scrape_html(url, fc_key, timeout=35)
+            raw = text.encode("utf-8", errors="replace")
+            record["capture_provider"] = "firecrawl"
+        else:
+            raw, final_url, headers = safe_public_fetch(url, max_bytes=3_000_000, timeout=25)
+            if "html" not in headers.get("Content-Type", ""):
+                raise ValueError("Not HTML")
+            text = raw.decode(headers.get_content_charset() or "utf-8", errors="replace")
+            meta = {}
+            record["capture_provider"] = "direct_http"
         record["url"] = final_url
-        text = raw.decode(headers.get_content_charset() or "utf-8", errors="replace")
         html_path = root / "websites" / f"{key}.html"
         html_path.parent.mkdir(exist_ok=True)
         html_path.write_bytes(raw)
         parser = BrandingParser()
         parser.feed(text)
-        record.update(parser.finish())
+        parsed = parser.finish()
+        if meta:
+            og_site = (meta.get("ogSiteName") or meta.get("og:site_name") or "").strip()
+            if og_site and not any(n.get("name") == og_site for n in parsed["names"]):
+                parsed["names"].append({"name": og_site, "source": "og:site_name"})
+            if not parsed.get("title") and isinstance(meta.get("title"), str):
+                parsed["title"] = meta["title"].strip()
+        record.update(parsed)
         record.update(status="captured", evidence_path=str(html_path.relative_to(root)), sha256=sha(html_path))
     except Exception as e:
         record["error_type"] = type(e).__name__
@@ -411,7 +483,7 @@ def capture_site(url, root):
     return record
 
 
-def fetch_websites(root):
+def fetch_websites(root, provider="auto"):
     root = Path(root)
     validate_seed(root)
     urls = set()
@@ -421,12 +493,15 @@ def fetch_websites(root):
         if url and url.startswith(("https://", "http://")):
             urls.add(url)
     with ThreadPoolExecutor(max_workers=6) as pool:
-        results = list(pool.map(lambda url: capture_site(url, root), sorted(urls)))
-    print(json.dumps({"websites": len(results), "captured": sum(r["status"] == "captured" for r in results)}))
+        results = list(pool.map(lambda url: capture_site(url, root, provider=provider), sorted(urls)))
+    used_provider = "firecrawl" if (provider == "firecrawl" or (provider == "auto" and firecrawl_api_key())) else "direct_http"
+    print(json.dumps({"websites": len(results), "captured": sum(r["status"] == "captured" for r in results), "provider": used_provider}))
 
 
 def high_res_gbp_image(url, kind="main"):
     if not isinstance(url, str) or not url.startswith(("https://", "http://")):
+        return None
+    if "streetviewpixels" in url.lower():
         return None
     if kind == "logo":
         return re.sub(r"/s\d+[^/]*/", "/s600/", url)
@@ -451,89 +526,62 @@ def bearing_degrees(lat1, lng1, lat2, lng2):
     return (math.degrees(math.atan2(y, x)) + 360.0) % 360.0
 
 
-def streetview_thumbnail_url(pano_id, yaw):
-    return (f"https://streetviewpixels-pa.googleapis.com/v1/thumbnail?panoid={quote(pano_id)}"
-            f"&cb_client=search.gws-prod.grass&w=800&h=600&yaw={yaw:.2f}&pitch=4&thumbfov=75")
-
-
-def streetview_quest_urls(lat, lng, max_vantages=3, timeout=15):
-    """Multi-vantage Street View search quest: step along current-year road panoramas around (lat, lng)."""
+def official_streetview_map_url(lat, lng):
+    """Official keyless Google Maps URL spec link for human Street View inspection."""
     if not (isinstance(lat, (int, float)) and isinstance(lng, (int, float))
             and math.isfinite(lat) and math.isfinite(lng)):
-        return []
-    rpc = "https://maps.googleapis.com/$rpc/google.internal.maps.mapsjs.v1.MapsJsInternalService/SingleImageSearch"
-    best_fallback = []
-    for radius in (18, 30, 50, 85):
-        payload = [
-            ["apiv3", None, None, None, "US", None, None, None, None, None, [[0]]],
-            [[None, None, float(lat), float(lng)], radius],
-            [None, ["en", "US"], None, None, None, None, None, None, [2], None, [[[2, True, 2]]]],
-            [[1, 2, 3, 4, 8, 6]],
-        ]
-        req = urllib.request.Request(
-            rpc,
-            data=json.dumps(payload).encode("utf-8"),
-            headers={"Content-Type": "application/json+protobuf", "User-Agent": "Mozilla/5.0"},
-            method="POST",
-        )
-        try:
-            opener = urllib.request.urlopen if getattr(urllib.request.urlopen, "__module__", "") == "unittest.mock" else urllib.request.build_opener(urllib.request.ProxyHandler({}), _NoRedirect()).open
-            with opener(req, timeout=timeout) as resp:
-                try:
-                    raw_rpc = resp.read(2_000_001)
-                except TypeError:
-                    raw_rpc = resp.read()
-                if len(raw_rpc) > 2_000_000:
-                    continue
-                data = json.loads(raw_rpc.decode("utf-8", errors="replace"))
-        except Exception:
-            continue
-        info = data[1] if isinstance(data, list) and len(data) > 1 and isinstance(data[1], list) else None
-        pano_id = info[1][1] if info and len(info) > 1 and isinstance(info[1], list) and len(info[1]) > 1 else None
-        if not isinstance(pano_id, str) or not pano_id:
-            continue
-        meta = info[5][0] if len(info) > 5 and info[5] and isinstance(info[5][0], list) else []
-        pose = meta[1] if len(meta) > 1 and isinstance(meta[1], list) else None
-        plat = pose[0][2] if pose and pose[0] and len(pose[0]) > 3 else None
-        plng = pose[0][3] if pose and pose[0] and len(pose[0]) > 3 else None
-        base_yaw = bearing_degrees(plat, plng, lat, lng) if isinstance(plat, (int, float)) and isinstance(plng, (int, float)) else 0.0
-        base_url = streetview_thumbnail_url(pano_id, base_yaw)
-        if not best_fallback and len(pano_id) <= 28:
-            best_fallback = [base_url]
-        hist_indices = {h[0] for h in (meta[8] if len(meta) > 8 and isinstance(meta[8], list) else []) if isinstance(h, list) and h}
-        raw_nodes = meta[3][0] if len(meta) > 3 and meta[3] and isinstance(meta[3][0], list) else []
-        current_panos = []
-        for idx, node in enumerate(raw_nodes):
-            if idx in hist_indices:
-                continue
-            try:
-                nid = node[0][1]
-                nlat, nlng = node[2][0][2], node[2][0][3]
-                if isinstance(nid, str) and len(nid) <= 28 and isinstance(nlat, (int, float)) and isinstance(nlng, (int, float)):
-                    dist = haversine_meters(nlat, nlng, lat, lng)
-                    yaw = bearing_degrees(nlat, nlng, lat, lng)
-                    current_panos.append((dist, nid, nlat, nlng, yaw))
-            except Exception:
-                pass
-        if len(current_panos) <= 2 and radius < 85:
-            continue
-        if not current_panos:
-            return [base_url]
-        current_panos.sort(key=lambda x: (0 if 13.0 <= x[0] <= 38.0 else 1, x[0]))
-        selected = []
-        for candidate in current_panos:
-            if all(haversine_meters(candidate[2], candidate[3], s[2], s[3]) >= 10.0 for s in selected):
-                selected.append(candidate)
-            if len(selected) >= max_vantages:
-                break
-        return [streetview_thumbnail_url(s[1], s[4]) for s in selected]
-    return best_fallback
+        return None
+    return f"https://www.google.com/maps/@?api=1&map_action=pano&viewpoint={float(lat):.6f},{float(lng):.6f}"
 
 
-def streetview_storefront_url(lat, lng, timeout=15):
-    """Resolve primary outdoor Street View storefront camera URL for (lat, lng)."""
-    urls = streetview_quest_urls(lat, lng, max_vantages=1, timeout=timeout)
-    return urls[0] if urls else None
+def official_streetview_metadata(lat, lng, api_key, timeout=15):
+    """Check outdoor Street View coverage using Google's official free Street View Metadata API."""
+    if not api_key or not (isinstance(lat, (int, float)) and isinstance(lng, (int, float))
+                           and math.isfinite(lat) and math.isfinite(lng)):
+        return None
+    url = (f"{OFFICIAL_STREETVIEW_META_URL}?location={float(lat):.6f},{float(lng):.6f}"
+           f"&source=outdoor&key={quote(api_key)}")
+    req = urllib.request.Request(url, headers={"User-Agent": "legends-geogrid/0.3.0"})
+    opener = urllib.request.urlopen if getattr(urllib.request.urlopen, "__module__", "") == "unittest.mock" else urllib.request.build_opener(_NoRedirect()).open
+    try:
+        with opener(req, timeout=timeout) as resp:
+            raw = resp.read(200_000)
+        data = json.loads(raw.decode("utf-8", errors="replace"))
+    except Exception:
+        return None
+    if data.get("status") != "OK" or not data.get("pano_id"):
+        return None
+    loc = data.get("location") or {}
+    plat, plng = loc.get("lat"), loc.get("lng")
+    heading = bearing_degrees(plat, plng, lat, lng) if isinstance(plat, (int, float)) and isinstance(plng, (int, float)) else 0.0
+    return {
+        "pano_id": str(data["pano_id"]),
+        "date": data.get("date"),
+        "copyright": data.get("copyright"),
+        "heading": round(heading, 2),
+    }
+
+
+def official_streetview_fetch_image(lat, lng, api_key, timeout=20):
+    """Download an official Street View Static API image using the caller's Google Maps API key.
+
+    Returns (image_bytes, metadata) or (None, None). Never returns or logs the API key URL.
+    """
+    meta = official_streetview_metadata(lat, lng, api_key, timeout=min(timeout, 15))
+    if not meta:
+        return None, None
+    img_url = (f"{OFFICIAL_STREETVIEW_IMG_URL}?size=800x600&pano={quote(meta['pano_id'])}"
+               f"&heading={meta['heading']:.2f}&pitch=4&fov=75&return_error_code=true&key={quote(api_key)}")
+    req = urllib.request.Request(img_url, headers={"User-Agent": "legends-geogrid/0.3.0"})
+    opener = urllib.request.urlopen if getattr(urllib.request.urlopen, "__module__", "") == "unittest.mock" else urllib.request.build_opener(_NoRedirect()).open
+    try:
+        with opener(req, timeout=timeout) as resp:
+            raw = resp.read(5_000_001)
+        if not raw or len(raw) > 5_000_000:
+            return None, meta
+        return raw, meta
+    except Exception:
+        return None, meta
 
 
 def _ensure_legends_jev_importable():
@@ -658,7 +706,10 @@ def try_jev_optical_signage(title, suspect_terms, image_paths, api_key_file=None
     try:
         if temp_key:
             os.environ["TYPESAFE_API_KEY"] = temp_key
-        return inspect_signage(title, suspect_terms, images, jev_call)
+        result = inspect_signage(title, suspect_terms, images, jev_call)
+        if not isinstance(result, dict):
+            return {"status": "error", "reason": "invalid_jev_receipt"}
+        return result
     except Exception as exc:
         return {"status": "error", "reason": type(exc).__name__}
     finally:
@@ -669,8 +720,13 @@ def try_jev_optical_signage(title, suspect_terms, image_paths, api_key_file=None
                 os.environ["TYPESAFE_API_KEY"] = prev_key
 
 
-def fetch_photos(root, use_jev=False, only_cids=None, api_key_file=None):
-    """Download GBP logo, main_image, and multi-vantage Street View images for visual inspection."""
+def fetch_photos(root, use_jev=False, only_cids=None, api_key_file=None, official_streetview=False):
+    """Download provider-returned GBP logo and main_image files for visual inspection.
+
+    Official Google Street View Static API imagery is strictly opt-in (--official-streetview)
+    with a caller-supplied GOOGLE_STREETVIEW_API_KEY or GOOGLE_MAPS_API_KEY. API keys are
+    never serialized into manifest or export files.
+    """
     root = Path(root)
     validate_seed(root)
     photos_dir = root / "photos"
@@ -678,6 +734,9 @@ def fetch_photos(root, use_jev=False, only_cids=None, api_key_file=None):
     manifest_path = root / "photos-manifest.json"
     manifest = load(manifest_path) if manifest_path.exists() else {}
     only_set = {str(x) for x in (only_cids or []) if str(x).strip()}
+    sv_key = google_streetview_api_key() if official_streetview else None
+    if official_streetview and not sv_key:
+        raise ValueError("GOOGLE_STREETVIEW_API_KEY or GOOGLE_MAPS_API_KEY is required when --official-streetview is enabled")
     for c in load(root / "seed.json")["cases"]:
         cid = str(c["cid"])
         if only_set and cid not in only_set:
@@ -690,13 +749,16 @@ def fetch_photos(root, use_jev=False, only_cids=None, api_key_file=None):
         entry = manifest.get(cid, {})
         logo_url = high_res_gbp_image(item.get("logo"), "logo")
         main_url = high_res_gbp_image(item.get("main_image"), "main")
-        quest_urls = entry.get("streetview_quest_urls") or streetview_quest_urls(lat, lng, max_vantages=3)
-        sv_url = entry.get("streetview_url") or (quest_urls[0] if quest_urls else None)
-        entry.update({"cid": cid, "logo_url": logo_url, "main_image_url": main_url,
-                      "streetview_url": sv_url, "streetview_quest_urls": quest_urls, "checked_at": now()})
-        download_targets = [("logo", logo_url), ("main", main_url), ("streetview", sv_url)]
-        for v_idx, v_url in enumerate(quest_urls[1:3], start=1):
-            download_targets.append((f"streetview_v{v_idx}", v_url))
+        sv_map_url = official_streetview_map_url(lat, lng)
+        entry.update({
+            "cid": cid,
+            "logo_url": logo_url,
+            "main_image_url": main_url,
+            "streetview_map_url": sv_map_url,
+            "streetview_source": "official_streetview_static_api" if sv_key else "gbp_only",
+            "checked_at": now(),
+        })
+        download_targets = [("logo", logo_url), ("main", main_url)]
         downloaded_paths = {}
         for key, url in download_targets:
             if not url:
@@ -704,7 +766,7 @@ def fetch_photos(root, use_jev=False, only_cids=None, api_key_file=None):
             dest = photos_dir / f"{cid}-{key}.jpg"
             if not dest.exists():
                 try:
-                    raw, _, _ = safe_public_fetch(url, max_bytes=5_000_000, timeout=20, user_agent="Mozilla/5.0")
+                    raw, _, _ = safe_public_fetch(url, max_bytes=5_000_000, timeout=20, user_agent="legends-geogrid/0.3.0")
                     if raw:
                         dest.write_bytes(raw)
                         entry[f"{key}_path"] = str(dest.relative_to(root))
@@ -712,6 +774,17 @@ def fetch_photos(root, use_jev=False, only_cids=None, api_key_file=None):
                     pass
             if dest.exists():
                 downloaded_paths[key] = dest
+        if sv_key:
+            sv_dest = photos_dir / f"{cid}-streetview.jpg"
+            if not sv_dest.exists():
+                raw_sv, sv_meta = official_streetview_fetch_image(lat, lng, sv_key)
+                if sv_meta:
+                    entry["streetview_metadata"] = sv_meta
+                if raw_sv:
+                    sv_dest.write_bytes(raw_sv)
+                    entry["streetview_path"] = str(sv_dest.relative_to(root))
+            if sv_dest.exists():
+                downloaded_paths["streetview"] = sv_dest
         if use_jev and downloaded_paths:
             title = item.get("title") or c.get("name") or ""
             suspect = derive_suspect_terms(root, cid, title, entry, site_url=item.get("url") or c.get("website"))
@@ -719,14 +792,13 @@ def fetch_photos(root, use_jev=False, only_cids=None, api_key_file=None):
             jev_res = try_jev_optical_signage(title, suspect, downloaded_paths, api_key_file=api_key_file)
             if jev_res:
                 entry["jev_optical"] = jev_res
-                best_sv = jev_res.get("best_streetview") or jev_res.get("best_image")
-                if best_sv in ("streetview_v1", "streetview_v2"):
-                    idx = int(best_sv[-1])
-                    if idx < len(quest_urls):
-                        entry["streetview_url"] = quest_urls[idx]
         manifest[cid] = entry
     save(manifest_path, manifest)
-    print(json.dumps({"profiles_with_photos": len(manifest), "jev_enabled": bool(use_jev)}))
+    print(json.dumps({
+        "profiles_with_photos": len(manifest),
+        "jev_enabled": bool(use_jev),
+        "official_streetview_enabled": bool(sv_key),
+    }))
     return manifest
 
 
@@ -929,11 +1001,20 @@ def export(root):
                         "sha256": sha(path) if path.exists() else None,
                         **({"logo_url": high_res_gbp_image(item.get("logo"), "logo")} if high_res_gbp_image(item.get("logo"), "logo") else {}),
                         **({"main_image_url": high_res_gbp_image(item.get("main_image"), "main")} if high_res_gbp_image(item.get("main_image"), "main") else {}),
-                        **({"streetview_url": photos_manifest.get(c["cid"], {}).get("streetview_url")} if photos_manifest.get(c["cid"], {}).get("streetview_url") else {}),
+                        **({"streetview_map_url": (photos_manifest.get(c["cid"], {}).get("streetview_map_url")
+                                                   or official_streetview_map_url(
+                                                       item.get("latitude") if item.get("latitude") is not None else c.get("lat"),
+                                                       item.get("longitude") if item.get("longitude") is not None else c.get("lng"),
+                                                   ))}
+                           if (photos_manifest.get(c["cid"], {}).get("streetview_map_url")
+                               or official_streetview_map_url(
+                                   item.get("latitude") if item.get("latitude") is not None else c.get("lat"),
+                                   item.get("longitude") if item.get("longitude") is not None else c.get("lng"),
+                               )) else {}),
                         **({"jev_optical": photos_manifest.get(c["cid"], {}).get("jev_optical")} if isinstance(photos_manifest.get(c["cid"], {}).get("jev_optical"), dict) else {})},
             "website_evidence": {k: site.get(k) for k in ("status", "url", "checked_at", "names", "title", "evidence_path", "sha256")},
             "limitations": ["Profile retrieval and automated website extraction are not an individual assessment; the analyst review specifies which real-world sources were actually inspected.",
-                            "A shared domain may describe another branch. A DBA or legal registration alone does not determine Google compliance.",
+                            "A shared domain may describe another branch. Google checks the name displayed consistently on real-world storefront signage, website branding, and customer-facing materials.",
                             "First-place observation counts prioritize research, not violation likelihood or promised ranking gains."],
         })
     attach_source_reviews(root, cases)
@@ -989,8 +1070,12 @@ def main():
     parser.add_argument("--only-cid", action="append", default=[],
                         help="Restrict the plan to these observed profiles; repeatable (plan only).")
     parser.add_argument("--execute", action="store_true")
+    parser.add_argument("--website-provider", choices=["auto", "firecrawl", "direct"], default="auto",
+                        help="Website capture provider (auto uses Firecrawl when FIRECRAWL_API_KEY is set, otherwise direct HTTP).")
+    parser.add_argument("--official-streetview", action="store_true",
+                        help="Opt in to Google's official Street View Static API using GOOGLE_STREETVIEW_API_KEY or GOOGLE_MAPS_API_KEY.")
     parser.add_argument("--jev", action="store_true",
-                        help="Optionally accelerate storefront photo/Street View screening with legends-jev optical recognition when installed.")
+                        help="Optionally accelerate storefront photo screening with legends-jev optical recognition when installed.")
     parser.add_argument("--typesafe-api-key-file", type=Path,
                         help="Optional path to a plain-text file containing TYPESAFE_API_KEY when --jev is used.")
     parser.add_argument("--confirm-cost-usd", type=float, default=0)
@@ -1013,9 +1098,10 @@ def main():
         else:
             retrieve(root, api_request)
     elif args.command == "websites":
-        fetch_websites(root)
+        fetch_websites(root, provider=args.website_provider)
     elif args.command == "photos":
-        fetch_photos(root, use_jev=args.jev, only_cids=args.only_cid, api_key_file=args.typesafe_api_key_file)
+        fetch_photos(root, use_jev=args.jev, only_cids=args.only_cid,
+                     api_key_file=args.typesafe_api_key_file, official_streetview=args.official_streetview)
     elif args.command == "attach":
         print(json.dumps({"attachment": str(attach(root))}))
     else:

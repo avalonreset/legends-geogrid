@@ -831,37 +831,40 @@ describe('study-model: Single-Query vs Cross-Query Metrics', () => {
 })
 
 describe('study-model: Real Sample Integration', () => {
-  it('successfully loads and normalizes the bundled home-slice-study.json 10-mile starter pack', async () => {
-    const samplePath = path.join(ROOT_DIR, 'src/data/home-slice-study.json')
-    const researchPath = path.join(ROOT_DIR, 'src/data/home-slice-campaign-research.json')
-    const reviewPath = path.join(ROOT_DIR, 'src/data/home-slice-name-review.json')
-    assert.ok(fs.existsSync(samplePath), 'Bundled home-slice-study.json must exist')
-    assert.ok(fs.existsSync(researchPath), 'Bundled home-slice-campaign-research.json must exist')
-    assert.ok(fs.existsSync(reviewPath), 'Bundled home-slice-name-review.json must exist')
+  it('successfully loads and normalizes the default cosmis-deli-philly-study.json 6-mile South Philly starter pack', async () => {
+    const samplePath = path.join(ROOT_DIR, 'src/data/cosmis-deli-philly-study.json')
+    const researchPath = path.join(ROOT_DIR, 'src/data/cosmis-deli-philly-campaign-research.json')
+    const reviewPath = path.join(ROOT_DIR, 'src/data/cosmis-deli-philly-name-review.json')
+    assert.ok(fs.existsSync(samplePath), 'Bundled cosmis-deli-philly-study.json must exist')
+    assert.ok(fs.existsSync(researchPath), 'Bundled cosmis-deli-philly-campaign-research.json must exist')
+    assert.ok(fs.existsSync(reviewPath), 'Bundled cosmis-deli-philly-name-review.json must exist')
 
     const raw = JSON.parse(fs.readFileSync(samplePath, 'utf-8'))
     const model = normalizeStudy(raw)
 
     assert.equal(model.kind, 'Measured study')
-    assert.equal(model.name, 'Home Slice Pizza')
+    assert.equal(model.name, "Cosmi's Deli")
     assert.equal(model.targetId, 'TARGET')
-    assert.equal(model.geometry, 'radius_grid')
+    assert.equal(model.geometry, 'hex_radius')
     assert.equal(model.depth, 30)
-    assert.equal(model.points.length, 1249, '10-mile 0.5-mile radial grid should have 1,249 points')
-    assert.equal(model.queries.length, 4)
-    assert.deepEqual(model.queries.map(q => q.id), ['q1', 'q2', 'q3', 'q4'])
+    assert.equal(model.points.length, 458, '6-mile river-clipped South Philly honeycomb should have 458 dry-land points')
+    assert.equal(model.landMaskPolygons.length, 8, 'South Philly river land mask should have 8 polygons')
+    assert.equal(model.queries.length, 3)
+    assert.deepEqual(model.queries.map(q => q.id), ['q1', 'q2', 'q3'])
+    assert.deepEqual(model.queries.map(q => q.name), ['sandwich shop', 'hoagie', 'cheesesteak'])
 
-    const m = businessMetrics(model, 'q1', 'TARGET')
-    assert.equal(m.top3, 21)
-    assert.equal(m.found, 917)
+    const m = businessMetrics(model, 'q2', 'TARGET')
+    assert.equal(m.top3, 38)
+    assert.equal(m.found, 341)
 
     const { validateCampaignResearch } = await import('../src/campaign-panel.js')
     const { validateNameReview } = await import('../src/name-review.js')
     const research = validateCampaignResearch(JSON.parse(fs.readFileSync(researchPath, 'utf-8')), model)
     assert.equal(research.campaignPlans.length, 4)
+    assert.equal(research.avoidZones.length, 5)
     const review = validateNameReview(JSON.parse(fs.readFileSync(reviewPath, 'utf-8')), model)
-    assert.equal(review.cases.length, 165)
-    assert.equal(review.cases.filter(c => c.source_review).length, 79)
+    assert.equal(review.cases.length, 250)
+    assert.equal(review.cases.filter(c => c.source_review).length, 250)
   })
 
   it('normalizes a multi-query radial battlefield model with shortlist and discovered profiles', async () => {

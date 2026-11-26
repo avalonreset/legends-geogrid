@@ -22,7 +22,7 @@ theme purple or blue. Evidence colors remain distinct from brand decoration.
   (`tools/business_name_review.py photos`), check whether `legends-jev` (`v0.2.3+`)
   is installed via `cto-legends status` or `python tools/geogrid_doctor.py --jev`.
   The workflow operates standalone without `legends-jev`, or accepts `--jev` to run
-  ~200ms System One optical recognition over GBP and multi-vantage Street View photos.
+  ~200ms System One optical recognition over provider GBP storefront/logo photos (and optional `--official-streetview` imagery when a caller supplies `GOOGLE_STREETVIEW_API_KEY`).
 - Credentials: `DATAFORSEO_LOGIN` (or `DATAFORSEO_USERNAME`) and
   `DATAFORSEO_PASSWORD` (plus optional `TYPESAFE_API_KEY` or `--typesafe-api-key-file` when `--jev` is used). Never print, commit, or embed credentials in reports.
 
@@ -86,19 +86,15 @@ The competitive leaderboard sorts every profile, including the primary, by
 selected-query top-three coverage, then top-20 visibility points. Equal scores
 share a position. Primary highlighting must never pin or promote its position.
 Collect and preserve organic Maps ranks through 30, including non-shortlisted profiles.
-Local leaders release policy: default to Recurring winners (three or more
-first-place observations for the selected query), with All winners exposing
-every observed winner. Never restrict eligibility by shortlist or base address
-inside the study radius. The selected profile may remain highlighted below the
-threshold. Hollow points mean filtered smaller winners, not vacant territory;
-unavailable first-place evidence remains distinct.
-Use study-wide neighbor-aware colors and matching study-local L-number IDs on
-business diamonds, list entries and hover evidence. Keep these stable across
-queries and coverage modes; do not promise globally unique colors. Preserve
-stop-sign search markers. Show supplied base coordinates outside the circle;
-never invent a base from its rankings. Connect bases to their largest winning
-cluster only when more than two miles beyond the circle edge. Keep fitting
-outside bases an explicit control. See docs/COMPANION.md for exact behavior.
+Local leaders release policy: show all first-place winners across the study
+footprint, ignoring shortlist and base distance. Target owns crimson; top 15
+rival brands get unique high-contrast hues; multi-location branches share a hue
+family; matching study-local L-number IDs distinguish profiles on business
+diamonds, list entries, and hover evidence. Keep these stable across queries;
+do not promise globally unique colors. Preserve stop-sign or hex search markers
+and show supplied base coordinates outside the circle without inventing a base
+from rankings. Connect outside bases to their largest winning cluster and keep
+fitting outside bases an explicit control. See docs/COMPANION.md for exact behavior.
 GeoGrid is an agent-operated intelligence workflow with a visual evidence companion.
 Agents perform research, synthesize case files, and attach the results to the
 study. Do not delegate the investigation to the owner through import/export
@@ -120,8 +116,8 @@ research from individually assessed but insufficient evidence. Limit this featur
 to business names/titles, not reviews or unrelated abuse. Refresh individual exact-CID
 profiles through Standard queue and compare public brand evidence. Follow
 docs/BUSINESS_NAME_REVIEW.md: lexical signals are research prompts, not violation
-probabilities; legal entity names and DBA filings do not alone determine Google's
-real-world naming rule. Preserve counterevidence, source timestamps and hashes.
+probabilities; Google's real-world naming test is consistent storefront signage,
+website branding, and customer-facing identity. Preserve counterevidence, source timestamps and hashes.
 Keep automated screening, analyst source review and user-reviewed drafts distinct.
 Never automatically submit name edits or competitor complaints. Missing, stale
 or unavailable evidence cannot justify a correction.

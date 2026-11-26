@@ -9,7 +9,7 @@ function fixture() {
   const metric = { complete: 4, unknown: 1, top3: 1, top10: 3, near: 2, found: 4,
     top3Pct: 25, top10Pct: 75, serviceGap: 1, frontier: 1,
     rivals: [{ id: 'wrong', name: 'Not the pressure metric', count: 4, denominator: 4 }] }
-  const region = { id: 'core', label: 'Core · 0–1 mi', count: 5, originIds: ['a', 'b', 'c', 'd', 'e'], perQuery: { q1: metric },
+  const region = { id: 'core', label: 'Core · 0-1 mi', count: 5, originIds: ['a', 'b', 'c', 'd', 'e'], perQuery: { q1: metric },
     completeDenominator: 4, nearDenominator: 2,
     rivals: [{ id: 'rival', name: 'Regional leader', top3Appearances: 2, top3CoveragePct: 60, completeDenominator: 4 }],
     nearRivals: [{ id: 'blocker', name: 'Actual blocker', nearAhead: 2, nearDenominator: 2, top3Appearances: 1 }] }
@@ -24,7 +24,7 @@ test('strategy room separates local pressure from first-place or top-three appea
   assert.match(html, /Actual blocker/)
   assert.match(html, /2<small>\/2<\/small>/)
   assert.doesNotMatch(html, /Not the pressure metric/)
-  assert.match(html, /All studied services in this area · appearances ahead where you rank 4–10/)
+  assert.match(html, /All studied services in this area · appearances ahead where you rank 4 to 10/)
 })
 
 test('matrix coverage uses complete denominators and leaves unavailable coverage unknown', () => {
@@ -37,7 +37,7 @@ test('matrix coverage uses complete denominators and leaves unavailable coverage
   const metric = intelligence.regions[1].perQuery.q1
   metric.complete = 0; metric.unknown = 5; metric.top3 = 0; metric.top3Pct = null
   html = strategyRoomHTML(model, intelligence, null)
-  assert.match(html, /<strong>—<\/strong><span>0\/0<\/span>/)
+  assert.match(html, /<strong>n\/a<\/strong><span>0\/0<\/span>/)
 })
 
 test('regional standings display equal-query percentage rather than pretending pooled fraction is the ranking metric', () => {
@@ -53,7 +53,7 @@ test('short-radius snapshots omit unavailable directional groups and render meth
   const { model, intelligence } = fixture()
   const html = strategyRoomHTML(model, intelligence, null)
   assert.doesNotMatch(html, /colspan="4"/)
-  assert.doesNotMatch(html, /5–10 MI/)
+  assert.doesNotMatch(html, /5 to 10 MI/)
   assert.match(html, /Measured circle Missing evidence excluded/)
   assert.doesNotMatch(html, /\[object Object\]/)
 })
@@ -77,7 +77,7 @@ test('no top-three observations produce undefined concentration instead of a fal
   const { model, intelligence } = fixture()
   intelligence.regions.forEach(region => { region.perQuery.q1.top3 = 0 })
   const html = strategyRoomHTML(model, intelligence, null)
-  assert.match(html, /Top-three concentration<\/span><strong>—<\/strong>/)
+  assert.match(html, /Top-three concentration<\/span><strong>n\/a<\/strong>/)
 })
 
 
@@ -93,4 +93,18 @@ test('researched campaign portfolio is distinct from spatial patterns and replac
   assert.match(html, /not additional ready-to-launch campaigns/)
   assert.match(html, /Confirm current pricing/)
   assert.doesNotMatch(html, /Duplicate old draft/)
+})
+
+test('strategy room avoid zones render Show on map action for pinned avoid areas', () => {
+  const { model, intelligence } = fixture()
+  const research = {
+    avoidZones: [
+      { id: 'refinery', kind: 'non_serviceable_land_use', title: 'Industrial refinery tract', reason: 'Zero walk-in demand', originIds: ['a', 'b'] },
+      { id: 'notes-only', kind: 'low_evidence', title: 'Unpinned note', reason: 'Context only', originIds: [] },
+    ],
+  }
+  const html = strategyRoomHTML(model, intelligence, research)
+  assert.match(html, /WHERE NOT TO SPEND · 2 ZONES/)
+  assert.match(html, /data-sr-avoid="refinery"/)
+  assert.doesNotMatch(html, /data-sr-avoid="notes-only"/)
 })

@@ -30,7 +30,7 @@ function pointCells(map, model) {
   if (!Number.isFinite(spacing)) spacing = .001
   const cells = model.points.map((p, i) => {
     const ranked = p.rank !== null && p.rank <= 30
-    const where = p.row !== null && p.col !== null ? `Row ${p.row}, column ${p.col}` : `Point ${i + 1}`
+    const where = p.hex ? `Hex ${p.hex.unitQ}, ${p.hex.unitR} · first rung ${p.hex.firstRungMiles} mi` : p.row !== null && p.col !== null ? `Row ${p.row}, column ${p.col}` : `Point ${i + 1}`
     return {
       id: `p${i}`, lat: p.lat, lng: p.lng, x: projected[i][0], y: projected[i][1], spacing: spacings[i] || spacing,
       leaderId: null,

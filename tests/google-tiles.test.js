@@ -1,7 +1,15 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
+import { mkdtempSync, mkdirSync, rmSync, symlinkSync, writeFileSync } from 'node:fs'
+import os from 'node:os'
+import path from 'node:path'
 import { createServer, request as httpRequest } from 'node:http'
-import { createGoogleTilesMiddleware } from '../tools/google-tiles-plugin.mjs'
+import {
+  createGoogleTilesMiddleware,
+  googleTilesPlugin,
+  readGoogleKeyFromFiles,
+  resolveGoogleKey,
+} from '../tools/google-tiles-plugin.mjs'
 
 const KEY = 'private-test-key'
 const TOKEN = 'private-provider-session'
@@ -213,4 +221,103 @@ test('Google adapter rejects invalid or expired provider session payloads', asyn
     const h = await harness(t, () => json(bad))
     assert.equal((await h.session()).status, 502)
   }
+})
+
+test('Google key lookup follows strict server-side priority order across env and files', t => {
+  const dir = mkdtempSync(path.join(os.tmpdir(), 'geogrid-key-prio-'))
+  t.after(() => rmSync(dir, { recursive: true, force: true }))
+  const home = path.join(dir, 'home')
+  const repo = path.join(dir, 'repo')
+  const secretsDir = path.join(home, '.cto-legends', 'secrets')
+  mkdirSync(secretsDir, { recursive: true })
+  mkdirSync(repo, { recursive: true })
+
+  const explicitFile = path.join(dir, 'explicit.env')
+  const userSecretsFile = path.join(secretsDir, 'geogrid.env')
+  const envLocalFile = path.join(repo, '.env.local')
+  const envFile = path.join(repo, '.env')
+
+  writeFileSync(envFile, 'GOOGLE_MAPS_API_KEY=repo-dotenv-maps\nGOOGLE_MAP_TILES_API_KEY=repo-dotenv-tiles\n')
+  assert.equal(readGoogleKeyFromFiles(repo, { userHome: home, envFile: '' }), 'repo-dotenv-tiles')
+
+  writeFileSync(envLocalFile, 'GOOGLE_MAP_TILES_API_KEY="repo-local-tiles"\n')
+  assert.equal(readGoogleKeyFromFiles(repo, { userHome: home, envFile: '' }), 'repo-local-tiles')
+
+  writeFileSync(userSecretsFile, "export GOOGLE_MAP_TILES_API_KEY='user-secret-tiles'\n")
+  assert.equal(readGoogleKeyFromFiles(repo, { userHome: home, envFile: '' }), 'user-secret-tiles')
+
+  writeFileSync(explicitFile, 'GOOGLE_MAP_TILES_API_KEY=explicit-file-tiles\n')
+  assert.equal(readGoogleKeyFromFiles(repo, { userHome: home, envFile: explicitFile }), 'explicit-file-tiles')
+
+  assert.equal(
+    resolveGoogleKey(repo, { env: { GOOGLE_MAP_TILES_API_KEY: 'proc-env-tiles' }, userHome: home, envFile: explicitFile }),
+    'proc-env-tiles',
+  )
+  assert.equal(
+    resolveGoogleKey(repo, { env: { GOOGLE_MAPS_API_KEY: 'proc-env-maps' }, userHome: home, envFile: explicitFile }),
+    'proc-env-maps',
+  )
+  assert.equal(
+    resolveGoogleKey(repo, { env: { LEGENDS_GEOGRID_ENV_FILE: explicitFile }, userHome: home }),
+    'explicit-file-tiles',
+  )
+
+  // Oversized env file (>64 KB) is refused.
+  const hugeFile = path.join(dir, 'huge.env')
+  writeFileSync(hugeFile, 'GOOGLE_MAP_TILES_API_KEY=huge-secret\n' + '#'.repeat(70000))
+  assert.equal(readGoogleKeyFromFiles(path.join(dir, 'empty'), { userHome: path.join(dir, 'empty-home'), envFile: hugeFile }), undefined)
+})
+
+test('Google key file loader refuses symlinked files and symlinked parent directories', t => {
+  const dir = mkdtempSync(path.join(os.tmpdir(), 'geogrid-key-link-'))
+  t.after(() => rmSync(dir, { recursive: true, force: true }))
+  const realDir = path.join(dir, 'real-secrets')
+  mkdirSync(realDir, { recursive: true })
+  const targetFile = path.join(realDir, 'geogrid.env')
+  writeFileSync(targetFile, 'GOOGLE_MAP_TILES_API_KEY=symlinked-secret-must-not-load\n')
+
+  // Symlinked/junctioned ancestor directory inside userHome
+  const home = path.join(dir, 'home')
+  const ctoDir = path.join(home, '.cto-legends')
+  mkdirSync(ctoDir, { recursive: true })
+  const linkedSecretsDir = path.join(ctoDir, 'secrets')
+  symlinkSync(realDir, linkedSecretsDir, process.platform === 'win32' ? 'junction' : 'dir')
+  assert.equal(readGoogleKeyFromFiles(path.join(dir, 'empty-repo'), { userHome: home, envFile: '' }), undefined)
+
+  // Direct file symlink when permitted by OS
+  const directLink = path.join(dir, 'linked.env')
+  try {
+    symlinkSync(targetFile, directLink, 'file')
+  } catch {
+    return
+  }
+  assert.equal(readGoogleKeyFromFiles(path.join(dir, 'empty-repo'), { userHome: path.join(dir, 'no-home'), envFile: directLink }), undefined)
+})
+
+test('Google plugin wires file-based key lookup and never leaks file-loaded keys in error replies', async t => {
+  const dir = mkdtempSync(path.join(os.tmpdir(), 'geogrid-key-leak-'))
+  t.after(() => rmSync(dir, { recursive: true, force: true }))
+  const secretKey = 'file-loaded-super-secret-tiles-key'
+  writeFileSync(path.join(dir, '.env'), `GOOGLE_MAP_TILES_API_KEY=${secretKey}\n`)
+
+  const h = await harness(
+    t,
+    url => {
+      assert.equal(url.searchParams.get('key'), secretKey)
+      throw new Error(`Upstream failure with key=${secretKey}`)
+    },
+    { getKey: () => resolveGoogleKey(dir, { env: {}, userHome: path.join(dir, 'no-home'), envFile: '' }) },
+  )
+  const response = await h.session()
+  assert.equal(response.status, 502)
+  const body = await response.text()
+  assert.equal(body.includes(secretKey), false)
+
+  // Verify googleTilesPlugin attaches cleanly to both dev and preview server hooks.
+  const plugin = googleTilesPlugin()
+  let attached = 0
+  const fakeServer = { config: { root: dir }, middlewares: { use: fn => { if (typeof fn === 'function') attached++ } } }
+  plugin.configureServer(fakeServer)
+  plugin.configurePreviewServer(fakeServer)
+  assert.equal(attached, 2)
 })

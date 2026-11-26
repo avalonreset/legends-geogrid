@@ -13,7 +13,7 @@ const root = resolve(import.meta.dirname, '..')
 const readJson = rel => JSON.parse(readFileSync(join(root, rel), 'utf8'))
 const fixture = readJson('examples/viewer-lean-fixture.json')
 const schema = readJson('docs/geogrid-viewer-v1.schema.json')
-const companionStudy = readJson('src/data/home-slice-study.json')
+const companionStudy = readJson('src/data/cosmis-deli-philly-study.json')
 const OFF = { perPointListings: false, profiles: false, nameReview: false, campaignResearch: false, strategyRoom: false }
 
 let outDir, js, css, worker

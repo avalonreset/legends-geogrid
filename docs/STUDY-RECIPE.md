@@ -6,14 +6,14 @@ preconditions. It does not need another model API, an MCP server, or a Hub vault
 
 ## Open the interactive Companion (zero-daemon)
 
-To open the bundled 10-mile Austin starter study or any saved study (`companion-study.json`, `battlefield-model.json`, `parsed-grid.json`, or run directory) in the user's browser:
+To open the bundled 6-mile South Philadelphia starter study (Cosmi's Deli) or any saved study (`companion-study.json`, `battlefield-model.json`, `parsed-grid.json`, or run directory) in the user's browser:
 
 ```sh
 python tools/study.py --open
 python tools/study.py open --study runs/<slug>/companion-study.json
 ```
 
-This generates a self-contained static HTML file (`runs/starter-home-slice/companion.html` or `<study>.companion.html`) and opens it directly via `file://` with zero background processes, zero open ports, and no Node.js daemon. **Endpoint security (EDR) guardrail:** NEVER spawn `pnpm dev`, `vite`, `node`, or `python -m http.server` using hidden background window flags, detached execution-policy bypass scripts, or `Invoke-WebRequest -UseBasicParsing` localhost polling loops. Always use `python tools/study.py --open`.
+This generates a self-contained static HTML file (`runs/starter-cosmis-deli-philly/companion.html` or `<study>.companion.html`) and opens it directly via `file://` with zero background processes, zero open ports, and no Node.js daemon. **Endpoint security (EDR) guardrail:** NEVER spawn `pnpm dev`, `vite`, `node`, or `python -m http.server` using hidden background window flags, detached execution-policy bypass scripts, or `Invoke-WebRequest -UseBasicParsing` localhost polling loops. Always use `python tools/study.py --open`.
 
 ## EDR and Security Guardrails
 

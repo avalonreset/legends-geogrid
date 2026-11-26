@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
-import { DEFAULT_NAME_REVIEW_SCOPE, reviewBracket, reviewCasesInScope, titleConcernSummary, titleConcernOverviewHTML, caseBriefHTML, highlightedTitleHTML, brandingEvidenceHTML, brandingSourceLabel, validateNameReview, safeSourceURL, reportingReadiness, reviewBrief, importReviewDrafts, sourceReviewHTML, NAME_REVIEW_SCHEMA, NAME_DRAFT_SCHEMA } from '../src/name-review.js'
+import { DEFAULT_NAME_REVIEW_SCOPE, reviewBracket, reviewCasesInScope, titleConcernSummary, titleConcernOverviewHTML, caseBriefHTML, visualEvidenceHTML, highlightedTitleHTML, brandingEvidenceHTML, brandingSourceLabel, validateNameReview, safeSourceURL, reportingReadiness, reviewBrief, importReviewDrafts, sourceReviewHTML, NAME_REVIEW_SCHEMA, NAME_DRAFT_SCHEMA } from '../src/name-review.js'
 
 const model = { name: 'Test study', evidence: { plan_sha256: 'abc123' }, businesses: [{ id: 'cid:123', cid: '123', name: 'Repair Business' }] }
 const reviewCase = { id: 'cid:123', cid: '123', cid_verified: true, name: 'Repair Business HVAC', address: 'One Street', status: 'needs_review', signals: [{ code: 'service_words', reason: 'Service terms present; branding may support them.' }], profile: { status: 'complete', name: 'Repair Business HVAC', checked_at: new Date().toISOString() }, website_evidence: { names: [{ name: 'Repair Business', source: 'Header' }] }, limitations: ['Signage not verified'] }
@@ -38,7 +38,7 @@ describe('Business-name review', () => {
     assert.equal(reportingReadiness(reviewCase, draft).ready, true)
     const text = reviewBrief(reviewCase, draft, { reporting: true, study: 'Study' })
     assert.match(text, /No submission has been made/)
-    assert.match(text, /legal name or DBA alone is not/)
+    assert.match(text, /storefront signage, website, and stationery/)
     assert.match(text, /not a policy verdict/)
     assert.match(text, /Signage not verified/)
   })
@@ -185,5 +185,50 @@ describe('Recurring leader title investigations', () => {
     const c=validateNameReview(input,model).cases[0]
     assert.equal(reviewBracket(c),'possible_concern')
     assert.deepEqual(c.source_review.suspect_terms,['AC Repair'])
+  })
+  it('renders Signage v2 different_business verdict, escapes core_brand, and preserves v1 compatibility', () => {
+    const input = fixture()
+    input.cases[0].profile.jev_optical = {
+      schema: 'legends-jev/signage-receipt-v2',
+      verdict: 'different_business',
+      best_image: 'streetview',
+      best_streetview: 'streetview_v1',
+      physical_sign_visible: 0.92,
+      suspect_terms_shown: 0.04,
+      core_brand: 'Alpha <script>alert(1)</script> "Pizza"',
+      core_brand_shown: 0.08,
+      verdict_confidence: 0.94,
+      latency_ms: 210,
+    }
+    const validated = validateNameReview(input, model).cases[0]
+    assert.equal(validated.profile.jev_optical.verdict, 'different_business')
+    assert.equal(validated.profile.jev_optical.core_brand, 'Alpha <script>alert(1)</script> "Pizza"')
+    assert.equal(validated.profile.jev_optical.core_brand_shown, 0.08)
+    assert.equal(validated.profile.jev_optical.verdict_confidence, 0.94)
+    const htmlV2 = visualEvidenceHTML(validated)
+    assert.match(htmlV2, /Different business/)
+    assert.match(htmlV2, /vantage streetview_v1/)
+    assert.match(htmlV2, /outdoor sign 92%/)
+    assert.match(htmlV2, /core brand &quot;Alpha &lt;script&gt;alert\(1\)&lt;\/script&gt; &quot;Pizza&quot;&quot; 8%/)
+    assert.doesNotMatch(htmlV2, /<script>/)
+
+    const v1Input = fixture()
+    v1Input.cases[0].profile.jev_optical = {
+      schema: 'legends-jev/signage-receipt-v1',
+      verdict: 'omits_suspect_terms',
+      best_image: 'streetview',
+      best_streetview: 'streetview',
+      physical_sign_visible: 0.88,
+      suspect_terms_shown: 0.12,
+      latency_ms: 195,
+    }
+    const v1Validated = validateNameReview(v1Input, model).cases[0]
+    assert.equal('core_brand' in v1Validated.profile.jev_optical, false)
+    assert.equal('core_brand_shown' in v1Validated.profile.jev_optical, false)
+    const htmlV1 = visualEvidenceHTML(v1Validated)
+    assert.match(htmlV1, /Omits suspect terms/)
+    assert.match(htmlV1, /outdoor sign 88%/)
+    assert.match(htmlV1, /suspect terms 12%/)
+    assert.doesNotMatch(htmlV1, /core brand/)
   })
 })

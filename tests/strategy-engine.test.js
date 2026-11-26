@@ -47,12 +47,12 @@ describe('Strategy engine', () => {
   it('caps region bounds to the study radius and never shows a ten-mile sector on a small study', () => {
     const m = fixture(), r = strategyIntelligence(m)
     assert.deepEqual(r.regions.map(r => r.id), ['all', 'core'])
-    assert.equal(r.regions[1].label, 'Core · 0–1 mi')
+    assert.equal(r.regions[1].label, 'Core · 0 to 1 mi')
     const larger = fixture()
     larger.sampling.radius_km = 3 * MILE_KM
     const x = strategyIntelligence(larger)
     assert.equal(x.regions.length, 6)
-    assert.ok(x.regions.filter(r => r.id.startsWith('inner')).every(r => r.label.endsWith('>2–3 mi')))
+    assert.ok(x.regions.filter(r => r.id.startsWith('inner')).every(r => r.label.endsWith('>2 to 3 mi')))
   })
   it('calculates exact service coverage, excludes unknowns from percentage denominators, and reports them', () => {
     const m = fixture()

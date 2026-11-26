@@ -1,9 +1,9 @@
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
-import starterStudy from './data/home-slice-study.json'
+import starterStudy from './data/cosmis-deli-philly-study.json'
 import './styles.css'
 
-const austinCenter = { lat: 30.249711, lng: -97.749132 }
+const phillyCenter = { lat: 39.9303119, lng: -75.1580368 }
 
 const mapTileUrl = import.meta.env.VITE_MAP_TILE_URL
   || 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
@@ -253,27 +253,27 @@ function makeSimulation(size, shape) {
       const rank = clampRank(Math.round(rawRank))
       const edgeVolatility = distance > center * 0.86 && deterministicNoise(row, col, 2) > 0.28
       const missing = rank > 19 || edgeVolatility
-      const coordinate = coordinateForCell(row, col, size, austinCenter, 2)
+      const coordinate = coordinateForCell(row, col, size, phillyCenter, 2)
       points.push({
         id: `r${row}c${col}`,
         row,
         col,
         ...coordinate,
         rank: missing ? null : rank,
-        topResult: missing ? 'Show Me Pizza' : rank <= 4 ? 'Home Slice Pizza' : 'Via 313 Pizza',
-        topThree: rank <= 4 ? ['Home Slice Pizza', 'Show Me Pizza', 'Via 313 Pizza'] : ['Show Me Pizza', 'Via 313 Pizza', 'DeSano Downtown'],
+        topResult: missing ? "Woodrow's Sandwich Shop" : rank <= 4 ? "Cosmi's Deli" : "Big Spence's",
+        topThree: rank <= 4 ? ["Cosmi's Deli", "Woodrow's Sandwich Shop", "Big Spence's"] : ["Woodrow's Sandwich Shop", "Big Spence's", 'POPPA WATTS HOAGIES'],
       })
     }
   }
   const centerPoint = points.find((point) => point.row === center && point.col === center)
   if (centerPoint) {
-    centerPoint.rank = 3
-    centerPoint.topResult = 'Home Slice Pizza'
+    centerPoint.rank = 1
+    centerPoint.topResult = "Cosmi's Deli"
   }
   return {
     size,
     points,
-    center: austinCenter,
+    center: phillyCenter,
     label: `Modeled ${size} x ${size} demo`,
     source: 'Modeled rank response - no new API cost',
   }
@@ -305,7 +305,7 @@ function gridFromStudy(study, laneId, maxDistKm, size, label, source) {
   return {
     size,
     points,
-    center: austinCenter,
+    center: phillyCenter,
     label,
     source,
   }
@@ -313,22 +313,22 @@ function gridFromStudy(study, laneId, maxDistKm, size, label, source) {
 
 function activeGrid() {
   if (state.dataset === 'proof5') {
-    return gridFromStudy(starterStudy, 'q1', 2.45, 5, 'Real cached proof (inner core)', 'Saved DataForSEO Standard Queue subset from 10-mile starter study')
+    return gridFromStudy(starterStudy, 'q1', 3.22, 5, 'Real cached proof (inner core)', 'Saved DataForSEO Standard Queue subset from 6-mile South Philadelphia honeycomb study')
   }
   if (state.dataset === 'simulation') {
     return makeSimulation(state.gridSize, state.shape)
   }
-  return gridFromStudy(starterStudy, 'q1', null, 41, 'Real DataForSEO 10-mile starter study', 'Saved DataForSEO Standard Queue receipt - 1,249 shared origins')
+  return gridFromStudy(starterStudy, 'q1', null, 25, 'Real DataForSEO 6-mile South Philadelphia honeycomb study', 'Saved DataForSEO Standard Queue receipt - 458 river-clipped origins')
 }
 
 function activeProject() {
   if (state.dataset === 'proof17') {
     return {
       kind: 'Real paid proof project',
-      name: 'Home Slice Pizza 10-mile DataForSEO starter study',
+      name: "Cosmi's Deli 6-mile South Philadelphia honeycomb starter study",
       badge: 'Real paid rank data',
-      scope: '1,249 origins · 4 queries',
-      note: 'This is the 1,249-coordinate Standard Queue scan (0.5-mile spacing, 10-mile radius). The browser reuses the saved study and does not spend again.',
+      scope: '458 dry-land origins · 3 queries',
+      note: 'This is the 458-coordinate Standard Queue honeycomb scan (0.5-mile spacing, 6.0-mile radius, OSM river clipped). The browser reuses the saved study and does not spend again.',
       plannerNote: 'This is the showpiece starter scan. Use the planner to estimate bulk spend before approving any prospect list.',
     }
   }
@@ -336,7 +336,7 @@ function activeProject() {
   if (state.dataset === 'proof5') {
     return {
       kind: 'Real cached proof project',
-      name: 'Home Slice Pizza inner-core DataForSEO subset',
+      name: "Cosmi's Deli inner-core DataForSEO subset",
       badge: 'Cached paid rank data',
       scope: 'Inner core subset',
       note: 'This uses the inner core of the saved DataForSEO starter study. No new API spend happens in the browser.',
@@ -346,7 +346,7 @@ function activeProject() {
 
   return {
     kind: 'Modeled visual project',
-    name: 'Home Slice Pizza 17 x 17 one-prospect demo',
+    name: "Cosmi's Deli 17 x 17 one-prospect demo",
     badge: 'Modeled rank data',
     scope: '1 modeled prospect',
     note: 'This is a dense modeled visual. It shows the experience without buying coordinate results.',

@@ -9,24 +9,24 @@
 [![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-ff0000?style=flat-square&labelColor=000000)](#reference)
 [![License: MIT](https://img.shields.io/badge/license-MIT-ff0000?style=flat-square&labelColor=000000)](LICENSE)
 
-Home Slice Pizza ranks in the top three at 549 of 1,249 search points around Austin for one search, and at 21 of them for another. Ask a single-point rank tracker where that business stands on Google Maps and it gives you one number that hides the other 1,248 neighborhoods.
+Cosmi's Deli ranks in the top three at 38 of 458 dry-land search points around South Philadelphia for `hoagie`, 7 for `sandwich shop`, and 2 for `cheesesteak`. Ask a single-point rank tracker where that business stands on Google Maps and it gives you one number that hides the other 457 neighborhoods.
 
 **The human is the controller. The agents do the operating.**
 
-`legends-geogrid` turns your coding agent into a local rank tracker, circular-lattice Google Maps study engine, Street View signage auditor, and 19-page vector PDF strategy studio. Clone the repository or install it through [`cto-legends`](https://github.com/avalonreset/cto-legends), and the complete 1,249-point Austin pizza territory opens in your browser with no API keys and zero spend.
+`legends-geogrid` turns your coding agent into a local rank tracker, circular honeycomb Google Maps study engine, storefront signage and branding auditor, and 30-layer vector-hex PDF strategy studio. Clone the repository or install it through [`cto-legends`](https://github.com/avalonreset/cto-legends), and the complete 458-point river-clipped South Philadelphia study opens in your browser with no API keys and zero spend.
 
 **Specification & local visibility guide:** [cto-legends.com/modules/legends-geogrid](https://cto-legends.com/modules/legends-geogrid) · [The 60-Minute AI Visibility Audit and Fix Scorecard](https://cto-legends.com/blog?post=ai-visibility-audit)
 
 <p align="center"><img src="assets/cards/r1/slot-1-agent-handoff.svg" width="100%" alt="Agent handoff: paste this into Claude Code, Codex, or any coding agent and it does the setup"></p>
 
 ```text
-Use cto-legends to install legends-geogrid, then open the example pizza map
-so I can explore it without spending credits.
+Use cto-legends to install legends-geogrid, then open the bundled South Philadelphia
+sandwich shop study so I can explore it without spending credits.
 ```
 
 <p align="center"><img src="assets/cards/r1/slot-2-three-pillars.svg" width="100%" alt="Three pillars of legends-geogrid: 01 Circular territory lattice, 02 Interactive and PDF studio, and 03 Street View signage audit"></p>
 
-[Plain english](#hand-this-local-seo-tool-to-your-agent-in-plain-english) · [1,249 ranks](#you-do-not-have-a-rank-you-have-1249-of-them) · [Measurement honesty](#a-google-maps-rank-checker-has-to-show-its-measurements) · [In the box](#in-the-box) · [Views & viewer](#views) · [Cost](#cost) · [Boundaries](#boundaries) · [FAQ](#faq) · [Reference](#reference)
+[Plain english](#hand-this-local-seo-tool-to-your-agent-in-plain-english) · [458 ranks](#you-do-not-have-a-rank-you-have-458-of-them) · [Measurement honesty](#a-google-maps-rank-checker-has-to-show-its-measurements) · [In the box](#in-the-box) · [Views & viewer](#views) · [Cost](#cost) · [Boundaries](#boundaries) · [FAQ](#faq) · [Reference](#reference)
 
 ---
 
@@ -36,33 +36,33 @@ None of this asks you to memorize command flags. You describe what you want in p
 
 <p align="center"><img src="assets/cards/r1/slot-3-plain-english-chains.svg" width="100%" alt="Say the job in plain words: four spoken requests routing directly into legends-geogrid territory studies"></p>
 
-Start with the free part. Say **"Open the example pizza map"** and your agent builds one self-contained HTML file and opens it in your browser, with no server running, no port open, and no account anywhere.
+Start with the free part. Say **"Open the bundled South Philly study"** and your agent builds one self-contained HTML file and opens it in your browser, with no server running, no port open, and no account anywhere.
 
-Then name a business. Your agent reads its website, its public Google Business Profile, and live search demand, and comes back with a proposal: the 3 to 5 search themes it would study, the circular lattice of points, and the exact dollar cost ceiling.
+Then name a business. Your agent reads its website, its public Google Business Profile, and live search demand, and comes back with a proposal: the 3 to 5 search themes it would study, the circular river-clipped honeycomb of points, and the exact dollar cost ceiling.
 
 Nothing is bought until you approve that proposal. After you do, the points are collected at raw provider rates, every response is cached on your disk with SHA-256 verification, and an interrupted run resumes from its local ledger without paying twice.
 
-If you have ever had to explain why a business looks number one from its own front counter and vanishes two miles down the road, flip between the four searches on the bundled Austin map and star the repo if the territory changes your answer. Prefer to watch first? The [31-minute walkthrough](https://www.youtube.com/watch?v=0G7IF3yBxcM) runs the whole study on screen.
+If you have ever had to explain why a business looks number one from its own front counter and vanishes two miles down the road, flip between `hoagie`, `sandwich shop`, and `cheesesteak` on the bundled South Philadelphia map and star the repo if the territory changes your answer. Prefer to watch first? The [31-minute walkthrough](https://www.youtube.com/watch?v=0G7IF3yBxcM) runs a full study on screen.
 
 ---
 
-## You do not have a rank. You have 1,249 of them
+## You do not have a rank. You have 458 of them
 
-Stand at the front counter of a pizza shop on South Congress Avenue and search for pizza. Now drive two miles, run the same search, and a different list comes back.
+Stand at the front counter of a sandwich shop on South 8th Street in Philadelphia and search for `hoagie`. Now walk ten blocks, run the same search for `sandwich shop` or `cheesesteak`, and a completely different list comes back.
 
 Ask where a business ranks on Google Maps and the only accurate answer is two more questions. Ranked from where, and for which search?
 
 Google answers a map search from the coordinate where the searcher is standing. Change two words in the query and the list shifts again.
 
-The study bundled with this repository measured that around one real restaurant using public Google Maps results. Home Slice Pizza sits on South Congress in Austin, and 1,249 search points surround it on a 10-mile circle, half a mile apart, each one running the same four searches thirty results deep.
+The study bundled with `legends-geogrid v0.3.0` measured that around one real South Philadelphia deli using public Google Maps results. Cosmi's Deli sits at 1501 S 8th St, and 458 dry-land search points surround it on a 6-mile circular honeycomb (0.5-mile spacing, clipped against 8 OSM Delaware and Schuylkill river polygons so zero budget is wasted scanning open water), each running three searches thirty results deep.
 
-For "new york style pizza," Home Slice ranks in the top three at 549 of those points. For "pizza by the slice," it is 470. On "pizza restaurant," the count is 21. Under "pizza takeout," it is 6.
+For `hoagie`, Cosmi's Deli holds 13 first-place wins, 38 top-three pins, and 142 top-ten pins. For `sandwich shop` in the exact same neighborhoods, top-three drops to 7. For `cheesesteak`, visibility collapses past 1 mile (only 2 top-three pins).
 
 <p align="center">
-  <img src="examples/starter-home-slice/report/map-001.png" width="49%" alt="Rank map for the search pizza restaurant: Home Slice Pizza is top three at 21 of 1,249 search points around Austin">
-  <img src="examples/starter-home-slice/report/map-002.png" width="49%" alt="Rank map for the search new york style pizza: Home Slice Pizza is top three at 549 of 1,249 search points around Austin">
+  <img src="examples/cosmis-deli-philly/report/map-hoagie.png" width="49%" alt="30-layer vector topography for hoagie around Cosmi's Deli in South Philadelphia, river-clipped to 458 dry-land origins">
+  <img src="examples/cosmis-deli-philly/report/map-leaders.png" width="49%" alt="Local Leaders vector hex map and 365 one-rank flip seams across South Philadelphia and New Jersey">
 </p>
-<p align="center"><sub>Left: "pizza restaurant," top three at 21 of 1,249 points and top ten at 261. Right: "new york style pizza," top three at 549 and top ten at 1,023. One business, one collection, one set of search controls.</sub></p>
+<p align="center"><sub>Left: 30-layer marching-squares rank topography for "hoagie" (13 #1 wins, 38 top-three, 142 top-ten), clipped to the Delaware and Schuylkill rivers. Right: Local Leaders vector honeycomb with 365 head-to-head one-rank flip seams.</sub></p>
 
 So which one is its rank? Any single number has to pick one of those maps and throw the others away. It also throws away the two things an owner can act on: the neighborhood and the search theme. "We rank number four" tells nobody which streets to defend or which service page to write.
 
@@ -96,33 +96,33 @@ Collection travels through [`legends-dataforseo`](https://github.com/avalonreset
 
 ---
 
-## Territory campaigns, Local Leaders and the Street View signage audit
+## Territory campaigns, Local Leaders and the 3-pane Keyword stuffing studio
 
-Finished studies open as interactive views. **Local Leaders** shows who holds first place in each neighborhood with distinct neighbor colors, and **Campaigns** splits your map into **Defend** (ranks 1 to 3), **Advance** (ranks 4 to 10), and **Build** (ranks 11 to 30) zones, while points where the business is absent from the top 30 sit in their own **Outside top 30** band.
+Finished studies open as interactive views. **Local Leaders** shows who holds first place in each neighborhood with distinct neighbor colors and 6-point home-star anchoring, and **Campaigns** ranks winnable home-landmass plays (**Winnability relief** contours, smooth weighted **Flip seams**, **Service gap** pockets, **Weak pack** blockers, and **Where not to spend** avoid zones such as separated landmasses across rivers or non-residential refinery/industrial tracts).
 
 <p align="center">
-  <img src="assets/companion-local-leaders.webp" width="49%" alt="Local leaders view: first-place winners shown as colored territories across 1,249 Austin search points">
-  <img src="assets/companion-campaigns.webp" width="49%" alt="Campaigns view: Defend, Advance and Build zones for the selected business">
+  <img src="assets/companion-local-leaders.webp" width="49%" alt="Local leaders view: first-place winners shown as colored territories across 458 river-clipped South Philadelphia search points">
+  <img src="assets/companion-campaigns.webp" width="49%" alt="Campaigns view: Winnability relief, flip seams, agent-researched plays, and Where not to spend avoid zones for Cosmi's Deli">
 </p>
 
-Another view audits competitor business names. When a first-place holder's title looks packed with extra keywords, your agent refreshes that exact profile, reads the branding on its website, pulls outdoor Street View from up to three angles aimed at the building, and, with [`legends-jev`](https://github.com/avalonreset/legends-jev) installed, reads the physical lettering on the storefront sign.
+Another view audits competitor business names. When a first-place holder's title looks packed with extra keywords, your agent refreshes that exact profile through DataForSEO, reads the branding on its website (behind Firecrawl managed proxies or standard HTTP), inspects the profile's storefront photos and logo (plus optional official Google Street View Static API imagery when you provide your own Google Maps API key, or a 1-click official Google Maps Street View link), and, with [`legends-jev`](https://github.com/avalonreset/legends-jev) or multimodal vision, reads the physical lettering on the storefront sign.
 
-Two Austin profiles in the bundled study share one title, "Pedroso's Pizza- Slice Shop & Take Out," while the website brand is simply Pedroso's Pizza. On Airport Boulevard the physical logo badge really does carry the words SLICE SHOP and TAKE OUT, so that profile rates 2 of 5 across its 61 first-place wins. At Justin Lane no storefront sign has confirmed the extra words yet, so the same title rates 4 of 5 across 124.
+In the bundled South Philadelphia study, all **250 of 250** `#1` winners were audited (`Pending 0`): 14 corroborated naming discrepancies were documented (such as `Waterfront Gourmet Cafe & Deli - Catering & Events Services in South St, Philadelphia` and `Cleavers Philadelphia @ Rittenhouse Square`), while high-overlap rivals like `Philly's Hoagie House` and `On a Roll Italian Sandwich Co.` were optically cleared because their physical signage and logos match their Google titles.
 
 <p align="center">
-  <img src="assets/companion-keyword-stuffing.webp" width="49%" alt="Keyword stuffing view: first-place profiles rated 0 to 5 for name concern, with the evidence beside each rating">
-  <img src="assets/companion-photo-lightbox.webp" width="49%" alt="Photo Lightbox: a storefront capture opened at full size for a closer read of the sign">
+  <img src="assets/companion-keyword-stuffing.webp" width="49%" alt="Keyword stuffing 3-pane studio: 250 audited first-place profiles with storefront photo, logo, captured website comparison, and Street View link">
+  <img src="assets/companion-strategy-room.webp" width="49%" alt="Strategy Room split view beside the map showing 4 agent campaign plans, Where not to spend avoid zones, and reach matrix">
 </p>
 
 Same title, different physical evidence, different rating. A human still validates each reading, and the tool never files an edit or a complaint with Google on your behalf.
 
 <p align="center"><img src="assets/cards/r1/slot-5-saas-vs-geogrid.svg" width="100%" alt="Comparison: Monthly local rank SaaS versus Your own territory engine with legends-geogrid"></p>
 
-Looking for an open source Local Falcon alternative? Here is the trade. There is no hosted subscription dashboard and nothing runs behind your back on a schedule; in exchange you pay raw provider data costs (all 4,996 searches in the 10-mile Austin study cost $2.9976 in data, and a 5-mile study at the same spacing is 309 points and 1,236 searches, about $0.74), keep every raw response on your own disk, and can inspect the evidence behind every pin.
+Looking for an open source Local Falcon alternative? Here is the trade. There is no hosted subscription dashboard and nothing runs behind your back on a schedule; in exchange you pay raw provider data costs (all 1,374 searches in the bundled 6-mile South Philadelphia study cost $0.82 in data, and a 10-mile study at 0.5-mile spacing is 1,249 points and 4,996 searches, about $3.00), keep every raw response on your own disk, and can inspect the evidence behind every pin.
 
-Watch the entire Austin study run on screen in the 31-minute walkthrough below:
+Watch the full workflow walkthrough on YouTube below:
 
-<p align="center"><a href="https://www.youtube.com/watch?v=0G7IF3yBxcM"><img src="assets/youtube-walkthrough.webp" width="100%" alt="Watch the 31-minute walkthrough of the Austin pizza study on YouTube"></a></p>
+<p align="center"><a href="https://www.youtube.com/watch?v=0G7IF3yBxcM"><img src="assets/youtube-walkthrough.webp" width="100%" alt="Watch the 31-minute legends-geogrid walkthrough on YouTube"></a></p>
 
 ---
 
@@ -130,20 +130,21 @@ Watch the entire Austin study run on screen in the 31-minute walkthrough below:
 
 ## In the box
 
-Everything in this table ships with the repository, collected on October 19, 2026 from public Google Maps results. Open it before you configure anything.
+Everything in this table ships with the repository, collected from public Google Maps results. Open it before you configure anything.
 
-| Bundled Austin study | What you get |
+| Bundled South Philadelphia study | What you get |
 | --- | --- |
-| Business | Home Slice Pizza, 1415 S Congress Ave, Austin, TX (a public-data case study) |
-| Footprint | 10-mile radius, 0.5-mile spacing, 1,249 search points |
-| Searches | pizza restaurant, new york style pizza, pizza by the slice, pizza takeout |
-| Observations | 4,996 point-and-search results, each to depth 30 |
-| Field | 702 business profiles observed |
-| Name check | 165 first-place profiles refreshed and screened, 79 recurring leaders individually rated 0 to 5 |
-| Report | 19-page vector PDF plus a standalone HTML edition |
+| Business | Cosmi's Deli, 1501 S 8th St, Philadelphia, PA 19147 (a public-data case study) |
+| Footprint | 6.0-mile radius, 0.5-mile uniform circular honeycomb (`hex_radius`), 458 dry-land pins clipped against 8 river polygons |
+| Searches | `sandwich shop`, `hoagie`, `cheesesteak` |
+| Observations | 1,374 point-and-search results, each to depth 30 |
+| Field | 1,170 distinct business profiles observed |
+| Campaigns | 4 grounded agent campaign plans + 5 avoid zones (including detached New Jersey landmass and Point Breeze / PES Refinery industrial tract) |
+| Name check | All 250 `#1` winners audited (`Pending 0`): 14 corroborated discrepancies, automated website captures, provider GBP storefront/logo photos, and official keyless Street View links |
+| Report | 5-page 30-layer vector-hex PDF ([`examples/cosmis-deli-philly/report/report.pdf`](examples/cosmis-deli-philly/report/report.pdf)) |
 | Cost to open | No keys, no account, $0.00 |
 
-Read the finished report at [`examples/starter-home-slice/report/report.pdf`](examples/starter-home-slice/report/report.pdf) and the study guide at [`examples/starter-home-slice/README.md`](examples/starter-home-slice/README.md).
+Read the South Philadelphia report at [`examples/cosmis-deli-philly/report/report.pdf`](examples/cosmis-deli-philly/report/report.pdf) and study guide at [`examples/cosmis-deli-philly/README.md`](examples/cosmis-deli-philly/README.md).
 
 <a id="views"></a>
 
@@ -151,17 +152,17 @@ Read the finished report at [`examples/starter-home-slice/report/report.pdf`](ex
 
 | View | The question it answers |
 | --- | --- |
-| Local leaders | Who holds first place in each neighborhood, with adjacent winners kept in clearly different colors |
-| Rankings | Where the business ranks at every point, 1 through 30, for the selected search |
-| Keyword stuffing | Whether a first-place holder's profile name matches its website and its real storefront sign |
-| Campaigns | Which ground to Defend (ranks 1 to 3), Advance (ranks 4 to 10) or Build (ranks 11 to 30). Points absent from the top 30 sit in their own Outside top 30 band |
-| Strategy Room | What the selected area, its rank context and the campaign plans say, in a side panel beside the map, with head-to-head comparisons between two profiles |
-| Photo Lightbox | What the storefront photo, Street View capture or logo shows at full size |
-| Strategy report | How the whole study reads on paper, as a vector PDF and HTML report with maps and scorecards |
+| Rankings | Where the business ranks at every point, 1 through 30, with 30-layer hypsometric topography, independent `triangles` / `pins` / `rings` toggles, and 6-point home star |
+| Local leaders | Who holds first place in each neighborhood, with distinct neighbor colors and double-click territory framing |
+| Campaigns | Which home-landmass plays have the highest structural leverage (`Winnability relief`, `Flip seams`, `Service gap`, `Weak pack`), plus `Where not to spend` avoid zones |
+| Keyword stuffing | Whether any `#1` winner's GBP title contradicts its storefront signage, captured website branding, logo, or official Street View link |
+| Strategy Room | Executive summary beside the map: grounded agent campaign plans, `Where not to spend` avoid zones, radial reach matrix, and head-to-head rival matchups |
+| Photo Lightbox | Full-size inspection of provider GBP storefront photos and logos |
+| Vector-hex PDF report | Offline 30-layer marching-squares topography and river-clipped Local Leaders hex grid generated via `tools/report_builder.py --hex-study` |
 
 <p align="center">
-  <img src="assets/companion-rankings.webp" width="49%" alt="Rankings view: the selected business's rank at every search point for one search">
-  <img src="assets/companion-strategy-room.webp" width="49%" alt="Strategy Room panel open beside the map with area context and campaign plans">
+  <img src="assets/companion-rankings.webp" width="49%" alt="Rankings view: 30-layer rank topography and 6-point home star for Cosmi's Deli in South Philadelphia">
+  <img src="assets/companion-strategy-room.webp" width="49%" alt="Strategy Room panel open beside the map with agent campaign plans, Where not to spend avoid zones, and radial reach matrix">
 </p>
 
 ### Embeddable report viewer (`GeoGridViewer.mount`)
@@ -176,10 +177,10 @@ Fresh studies bill directly to your own DataForSEO account at wholesale provider
 
 | Study | Search tasks | Standard Queue data cost |
 | --- | --- | --- |
-| Bundled Austin study | 4,996, already collected | $0.00 to open |
-| 5-mile radius, 0.5-mile spacing | 309 points x 4 searches = 1,236 | about $0.74 |
+| Bundled South Philadelphia study | 1,374, already collected | $0.00 to open |
+| 6-mile river-clipped hex study (0.5-mi) | 458 points x 3 searches = 1,374 | about $0.82 |
 | 10-mile radius, 0.5-mile spacing | 1,249 points x 4 searches = 4,996 | about $3.00 |
-| Name check on 165 first-place profiles | 165 profile refreshes | about $0.25 |
+| Name check on 250 first-place profiles | 250 profile refreshes | about $0.38 |
 
 Rates in the code: $0.0006 per Standard Queue Maps search at depth 30, $0.0012 for Priority, $0.0020 for Live, and $0.0015 per profile refresh. Check the preflight estimate and the provider's current pricing before approving a run. Every DataForSEO command requires both `--execute` and `--confirm-cost-usd <ceiling>` and aborts before any network call if the estimate exceeds your ceiling.
 
@@ -189,25 +190,25 @@ Rates in the code: $0.0006 per Standard Queue Maps search at depth 30, $0.0012 f
 
 | Say this | What your agent does |
 | --- | --- |
-| "Open the example pizza map so I can explore it without spending credits." | Runs `python tools/study.py --open`, builds a static Companion file, and opens it. No keys, no network calls. |
-| "Study `<business name>` on Google Maps." | Researches the website, public profile, and search demand, proposes 3 to 5 search themes, shows the circular lattice and cost ceiling, and waits for your approval. |
+| "Open the bundled South Philly study so I can explore it without spending credits." | Runs `python tools/study.py --open`, builds a static Companion file, and opens it. No keys, no network calls. |
+| "Study `<business name>` on Google Maps." | Researches the website, public profile, and search demand, proposes 3 to 5 search themes, shows the circular honeycomb and cost ceiling, and waits for your approval. |
 | "Check why a competitor disappears along a straight line on the east edge of our map." | Reruns paired points on both sides of the edge with the search restriction on and off, saves that as a separate diagnostic run, and reports who comes back. |
-| "Check the first-place holders in this study for keyword stuffing and read their signs." | Refreshes exact profiles through the Standard Queue, captures website branding and multi-angle Street View, and runs the optional `legends-jev` sign check. |
+| "Check the first-place holders in this study for keyword stuffing and read their signs." | Refreshes exact profiles through the Standard Queue, captures website branding, downloads provider GBP storefront photos/logos (with optional official Street View Static API + 1-click Google Maps Street View links), and runs the optional `legends-jev` sign check. |
 | "Expand this study out to 10 miles." | Plans the larger circle at the same spacing with `radius_sampling.py`, collects only the new outer points on the Standard Queue within your approved budget, composes one complete 10-mile study from the saved scans, and banks it as an expansion of the original. |
 | "Render the report." | Builds the vector PDF and HTML strategy report and runs page-by-page layout checks on the result. |
 
 Full agent instructions live in [`AGENTS.md`](AGENTS.md) and [`docs/STUDY-RECIPE.md`](docs/STUDY-RECIPE.md).
 
-## Optional MCP Plug-In: Legends Gambit (Open Beta)
+## Optional MCP Plug-In: `legends-gambit` (Open Beta)
 
 Want a circular hexagonal Google Maps rank grid and a 19-page vector hex PDF without wiring up vendor accounts?
 
-This module stays 100% local, free, and MIT open source on your own accounts. That does not change.
+`legends-geogrid` stays 100% local, free, and MIT open source on your own BYO accounts (`DATAFORSEO_LOGIN` and `DATAFORSEO_PASSWORD`). That does not change. You can also run deterministic 7-stage keyword & territory planning locally with `python tools/study.py plan --seed-keyword "car detailing" --location "Miami, FL" --dry-run` or check both setup paths with `python tools/geogrid_doctor.py --via-gambit`.
 
-If you want pay-per-run audits without vendor accounts or subscriptions, [Legends Gambit](https://cto-legends.com/gambit) (**Legends Gambit: SEO MCP Server & Market Intelligence (by CTO Legends)**, open beta) is one optional MCP intelligence plug-in beside it:
+If you prefer pay-per-run audits without vendor accounts or subscriptions, [`legends-gambit`](https://cto-legends.com/gambit) (**`legends-gambit`: SEO MCP Server & Market Intelligence by `cto-legends`**, open beta) is an optional hosted MCP plug-in beside it:
 
 - One Streamable HTTP endpoint (`https://gambit.cto-legends.com/mcp`) and one Bearer API key. Works in Claude Code, Cursor, Antigravity, Claude Desktop, and OpenCode (open read-only `initialize` and `tools/list` discovery)
-- Non-expiring prepaid wallet ($10 starter top-up), zero vendor accounts, zero subscriptions
+- Non-expiring prepaid wallet ($10 starter pack skips $50+ upstream vendor deposits, $0/mo, zero subscriptions)
 - From $0.05/run: verified SERP ($0.05), keyword demand ($0.05 for up to 25 keywords), competitor teardown ($0.15), market dossier ($0.50), and circular hexagonal Google Maps rank grids ($0.04/hex point: $0.76 for 19 pts, $1.48 for 37 pts, up to $6.76 for 169 pts across 0.5-50 km radius, with a 19-page vector hex PDF)
 - Anything above your per-call limit (default $0.25) is quoted first. Failed runs and 24-hour same-wallet repeats cost $0.00, and verified cache hits are at least 60% off
 
@@ -215,7 +216,7 @@ If you want pay-per-run audits without vendor accounts or subscriptions, [Legend
 claude mcp add --transport http legends-gambit https://gambit.cto-legends.com/mcp --header "Authorization: Bearer YOUR_API_KEY"
 ```
 
-Create an API key at [gambit.cto-legends.com/wallet](https://gambit.cto-legends.com/wallet) or read the docs at [cto-legends.com/gambit](https://cto-legends.com/gambit). Prefer to run 100% locally? Keep reading. Everything below needs nothing from us.
+Create an API key at [gambit.cto-legends.com/wallet](https://gambit.cto-legends.com/wallet) or read the docs at [cto-legends.com/gambit](https://cto-legends.com/gambit). Prefer to run 100% locally with BYO keys? Keep reading. Everything below needs nothing from us.
 
 <a id="boundaries"></a>
 
@@ -254,7 +255,7 @@ Yes, if you would rather run the study yourself. Local Falcon is a hosted produc
 
 <br>
 
-Keys are optional for the first look. The full Austin study and its 19-page report ship in the repo, and `python tools/study.py --open` opens them with no account and no spend.
+Keys are optional for the first look. The full South Philadelphia study and its 5-page vector-hex PDF report ship in the repo, and `python tools/study.py --open` opens them with no account and no spend.
 
 </details>
 
@@ -376,7 +377,7 @@ Raw single-grid and batch runners (`tools/local_heatmap_poc.py`, `tools/bulk_geo
 Where things land:
 
 - `runs/` and `bulk-runs/` hold fresh run folders and are ignored by Git.
-- Static Companion builds from `python tools/study.py --open` land at `runs/starter-home-slice/companion.html`.
+- Static Companion builds from `python tools/study.py --open` land at `runs/starter-cosmis-deli-philly/companion.html`.
 - Report directories hold `report.pdf`, `report.html`, `report-model.json`, `report-qa.json`, `sampling-review.json`, `leaders-map.png`, and one `map-NNN.png` per search.
 - `~/.legends-geogrid/vault/GeoGrid` is the study library, movable with `--vault-dir` or `GEOGRID_VAULT_DIR`. It keeps a catalog, one folder per business, and a hashed manifest per study revision.
 
@@ -429,7 +430,7 @@ Independence note: `legends-geogrid` is not affiliated with or endorsed by DataF
 
 ## Start here
 
-Paste the [agent handoff block](#top) at the top of this page into your coding agent, open the 1,249-point Austin pizza territory map in your browser, and see what a true circular Google Maps rank study looks like before spending a cent.
+Paste the [agent handoff block](#top) at the top of this page into your coding agent, open the 458-point river-clipped South Philadelphia territory map in your browser, and see what a true circular Google Maps rank study looks like before spending a cent.
 
 <p align="center"><a href="https://github.com/stars/avalonreset/lists/cto-legends"><img src="assets/cards/r1/slot-collection-star-shrine.svg" width="100%" alt="GitHub Star List: The complete cto-legends collection on one page. Bookmark or star the router and every module from a single GitHub list."></a></p>
 

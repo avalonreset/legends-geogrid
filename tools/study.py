@@ -301,6 +301,8 @@ def main(argv=None):
     r.add_argument('--allow-live',action='store_true',help='Explicit user opt-in for Live research routes (Standard queue ingest is default)')
     qr=sub.add_parser('query-review');qr.add_argument('--plan');qr.add_argument('--competitive-plan');qr.add_argument('--refresh-dir');qr.add_argument('--output');qr.add_argument('--markdown')
     qr.add_argument('--warn-age-days',type=float,default=14.0);qr.add_argument('--max-age-days',type=float,default=30.0)
+    from geogrid_plan import build_arg_parser as _build_plan_parser
+    _build_plan_parser(sub.add_parser('plan',help='Deterministic 7-stage keyword & territory planner (BYO DataForSEO)'))
     for name in ('validate','run'):
         s=sub.add_parser(name);s.add_argument('--plan',required=True)
         if name=='run':
@@ -350,6 +352,33 @@ def main(argv=None):
             if args.markdown:
                 md_path=_safe_local_path(args.markdown);md_path.parent.mkdir(parents=True,exist_ok=True)
                 with md_path.open('x',encoding='utf-8') as f:f.write(format_markdown(result))
+        elif args.command=='plan':
+            from geogrid_plan import format_plan_summary, run_geogrid_plan
+            if args.dry_run and args.execute:
+                raise ValueError('Cannot combine --dry-run and --execute')
+            result=run_geogrid_plan(
+                seed_keyword=args.seed_keyword,
+                location=args.location,
+                business_name=args.business_name,
+                target_cid=args.target_cid,
+                website_url=args.website_url,
+                center_lat=args.center_lat,
+                center_lng=args.center_lng,
+                extra_candidates=args.extra_candidate,
+                not_offered_terms=args.not_offered,
+                depth=args.depth,
+                max_candidates=args.max_candidates,
+                method=args.method,
+                allow_live=args.allow_live,
+                execute=bool(args.execute and not args.dry_run),
+                confirm_cost_usd=args.confirm_cost_usd,
+            )
+            if args.output:
+                out_path=_safe_local_path(args.output);out_path.parent.mkdir(parents=True,exist_ok=True)
+                out_path.write_text(json.dumps(result,indent=2,ensure_ascii=False,allow_nan=False),encoding='utf-8')
+            if not args.json:
+                print(format_plan_summary(result))
+                return 0
         elif args.command=='validate':result=validate(args.plan)[1]
         else:
             checkpoint=lambda stage:bank_study(args.plan,args.output_dir,vault=args.vault_dir,stage=stage)

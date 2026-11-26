@@ -26,6 +26,20 @@ function listingRow(item, business, state, model) {
   </button>`
 }
 
+function pointHeading(point, model) {
+  const anchor = model?.businesses?.find(b => b.id === model.targetId)
+  if (anchor && Number.isFinite(anchor.lat) && Number.isFinite(anchor.lng) && Number.isFinite(point?.lat) && Number.isFinite(point?.lng)) {
+    const dLat = point.lat - anchor.lat
+    const dLng = (point.lng - anchor.lng) * Math.cos(anchor.lat * Math.PI / 180)
+    const miles = Math.hypot(dLat, dLng) * 69.0
+    if (miles < 0.15) return 'Business center'
+    const angle = (Math.atan2(dLng, dLat) * 180 / Math.PI + 360) % 360
+    const dirs = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW']
+    return `${miles.toFixed(1)} mi ${dirs[Math.round(angle / 45) % 8]}`
+  }
+  return point.id
+}
+
 // state: { business, query, point } plus ui: { allListings, allRivals }
 export function pointPanelHTML(model, state, ui) {
   const query = model.queries.find(q => q.id === state.query)
@@ -57,8 +71,9 @@ export function pointPanelHTML(model, state, ui) {
     ? `<div class="listing-expander"><button class="text-button" data-listing-all="${expanded ? '0' : '1'}" aria-expanded="${expanded}">${expanded ? `Show top ${LISTING_WINDOW}` : `Show all ${count}`}</button></div>`
     : ''
   const empty = count === 0 ? '<p class="list-caption">No results were captured for this location and query.</p>' : ''
-  return `<div class="side-intro"><div class="eyebrow">LOCATION RANKINGS</div><h2>${escape(listing.point.id)}</h2>
-    <p>${escape(query?.name || '')} · ${count} ${count === 1 ? 'listing' : 'listings'} captured${listing.extra.length && !expanded ? `, top ${LISTING_WINDOW} shown` : ''}</p>
+  const heading = pointHeading(listing.point, model)
+  return `<div class="side-intro"><div class="eyebrow">LOCATION RANKINGS</div><h2>${escape(heading)}</h2>
+    <p>${escape(query?.name || '')} · ${count} ${count === 1 ? 'listing' : 'listings'} captured${listing.extra.length && !expanded ? `, top ${LISTING_WINDOW} shown` : ''} · ${escape(listing.point.id)}</p>
     <p class="listing-target" data-target-line>${targetLine}</p></div>
     <div class="business-list listing-list" data-listing-count="${shown.length}">${rows.join('')}${pinned}${empty}</div>${expander}
     <p class="list-caption">Scores on this map stay anchored to the top ${model.scoreWindow || LISTING_WINDOW}. Deeper positions are shown for context.</p>`

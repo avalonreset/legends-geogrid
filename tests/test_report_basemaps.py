@@ -13,6 +13,8 @@ from report_basemaps import (
     BasemapSession,
     base_record,
     google,
+    google_key_status,
+    load_dotenv_google_keys,
     provider_for,
     validate_image,
 )
@@ -119,5 +121,68 @@ class BasemapTests(unittest.TestCase):
             model=load_config(outputs['report_config'])
             self.assertFalse(model['synthetic'])
             self.assertEqual('openfreemap',provider_for(model,model['lanes'][0]))
+
+    def test_persistent_google_key_lookup_order_and_symlink_refusal(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            home = root / 'home'
+            repo = root / 'repo'
+            secrets_dir = home / '.cto-legends' / 'secrets'
+            secrets_dir.mkdir(parents=True)
+            repo.mkdir(parents=True)
+
+            explicit_file = root / 'explicit.env'
+            user_secrets_file = secrets_dir / 'geogrid.env'
+            env_local_file = repo / '.env.local'
+            env_file = repo / '.env'
+
+            with patch.dict('os.environ', {}, clear=True):
+                self.assertEqual({'present': False, 'source': 'missing'}, google_key_status(root_dir=repo, user_home=home, env_file=''))
+
+                env_file.write_text('GOOGLE_MAP_TILES_API_KEY=repo-dotenv-key\n', encoding='utf-8')
+                self.assertEqual('repo-dotenv-key', load_dotenv_google_keys(root_dir=repo, user_home=home, env_file='')['GOOGLE_MAP_TILES_API_KEY'])
+                self.assertEqual({'present': True, 'source': 'repo_dotenv'}, google_key_status(root_dir=repo, user_home=home, env_file=''))
+
+                env_local_file.write_text('GOOGLE_MAP_TILES_API_KEY=repo-local-key\n', encoding='utf-8')
+                self.assertEqual('repo-local-key', load_dotenv_google_keys(root_dir=repo, user_home=home, env_file='')['GOOGLE_MAP_TILES_API_KEY'])
+
+                user_secrets_file.write_text('GOOGLE_MAP_TILES_API_KEY=user-secrets-key\n', encoding='utf-8')
+                self.assertEqual('user-secrets-key', load_dotenv_google_keys(root_dir=repo, user_home=home, env_file='')['GOOGLE_MAP_TILES_API_KEY'])
+                self.assertEqual({'present': True, 'source': 'user_secrets_env'}, google_key_status(root_dir=repo, user_home=home, env_file=''))
+
+                explicit_file.write_text('GOOGLE_MAP_TILES_API_KEY=explicit-env-key\n', encoding='utf-8')
+                self.assertEqual('explicit-env-key', load_dotenv_google_keys(root_dir=repo, user_home=home, env_file=explicit_file)['GOOGLE_MAP_TILES_API_KEY'])
+                self.assertEqual({'present': True, 'source': 'explicit_env_file'}, google_key_status(root_dir=repo, user_home=home, env_file=explicit_file))
+
+            with patch.dict('os.environ', {'GOOGLE_MAP_TILES_API_KEY': 'proc-env-key'}, clear=True):
+                self.assertEqual({'present': True, 'source': 'env'}, google_key_status(root_dir=repo, user_home=home, env_file=explicit_file))
+
+            # Explicit dotenv_path override still works
+            self.assertEqual('repo-dotenv-key', load_dotenv_google_keys(dotenv_path=env_file)['GOOGLE_MAP_TILES_API_KEY'])
+
+            # Symlinked env file is refused when OS allows creating one
+            link_env = root / 'link.env'
+            try:
+                link_env.symlink_to(explicit_file)
+            except OSError:
+                return
+            with patch.dict('os.environ', {}, clear=True):
+                self.assertEqual({}, load_dotenv_google_keys(dotenv_path=link_env))
+
+    def test_doctor_reports_google_key_source_without_leaking_value(self):
+        from contextlib import redirect_stdout
+        import geogrid_doctor
+
+        secret = 'fixture-never-print-google-key-998877'
+        buf = io.StringIO()
+        with patch.dict('os.environ', {'GOOGLE_MAP_TILES_API_KEY': secret}), \
+             patch('sys.argv', ['geogrid_doctor.py', '--json']), \
+             redirect_stdout(buf):
+            rc = geogrid_doctor.main()
+        self.assertEqual(rc, 0)
+        output = buf.getvalue()
+        self.assertNotIn(secret, output)
+        payload = json.loads(output)
+        self.assertEqual(payload['google_maps_key'], {'present': True, 'source': 'env'})
 
 if __name__=='__main__':unittest.main()

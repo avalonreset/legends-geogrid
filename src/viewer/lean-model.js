@@ -72,6 +72,12 @@ export function normalizeLeanModel(input) {
     requireObject(p, `points[${i}]`)
     if (!finite(p.lat) || !finite(p.lng)) fail(`points[${i}]`, 'needs numeric lat and lng')
     const rank = Number.isInteger(p.rank) && p.rank >= 1 ? p.rank : null
+    const hex = p.hex && typeof p.hex === 'object' ? {
+      unitQ: finite(p.hex.unit_q) ? p.hex.unit_q : null,
+      unitR: finite(p.hex.unit_r) ? p.hex.unit_r : null,
+      firstRungMiles: optNumber(p.hex.first_rung_miles),
+      rungMembership: Array.isArray(p.hex.rung_membership) ? p.hex.rung_membership.filter(finite) : [],
+    } : null
     return {
       row: finite(p.row) ? p.row : null,
       col: finite(p.col) ? p.col : null,
@@ -80,6 +86,7 @@ export function normalizeLeanModel(input) {
       rank,
       label: text(p.label, rank ? `Rank ${rank}` : 'Not found'),
       heat: optNumber(p.heat),
+      hex,
     }
   })
   const zones = input.zones && typeof input.zones === 'object' ? input.zones : {}
@@ -103,6 +110,8 @@ export function normalizeLeanModel(input) {
       radiusM: finite(scan.radiusM) && scan.radiusM > 0 ? scan.radiusM : null,
       createdAt: text(scan.createdAt),
       device: text(scan.device),
+      geometry: text(scan.geometry),
+      spacingMiles: optNumber(scan.spacingMiles),
     },
     points,
     scores: normalizeScores(input.scores),

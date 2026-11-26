@@ -1,4 +1,107 @@
 import { randomUUID } from 'node:crypto'
+import { closeSync, constants as fsConstants, fstatSync, lstatSync, openSync, readSync } from 'node:fs'
+import os from 'node:os'
+import path from 'node:path'
+
+const MAX_ENV_FILE_BYTES = 65536
+const MAC_SYSTEM_LINKS = new Set(['/var', '/tmp', '/etc'])
+
+function isSafeRegularFile(filePath) {
+  const resolved = path.resolve(filePath)
+  let current = resolved
+  while (true) {
+    if (process.platform !== 'win32' && current !== resolved && MAC_SYSTEM_LINKS.has(current)) {
+      const parent = path.dirname(current)
+      if (parent === current) break
+      current = parent
+      continue
+    }
+    let st
+    try {
+      st = lstatSync(current)
+    } catch {
+      return null
+    }
+    if (st.isSymbolicLink()) return null
+    if (current === resolved && (!st.isFile() || st.size > MAX_ENV_FILE_BYTES)) return null
+    const parent = path.dirname(current)
+    if (parent === current) break
+    current = parent
+  }
+  return resolved
+}
+
+function readGoogleKeyFromEnvFile(filePath) {
+  const resolved = isSafeRegularFile(filePath)
+  if (!resolved) return undefined
+  let fd
+  try {
+    const flags = fsConstants.O_RDONLY | (fsConstants.O_NOFOLLOW || 0)
+    fd = openSync(resolved, flags)
+    const fst = fstatSync(fd)
+    if (!fst.isFile() || fst.size > MAX_ENV_FILE_BYTES) return undefined
+    const buf = Buffer.allocUnsafe(MAX_ENV_FILE_BYTES + 1)
+    let total = 0
+    while (total < buf.length) {
+      const n = readSync(fd, buf, total, buf.length - total, null)
+      if (n <= 0) break
+      total += n
+    }
+    if (total > MAX_ENV_FILE_BYTES) return undefined
+    const text = buf.subarray(0, total).toString('utf8')
+    const found = {}
+    for (const rawLine of text.split(/\r?\n/)) {
+      let line = rawLine.trim()
+      if (!line || line.startsWith('#')) continue
+      if (line.startsWith('export ')) line = line.slice(7).trim()
+      const eq = line.indexOf('=')
+      if (eq <= 0) continue
+      const k = line.slice(0, eq).trim()
+      let v = line.slice(eq + 1).trim()
+      if (v.length >= 2 && ((v[0] === '"' && v[v.length - 1] === '"') || (v[0] === "'" && v[v.length - 1] === "'"))) {
+        v = v.slice(1, -1).trim()
+      }
+      if ((k === 'GOOGLE_MAP_TILES_API_KEY' || k === 'GOOGLE_MAPS_API_KEY') && v && !found[k]) {
+        found[k] = v
+      }
+    }
+    return found.GOOGLE_MAP_TILES_API_KEY || found.GOOGLE_MAPS_API_KEY || undefined
+  } catch {
+    return undefined
+  } finally {
+    if (fd !== undefined) {
+      try { closeSync(fd) } catch { /* ignore */ }
+    }
+  }
+}
+
+export function readGoogleKeyFromFiles(rootDir, { userHome = os.homedir(), envFile = process.env.LEGENDS_GEOGRID_ENV_FILE } = {}) {
+  const candidates = []
+  if (typeof envFile === 'string' && envFile.trim()) candidates.push(envFile.trim())
+  if (typeof userHome === 'string' && userHome.trim()) {
+    candidates.push(path.join(userHome, '.cto-legends', 'secrets', 'geogrid.env'))
+  }
+  if (typeof rootDir === 'string' && rootDir.trim()) {
+    candidates.push(path.join(rootDir, '.env.local'))
+    candidates.push(path.join(rootDir, '.env'))
+  }
+  const seen = new Set()
+  for (const candidate of candidates) {
+    const norm = path.resolve(candidate)
+    if (seen.has(norm)) continue
+    seen.add(norm)
+    const key = readGoogleKeyFromEnvFile(candidate)
+    if (key) return key
+  }
+  return undefined
+}
+
+export function resolveGoogleKey(rootDir = process.cwd(), { env = process.env, userHome = os.homedir(), envFile } = {}) {
+  const fromEnv = (env?.GOOGLE_MAP_TILES_API_KEY || env?.GOOGLE_MAPS_API_KEY || '').trim()
+  if (fromEnv) return fromEnv
+  const explicitFile = envFile !== undefined ? envFile : env?.LEGENDS_GEOGRID_ENV_FILE
+  return readGoogleKeyFromFiles(rootDir, { userHome, envFile: explicitFile })
+}
 
 const darkStyle = [
   { elementType: 'geometry', stylers: [{ color: '#171717' }] },
@@ -17,7 +120,7 @@ const styles = {
 
 // Reusable same-origin server adapter. Keys and provider session tokens never
 // enter browser URLs/assets. Google imagery is streamed, never stored on disk.
-export function createGoogleTilesMiddleware({ getKey = () => process.env.GOOGLE_MAP_TILES_API_KEY || process.env.GOOGLE_MAPS_API_KEY,
+export function createGoogleTilesMiddleware({ getKey = () => resolveGoogleKey(process.cwd()),
   fetcher = (...args) => fetch(...args), now = Date.now } = {}) {
   const sessions = new Map(), byStyle = new Map(), pending = new Map()
   const upstream = async (path, params, options = {}) => {
@@ -116,6 +219,11 @@ export function createGoogleTilesMiddleware({ getKey = () => process.env.GOOGLE_
 }
 
 export function googleTilesPlugin() {
-  const attach = server => { server.middlewares.use(createGoogleTilesMiddleware()) }
+  const attach = server => {
+    const rootDir = server?.config?.root || process.cwd()
+    server.middlewares.use(createGoogleTilesMiddleware({
+      getKey: () => resolveGoogleKey(rootDir),
+    }))
+  }
   return { name: 'google-interactive-tiles', configureServer: attach, configurePreviewServer: attach }
 }

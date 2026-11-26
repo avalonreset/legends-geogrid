@@ -71,7 +71,7 @@ test('prepared plans link only an exact studied baseline and keep proxy labels e
       { id: 'install', title: 'Installation research', baselineQuery: 'air conditioning contractor' },
       { id: 'heatpump', title: 'Unmeasured heat pumps' },
       { id: 'stale', title: 'Absent query', baselineQuery: 'air conditioning installation' }] }
-  assert.deepEqual(campaignPlanMapAction(research, 'furnace'), { campaignId: 'plan:furnace', planId: 'furnace', queryId: 'q4', lens: 'overview', regionId: 'all', originIds: [] })
+  assert.deepEqual(campaignPlanMapAction(research, 'furnace'), { campaignId: 'plan:furnace', planId: 'furnace', queryId: 'q4', lens: 'overview', regionId: 'all', originIds: [], enginePlayId: null })
   assert.equal(campaignPlanMapAction(research, 'heatpump'), null)
   assert.equal(campaignPlanMapAction(research, 'stale'), null)
   const html = campaignPlansHTML(research, 'q1')

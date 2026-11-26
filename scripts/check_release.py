@@ -69,11 +69,16 @@ FORBIDDEN_CODE_PATTERNS = [
     r"Login\s+Data",
     r"Web\s+Data",
     r"Cookies",
+]
+
+FORBIDDEN_SECRET_PATTERNS = [
     r"gh[pousr]_[A-Za-z0-9]{20,}",
     r"sk-[A-Za-z0-9]{20,}",
     r"-----BEGIN[A-Z ]*PRIVATE KEY-----",
     r"https?://[a-z0-9.-]+\.ts\.net",
 ]
+
+CODE_SUFFIXES = {".py", ".js", ".mjs", ".ps1", ".sh", ".cmd", ".bat"}
 
 HOUSE_PATH_PATTERNS = [
     r"C:\\" + r"Users\\",
@@ -146,6 +151,45 @@ def _check_markdown_links(md_path: Path, text: str, issues: list[str]) -> None:
             issues.append(f"Broken relative link in {rel_src}: {raw_target}")
 
 
+def _check_commit_range(issues: list[str]) -> None:
+    """When origin/main exists, fail if any reachable commit in origin/main..HEAD touches runs/ or forbidden extensions."""
+    verify = subprocess.run(
+        ["git", "rev-parse", "--verify", "--quiet", "origin/main"],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+    )
+    if verify.returncode != 0:
+        return
+    rev_list = subprocess.run(
+        ["git", "rev-list", "--objects", "origin/main..HEAD"],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+    )
+    if rev_list.returncode != 0:
+        issues.append(f"Failed to inspect commit range origin/main..HEAD: {rev_list.stderr.strip()}")
+        return
+    seen_runs: set[str] = set()
+    seen_ext: set[str] = set()
+    for line in rev_list.stdout.splitlines():
+        parts = line.split(" ", 1)
+        if len(parts) != 2:
+            continue
+        rel = parts[1].strip().replace("\\", "/")
+        if not rel:
+            continue
+        if rel == "runs" or rel.startswith("runs/"):
+            if rel not in seen_runs:
+                seen_runs.add(rel)
+                issues.append(f"Commit history (origin/main..HEAD) contains private runs/ artifact: {rel}")
+        suffix = Path(rel).suffix.lower()
+        if suffix in FORBIDDEN_EXTENSIONS:
+            if rel not in seen_ext:
+                seen_ext.add(rel)
+                issues.append(f"Commit history (origin/main..HEAD) contains forbidden file extension ({suffix}): {rel}")
+
+
 def check_release() -> list[str]:
     issues: list[str] = []
 
@@ -179,6 +223,7 @@ def check_release() -> list[str]:
         issues.append(f"Version mismatch: package.json={pkg_ver}, CHANGELOG.md={chg_ver}, CITATION.cff={cff_ver}")
 
     _check_manifest(issues)
+    _check_commit_range(issues)
 
     skill_files = [p.relative_to(ROOT).as_posix() for p in tracked_files() if p.name == "SKILL.md"]
     if skill_files != ["skills/cto-legends/SKILL.md"]:
@@ -202,9 +247,13 @@ def check_release() -> list[str]:
             text = p.read_text(encoding="utf-8", errors="replace")
             if CONTROL_CHAR_RE.search(text):
                 issues.append(f"Forbidden control or replacement character found in {rel}")
-            for pat in FORBIDDEN_CODE_PATTERNS:
+            if suffix in CODE_SUFFIXES:
+                for pat in FORBIDDEN_CODE_PATTERNS:
+                    if re.search(pat, text, re.IGNORECASE):
+                        issues.append(f"Forbidden pattern '{pat}' in {rel}")
+            for pat in FORBIDDEN_SECRET_PATTERNS:
                 if re.search(pat, text, re.IGNORECASE):
-                    issues.append(f"Forbidden pattern '{pat}' in {rel}")
+                    issues.append(f"Forbidden secret/internal pattern '{pat}' in {rel}")
             for pat in HOUSE_PATH_PATTERNS:
                 if re.search(pat, text, re.IGNORECASE):
                     issues.append(f"House/private pattern '{pat}' in {rel}")

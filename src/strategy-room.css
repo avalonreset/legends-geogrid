@@ -165,12 +165,15 @@
 .sr-docked .sr-section-heading{padding:16px;gap:10px}
 .sr-docked .sr-section h2{font-size:18px}
 .sr-docked .sr-section-heading p{font-size:11px}
-.sr-docked .sr-matrix-scroll{padding:0 10px 6px}
-.sr-docked .sr-matrix{min-width:600px;border-spacing:3px}
-.sr-docked .sr-matrix th:first-child{width:135px}
-.sr-docked .sr-matrix tbody th{font-size:11px}
-.sr-docked .sr-heat-cell{min-height:57px;padding:8px 2px}
-.sr-docked .sr-heat-cell strong{font-size:14px}
+.sr-docked .sr-matrix-scroll{padding:0 12px 6px}
+.sr-docked .sr-matrix{min-width:0;border-spacing:3px}
+.sr-docked .sr-matrix th:first-child{width:104px}
+.sr-docked .sr-matrix thead th{font-size:10px}
+.sr-docked .sr-matrix thead small{font-size:8px}
+.sr-docked .sr-matrix tbody th{font-size:11px;padding-right:6px}
+.sr-docked .sr-heat-cell{min-height:54px;padding:6px 1px}
+.sr-docked .sr-heat-cell strong{font-size:12px}
+.sr-docked .sr-heat-cell span{font-size:9px}
 .sr-docked .sr-matrix-key{padding:12px 16px}
 .sr-docked .sr-investigation-grid{grid-template-columns:1fr}
 .sr-docked .sr-investigation-card{padding:20px}
@@ -227,3 +230,16 @@
 
 .campaign-read-plans{display:block;background:#a71920;color:#fff;border:1px solid #d4212b;border-radius:6px;font:inherit;font-size:12px;padding:9px 12px;margin-top:13px;text-align:left;cursor:pointer}
 .campaign-read-plans:focus-visible{outline:2px solid #fff;outline-offset:3px}
+
+/* Grounded Avoid Zones inside Strategy Room. */
+.sr-avoid-section{border-color:#3a2224;background:#0d0b0b}
+.sr-avoid-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;padding:0 24px 22px}
+.sr-avoid-card{background:#141111;border:1px solid #352425;border-radius:10px;padding:15px 16px;display:flex;flex-direction:column}
+.sr-avoid-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px}
+.sr-avoid-kind{font-size:9px;text-transform:uppercase;letter-spacing:.9px;color:#ff4d4d;border:1px solid #6b2226;border-radius:4px;padding:2px 6px}
+.sr-avoid-pins{font-size:10px;color:#a5a5a5;font-variant-numeric:tabular-nums}
+.sr-avoid-card h3{font-size:13px;font-weight:600;color:#f0f0f0;margin:0 0 6px;line-height:1.4}
+.sr-avoid-card p{font-size:11px;color:#a2a2a2;margin:0;line-height:1.65}
+.sr-avoid-action{align-self:flex-start;margin-top:12px;padding:6px 10px;border:1px solid #4c2528;border-radius:5px;background:#1c1213;color:#f2f2f2;font-size:11px;font-weight:550;cursor:pointer}
+.sr-avoid-action:hover{border-color:#e3232d;background:#291517}
+.sr-docked .sr-avoid-grid{grid-template-columns:1fr;padding:0 16px 16px}

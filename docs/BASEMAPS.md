@@ -13,6 +13,12 @@ The adapter can fall back to `GOOGLE_MAPS_API_KEY` only if that key permits Map
 Tiles API; a working Static Maps key alone does not establish this. Keep server
 keys out of `VITE_*`, URLs shown to users, reports, and browser bundles.
 
+### Persistent key storage (survives restarts and upgrades)
+
+- On first Google Maps setup, agents should ask the user once where to store `GOOGLE_MAP_TILES_API_KEY`: as an OS user environment variable or in the persistent file `~/.cto-legends/secrets/geogrid.env`, so the key persists across shell restarts and `cto-legends` upgrades.
+- Both `tools/google-tiles-plugin.mjs` and `tools/report_basemaps.py` resolve keys strictly server-side in priority order: process env (`GOOGLE_MAP_TILES_API_KEY` / `GOOGLE_MAPS_API_KEY`), explicit `LEGENDS_GEOGRID_ENV_FILE`, `~/.cto-legends/secrets/geogrid.env`, then repo `.env.local` and `.env` (refusing symlinked paths).
+- Run `python tools/geogrid_doctor.py --basemaps --json` to verify key presence and source (`env`, `explicit_env_file`, `user_secrets_env`, `repo_dotenv`, or `missing`) offline without printing any key value.
+
 `pnpm dev` and `pnpm preview` install the same local-only adapter. For a hosted
 deployment, mount `createGoogleTilesMiddleware` behind an authenticated
 same-origin server boundary adapted for that host; static file hosting alone

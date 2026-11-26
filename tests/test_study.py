@@ -218,7 +218,7 @@ class StudyTests(unittest.TestCase):
             self.assertTrue(out_html.is_file())
             html=out_html.read_text(encoding='utf-8')
             self.assertIn('window.__GEOGRID_BOOTSTRAP__',html)
-            self.assertIn('Home Slice Pizza',html)
+            self.assertIn("Cosmi's Deli",html)
 
     def test_open_accepts_battlefield_and_parsed_grid_datasets(self):
         from companion_standalone import open_companion

@@ -817,7 +817,7 @@ def build_companion_intel(
             ]
             if not site_names and site.get('title'):
                 raw_title = _clean(str(site.get('title') or ''))
-                for sep in ('|', '::', '–', ' - ', ' — '):
+                for sep in ('|', '::', '\u2013', ' - ', ' \u2014 '):
                     if sep in raw_title:
                         segs = [s.strip() for s in raw_title.split(sep) if s.strip() and s.strip().lower() not in ('home', 'welcome', 'mysite', 'menu', 'order online')]
                         if segs:
@@ -838,6 +838,7 @@ def build_companion_intel(
                     'supports_full_title': 'Supports full title',
                     'omits_suspect_terms': 'Signage omits suspect terms',
                     'obstructed_or_no_sign': 'Sign obstructed or not visible',
+                    'different_business': 'Different business',
                 }
                 jev_verdict = vmap.get(str(jev['verdict']), _clean(jev['verdict']))
 
@@ -931,15 +932,15 @@ def load_companion_intel_for_config(cfg: dict[str, Any], config_dir: Path) -> di
         study_path = _safe_path(config_dir / 'companion-study.json', allowed_roots)
     elif (
         not cfg.get('synthetic', True)
-        and str(cfg.get('business', {}).get('name') or '') == 'Home Slice Pizza'
-        and len(cfg.get('lanes') or []) == 4
-        and len(cfg['lanes'][0].get('records') or []) == 1249
+        and "Cosmi's Deli" in str(cfg.get('business', {}).get('name') or '')
+        and len(cfg.get('lanes') or []) == 3
+        and len(cfg['lanes'][0].get('records') or []) == 458
     ):
-        starter_study = repo_root / 'src' / 'data' / 'home-slice-study.json'
+        starter_study = repo_root / 'src' / 'data' / 'cosmis-deli-philly-study.json'
         if starter_study.exists():
             study_path = _safe_path(starter_study, allowed_roots)
-            starter_research = repo_root / 'src' / 'data' / 'home-slice-campaign-research.json'
-            starter_nr = repo_root / 'src' / 'data' / 'home-slice-name-review.json'
+            starter_research = repo_root / 'src' / 'data' / 'cosmis-deli-philly-campaign-research.json'
+            starter_nr = repo_root / 'src' / 'data' / 'cosmis-deli-philly-name-review.json'
             if starter_research.exists():
                 research_path = _safe_path(starter_research, allowed_roots)
             if starter_nr.exists():

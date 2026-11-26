@@ -31,6 +31,7 @@ from types import SimpleNamespace
 from pathlib import Path
 from urllib.parse import quote
 from local_heatmap_poc import extract_items, match_score, organic_maps_items, organic_rank, RANK_BASIS
+from report_hex_topo import build_hex_pdf, build_hex_topo_mesh, march_hex_contours, coastline_clip_path
 
 GREEN, YELLOW, RED, WHITE, GOLD = (30, 142, 62), (249, 171, 0), (217, 48, 37), (255, 255, 255), (255, 210, 0)
 PIN_RADIUS, RING_WIDTH = 18, 2
@@ -217,13 +218,24 @@ def target_matches(item, target, target_cid='', target_place_id=''):
 
 def main(argv=None):
     ap = argparse.ArgumentParser()
-    ap.add_argument("--config", required=True)
-    ap.add_argument("--target", required=True, help="business name fragment, e.g. 'acme plumbing'")
-    ap.add_argument("--category", required=True, help="regex for in-category titles")
+    ap.add_argument("--hex-study", help="hex_radius companion-study.json path for 30-layer vector topography PDF")
+    ap.add_argument("--pdf", help="Output PDF path when using --hex-study")
+    ap.add_argument("--overwrite", action="store_true", help="Allow overwriting an existing --pdf output")
+    ap.add_argument("--config")
+    ap.add_argument("--target", help="business name fragment, e.g. 'acme plumbing'")
+    ap.add_argument("--category", help="regex for in-category titles")
     ap.add_argument("--target-cid", default='')
     ap.add_argument("--target-place-id", default='')
     ap.add_argument("--zoom", type=int, default=12)
     a = ap.parse_args(argv)
+    if a.hex_study:
+        if not a.pdf:
+            raise ValueError("--pdf is required when using --hex-study")
+        receipt = build_hex_pdf(a.hex_study, a.pdf, overwrite=a.overwrite)
+        print(json.dumps(receipt, indent=2))
+        return 0
+    if not (a.config and a.target and a.category):
+        ap.error("--config, --target, and --category are required unless --hex-study is supplied")
     cfg = json.loads(Path(a.config).read_text(encoding='utf-8-sig'))
     lex = re.compile(a.category, re.I)
     tgt = a.target.lower()

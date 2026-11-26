@@ -416,24 +416,24 @@ class BattlefieldEngineTests(unittest.TestCase):
             self.assertTrue(len(orders["fortress_warnings"]) >= 1)
             self.assertTrue(1 <= len(orders["next_turn_recon_probes"]) <= 5)
 
-    def test_home_slice_starter_study_model(self) -> None:
-        home_slice_path = ROOT / "src" / "data" / "home-slice-study.json"
-        self.assertTrue(home_slice_path.is_file())
+    def test_cosmis_deli_philly_starter_study_model(self) -> None:
+        starter_path = ROOT / "src" / "data" / "cosmis-deli-philly-study.json"
+        self.assertTrue(starter_path.is_file())
 
-        model = battlefield.build_battlefield_model(home_slice_path)
+        model = battlefield.build_battlefield_model(starter_path)
         _assert_no_em_dash(self, model)
 
-        self.assertEqual(4, len(model["lanes"]))
-        self.assertEqual(1249, len(model["points"]))
+        self.assertEqual(3, len(model["lanes"]))
+        self.assertEqual(458, len(model["points"]))
         self.assertEqual(11, len(model["factions"]))
 
         target = model["target_faction"]
-        self.assertEqual("Home Slice Pizza", target["name"])
-        self.assertGreater(target["solv_pct"], 5.0)
+        self.assertEqual("Cosmi's Deli", target["name"])
+        self.assertGreater(target["solv_pct"], 2.0)
 
         fow = model["campaign_orders"]["fog_of_war_summary"]
         self.assertEqual(
-            1249,
+            458,
             fow["cleared_citadel_tiles"]
             + fow["contested_vision_tiles"]
             + fow["suppressed_tiles"]
@@ -443,11 +443,11 @@ class BattlefieldEngineTests(unittest.TestCase):
         for rival in model["rival_factions"]:
             self.assertIsNotNone(rival["lat"])
             self.assertIsNotNone(rival["lng"])
-            self.assertTrue(30.10 <= rival["lat"] <= 30.45)
-            self.assertTrue(-97.95 <= rival["lng"] <= -97.55)
+            self.assertTrue(39.75 <= rival["lat"] <= 40.15)
+            self.assertTrue(-75.40 <= rival["lng"] <= -74.95)
 
     def test_bundled_proof_cli_execution(self) -> None:
-        source = ROOT / "src" / "data" / "home-slice-study.json"
+        source = ROOT / "src" / "data" / "cosmis-deli-philly-study.json"
 
         with tempfile.TemporaryDirectory() as tmp:
             out_dir = Path(tmp) / "out"
@@ -470,8 +470,8 @@ class BattlefieldEngineTests(unittest.TestCase):
             self.assertTrue(model_file.is_file())
             saved_model = json.loads(model_file.read_text(encoding="utf-8"))
             _assert_no_em_dash(self, saved_model)
-            self.assertEqual(4, saved_model["grid"]["total_lanes"])
-            self.assertEqual(1249, saved_model["grid"]["total_points"])
+            self.assertEqual(3, saved_model["grid"]["total_lanes"])
+            self.assertEqual(458, saved_model["grid"]["total_points"])
 
     def test_battlefield_console_escapes_title_and_script_json(self) -> None:
         import battlefield_console

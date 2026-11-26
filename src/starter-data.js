@@ -1,6 +1,6 @@
-import bundledSample from './data/home-slice-study.json'
-import bundledResearch from './data/home-slice-campaign-research.json'
-import bundledNameReview from './data/home-slice-name-review.json'
+import bundledSample from './data/cosmis-deli-philly-study.json'
+import bundledResearch from './data/cosmis-deli-philly-campaign-research.json'
+import bundledNameReview from './data/cosmis-deli-philly-name-review.json'
 
 const bootstrap = globalThis.__GEOGRID_BOOTSTRAP__
 export const sample = bootstrap?.study || bundledSample

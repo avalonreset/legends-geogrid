@@ -79,7 +79,7 @@ export function localLeaders(model, queryId, minimumWins = 3) {
     return { business, wins: points.length, share: points.length / model.points.length, points,
       major, center, clusterSize: cluster.length, outside, hasBase,
       connector: !!(hasBase && center && beyondKm > 3.218688),
-      badge: leaderIdentity(model).identities.get(id)?.badge || '—',
+      badge: leaderIdentity(model).identities.get(id)?.badge || 'n/a',
       color: profileColor(model, id) }
   }).filter(Boolean).sort((a, b) => b.wins - a.wins || a.business.id.localeCompare(b.business.id))
   const result = { threshold, rows, byId: new Map(rows.map(r => [r.business.id, r])),

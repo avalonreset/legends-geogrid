@@ -89,7 +89,7 @@ function evidenceInsights(model, regions, index) {
     const { q, cells } = gaps[0]
     insights.push({
       id: `service-gap:${q.id}:core`, title: `${q.name}: investigate the service gap`,
-      reason: `${cells.length} core locations rank 4–10 for this query but already rank top three for another measured query.`,
+      reason: `${cells.length} core locations rank 4 to 10 for this query but already rank top three for another measured query.`,
       nextAction: 'Compare the existing service page and business profile with the local profiles ahead. Verify query intent and indexing before deciding what to change.',
       queryId: q.id, regionId: 'core', originIds: cells.map(c => c.id),
       evidence: { count: cells.length, regionCount: core.count, selectedQuery: q.name,
@@ -105,7 +105,7 @@ function evidenceInsights(model, regions, index) {
     const representative = index.cellsByQuery.get(q.id).get(a.representative.id)
     insights.push({
       id: `frontier:${a.id}`, title: `${q.name}: inspect the adjoining frontier`,
-      reason: `${a.count} connected locations rank 11–30, each directly beside an existing top-ten observation.`,
+      reason: `${a.count} connected locations rank 11 to 30, each directly beside an existing top-ten observation.`,
       nextAction: 'Check service coverage, local demand, and the nearby ranking competitors before committing an expansion campaign.',
       queryId: q.id, regionId: regionId(representative), originIds: a.originIds,
       evidence: { count: a.count, medianRank: a.medianRank, direction: a.direction, adjacentTopTenCount: a.adjacentTopTenCount,
@@ -140,11 +140,11 @@ export function strategyIntelligence(model) {
   }
   const radius = model.sampling.radius_km / 1.609344
   const regions = [{ id: 'all', label: 'Whole study', originIds: index.cells.map(c => c.id) },
-    { id: 'core', label: `Core · 0–${Math.min(2, radius).toLocaleString('en-US', { maximumFractionDigits: 1 })} mi`, originIds: [] }]
+    { id: 'core', label: `Core · 0 to ${Math.min(2, radius).toLocaleString('en-US', { maximumFractionDigits: 1 })} mi`, originIds: [] }]
   for (const [band, low, high] of [['inner', 2, 5], ['outer', 5, radius]]) {
     if (radius <= low) continue
     for (const compass of ['ne', 'se', 'sw', 'nw']) regions.push({
-      id: `${band}-${compass}`, label: `${compass.toUpperCase()} · >${low}–${Math.min(high, radius).toLocaleString('en-US', { maximumFractionDigits: 1 })} mi`, originIds: [],
+      id: `${band}-${compass}`, label: `${compass.toUpperCase()} · >${low} to ${Math.min(high, radius).toLocaleString('en-US', { maximumFractionDigits: 1 })} mi`, originIds: [],
     })
   }
   const lookup = new Map(regions.map(r => [r.id, r]))
@@ -157,9 +157,9 @@ export function strategyIntelligence(model) {
     insights: evidenceInsights(model, metrics, index),
     source: { generatedAt: model.generatedAt, controls: model.controls, evidence: model.evidence },
     method: {
-      geography: 'Core <=2 miles; nonoverlapping NE/SE/SW/NW sectors >2–5 and >5 miles, capped at study radius. Axes belong north/east; no invented neighborhood names.',
+      geography: 'Core <=2 miles; nonoverlapping NE/SE/SW/NW sectors >2 to 5 and >5 miles, capped at study radius. Axes belong north/east; no invented neighborhood names.',
       regionalRivals: 'Mean query-specific top-three coverage across queries with complete observations; queries have equal weight, not demand or revenue weights.',
-      localRivals: 'Count of appearances ahead where the primary ranks 4–10, pooled across query/origin pairs. Ties use ahead-when-primary-returned count, then profile ID.',
+      localRivals: 'Count of appearances ahead where the primary ranks 4 to 10, pooled across query/origin pairs. Ties use ahead-when-primary-returned count, then profile ID.',
       unknown: 'Only complete, consistent, identity-bearing top30 observations support comparisons. Missing evidence is excluded from percentage denominators and reported separately.',
     }, limitations: LIMITATIONS }
   cache.set(model, result)

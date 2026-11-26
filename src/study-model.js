@@ -66,9 +66,10 @@ export function normalizeStudy(input) {
     }
     const queries = input.lanes.map(l => ({ id: l.lane_id, name: l.query || l.keyword, targetScores: normalizeTargetScores(l.scores) }))
     const profileDirectory = input.profiles && typeof input.profiles === 'object' ? input.profiles : {}
-    const points = input.points.map(p => ({
+    const allPoints = input.points.map(p => ({
       id: p.tag, lat: p.lat, lng: p.lng, distance: p.distance_from_target_km,
       roles: p.roles || [], phase: p.phase, anchors: p.anchor_factions || [],
+      ...(p.hex ? { hex: p.hex } : {}),
       observations: Object.fromEntries(queries.map(q => {
         const o = p.by_lane?.[q.id]
         return [q.id, {
@@ -90,6 +91,8 @@ export function normalizeStudy(input) {
         }]
       })),
     }))
+    // Circle contract: the exporter keeps only points inside the study radius, so every point is in the read.
+    const points = allPoints
     // The shortlist is a display preference, never an evidence exclusion.
     const directory = new Map(businesses.map(b => [b.id, b]))
     for (const point of points) for (const o of Object.values(point.observations)) for (const item of o.items) {
@@ -107,13 +110,18 @@ export function normalizeStudy(input) {
       directory.set(business.id, business)
       businesses.push(business)
     }
+    const landMaskPolygons = normalizeLandMaskPolygons(input.land_mask_polygons ?? input.study?.land_mask_polygons)
     return validate({
       name: input.business?.name || input.target?.name, location: input.location || '',
+      businessCategory: textOrNull(input.business?.category),
       generatedAt: input.generated_at, depth: input.study?.depth || null, scoreWindow: rankOf(input.study?.score_window),
       kind: input.evidence?.pending_tasks > 0 ? `Collecting · ${input.evidence.pending_tasks} searches queued` : input.evidence?.observed_from ? 'Measured study' : 'Saved study', targetId: businesses.find(b => b.target).id,
       evidence: input.evidence, controls: input.study?.controls,
       geometry: input.study?.geometry, sampling: input.study?.sampling, studyViews: input.study_views,
-      businesses, queries, points, limited: false,
+      businesses, queries, points, edgeSignal: input.study?.edge_signal || null, limited: false,
+      ...(landMaskPolygons ? { landMaskPolygons, land_mask_polygons: landMaskPolygons } : {}),
+      ...(finite(input.water_clipped_pct) ? { waterClippedPct: input.water_clipped_pct } : {}),
+      ...(Number.isInteger(input.raw_circle_pins) ? { rawCirclePins: input.raw_circle_pins } : {}),
     })
   }
   if (Array.isArray(input.results) && typeof input.target === 'string') {
@@ -140,6 +148,30 @@ export function normalizeStudy(input) {
   throw new Error('Unsupported file. Open a companion-study.json, battlefield-model.json, or a GeoGrid proof dataset.')
 }
 
+function normalizeLandMaskPolygons(raw) {
+  if (!Array.isArray(raw) || !raw.length) return null
+  const cleanRing = ring => {
+    if (!Array.isArray(ring) || ring.length < 3) return null
+    const pts = []
+    for (const pair of ring) {
+      if (!Array.isArray(pair) || pair.length < 2) return null
+      const lng = Number(pair[0]), lat = Number(pair[1])
+      if (!validLocation(lat, lng)) return null
+      pts.push([lng, lat])
+    }
+    return pts.length >= 3 ? pts : null
+  }
+  const out = []
+  for (const poly of raw) {
+    if (!poly || typeof poly !== 'object') continue
+    const outer = cleanRing(poly.outer)
+    if (!outer) continue
+    const holes = Array.isArray(poly.holes) ? poly.holes.map(cleanRing).filter(Boolean) : []
+    out.push({ outer, holes })
+  }
+  return out.length ? out : null
+}
+
 function validate(model) {
   if (!model.points.length) throw new Error('This study has no search locations.')
   if (model.businesses.some(b => typeof b.id !== 'string' || typeof b.name !== 'string') ||
@@ -162,6 +194,10 @@ export function observationFor(model, point, queryId, businessId) {
   const o = point.observations[queryId]
   if (o?.status === 'pending') return { rank: null, state: 'unknown', label: 'Search queued · no result yet' }
   if (!o || ['missing', 'missing_result', 'error', 'provider_error', 'empty_results'].includes(o.status)) return { rank: null, state: 'unknown', label: 'No usable result' }
+  // Instrument-limited: the business lies outside the search screen at this point. Not a loss.
+  if (o.status === 'instrument_limited' && businessId === model.targetId) {
+    return { rank: null, state: 'limited', label: "Can't see from here · outside the search screen" }
+  }
   const index = observationIndex(o)
   const rank = businessId === model.targetId ? o.targetRank : index.ranks.get(businessId)
   if (rank) return { rank, state: 'ranked', label: `Rank ${rank}` }
@@ -177,7 +213,11 @@ export function businessMetrics(model, queryId, businessId) {
   if (!metricCaches.has(model)) metricCaches.set(model, new Map())
   const cache = metricCaches.get(model), key = JSON.stringify([queryId, businessId])
   if (cache.has(key)) return cache.get(key)
-  const observations = model.points.map(p => observationFor(model, p, queryId, businessId))
+  // Instrument-limited points are never losses: they leave the denominator. On a honeycomb a
+  // location never collected for this query is not part of its lattice either.
+  const all = model.points.filter(p => model.geometry !== 'hex_radius' || p.observations[queryId]?.status !== 'missing')
+    .map(p => observationFor(model, p, queryId, businessId))
+  const observations = all.filter(o => o.state !== 'limited')
   // Scores stay anchored to the score window (normally the top 20) when the study names one, so deeper
   // captured ranks never move them. Without a window the behavior is unchanged.
   const limit = model.scoreWindow || Infinity
@@ -187,6 +227,7 @@ export function businessMetrics(model, queryId, businessId) {
     top3, top3Pct: top3 / observations.length * 100,
     visibilityScore: ranked.reduce((sum, o) => sum + Math.max(0, 21 - o.rank), 0),
     found: ranked.length, unknown: observations.filter(o => o.state === 'unknown').length,
+    scored: observations.length, limited: all.length - observations.length,
     near: ranked.filter(o => o.rank >= 4 && o.rank <= 10).length,
     average: ranked.length ? ranked.reduce((sum, o) => sum + o.rank, 0) / ranked.length : null,
   }
@@ -203,6 +244,14 @@ export function businessMetrics(model, queryId, businessId) {
 
 // Listings for one location: every captured result in rank order, split at the default window.
 export const LISTING_WINDOW = 20
+// Circle contract edge signal: when the target still holds the top 3 on half or more of the
+// outermost ring inside R, the summary says so and offers growing the circle (text only).
+export function edgeSignalNote(model, queryId) {
+  const edge = model?.edgeSignal?.[queryId]
+  if (!edge?.extends) return ''
+  return `Territory likely extends past the study radius (top 3 at ${edge.top3} of ${edge.scored} edge-ring locations). Grow the circle: a new, larger full-circle study, run as an explicit paid step.`
+}
+
 export function pointListing(model, pointId, queryId, window = LISTING_WINDOW) {
   const point = model.points.find(p => p.id === pointId)
   const o = point?.observations[queryId]
@@ -294,6 +343,7 @@ export function rankFillOpacity(rank, translucent = false) {
 export function rankPresentation(model, point, queryId, businessId) {
   const observation = observationFor(model, point, queryId, businessId)
   if (point.observations[queryId]?.status === 'pending') return { label: '?', color: '#87909f', kind: 'unknown', description: observation.label }
+  if (observation.state === 'limited') return { label: '·', color: '#87909f', kind: 'limited', description: observation.label }
   if (observation.rank && observation.rank <= 30) {
     return { label: String(observation.rank), rank: observation.rank,
       color: RANK_COLORS[observation.rank - 1], opacity: rankFillOpacity(observation.rank),

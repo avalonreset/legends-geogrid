@@ -50,6 +50,52 @@ def pointer(doc, path):
     return doc
 
 
+def validate_hex_sampling(plan):
+    """Validate a hex_radius sampling block, when a plan carries one.
+
+    Checks the recorded origins are exactly the honeycomb lattice for the
+    recorded center, radius and spacing, that point 0 is the business, and
+    that a stored settings lock matches the plan scan settings. Plans with
+    any other geometry (or none) are left untouched.
+    """
+    sampling = plan.get('sampling_parameters') or {}
+    if sampling.get('geometry') != 'hex_radius':
+        return None
+    from hex_sampling import hex_origins, validate_settings_lock
+    center = sampling.get('center') or {}
+    lat, lng = center.get('lat'), center.get('lng')
+    require(type(lat) in (int, float) and type(lng) in (int, float), 'hex_radius center required')
+    radius = sampling.get('radius_miles'); spacing = sampling.get('spacing_miles')
+    base = sampling.get('base_spacing_miles', spacing)
+    require(type(base) in (int, float) and type(spacing) in (int, float) and base > 0 and spacing > 0,
+            'hex_radius base and spacing must be positive miles')
+    number(radius, 0.1, 25, 'hex_radius radius_miles')
+    try:
+        expected_points = hex_origins(lat, lng, radius, spacing, base_spacing=base)
+    except ValueError as exc:
+        raise ValueError('hex_radius spacing is not on the ladder from its base spacing') from exc
+    expected = {p['origin_id']: p for p in expected_points}
+    origins = plan.get('origins') or []
+    require(len(origins) == len(expected), 'hex_radius origin count differs from lattice')
+    for origin in origins:
+        match = expected.get(origin.get('origin_id'))
+        require(match is not None, 'hex_radius origin is not on the lattice: ' + str(origin.get('origin_id')))
+        require(origin.get('lat') == match['lat'] and origin.get('lng') == match['lng'],
+                'hex_radius origin coordinate mismatch: ' + str(origin.get('origin_id')))
+    center_point = expected.get('hex_0_0')
+    require(center_point and center_point['lat'] == round(lat, 7) and center_point['lng'] == round(lng, 7),
+            'hex_radius point 0 must be exactly the business coordinate')
+    lock = sampling.get('settings_lock')
+    if lock is not None:
+        settings = plan.get('settings') or plan.get('measurement_settings') or {}
+        candidate = {'zoom': settings.get('zoom'), 'depth': settings.get('depth'),
+                     'language_code': settings.get('language_code', settings.get('language')),
+                     'device': settings.get('device')}
+        if all(v is not None for v in candidate.values()):
+            validate_settings_lock(candidate, lock)
+    return {'geometry': 'hex_radius', 'origins': len(origins), 'spacing_miles': spacing, 'radius_miles': radius}
+
+
 def validate(path, now=None):
     path=Path(path).resolve(); root=path.parent
     plan=json.loads(path.read_text(encoding="utf-8-sig"))
@@ -198,6 +244,7 @@ def validate(path, now=None):
     profile = profile_context(plan, item, sources[identity['source_id']])
     from query_review import review_plan
     qreview = review_plan(path, now=now)
+    validate_hex_sampling(plan)
     from local_heatmap_poc import estimate_scan_cost
     estimate=estimate_scan_cost(settings['grid_size']**2*len(selected),settings['depth'],settings['method'])
     return plan,{'status':'plan_ready','plan_sha256':digest(path),'selected_queries':[q['query'] for q in selected],

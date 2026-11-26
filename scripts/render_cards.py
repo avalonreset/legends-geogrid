@@ -200,8 +200,8 @@ def render_slot_3() -> None:
     rows = [
         (
             "01",
-            '"Open the example pizza map"',
-            'study.py --open <tspan fill="#ff0000">→</tspan> 1,249 Austin points · 4 queries <tspan fill="#ff0000">→</tspan> zero keys or spend',
+            '"Open the example Philly map"',
+            'study.py --open <tspan fill="#ff0000">→</tspan> 458 Philly hex points · 3 queries <tspan fill="#ff0000">→</tspan> zero keys or spend',
         ),
         (
             "02",
@@ -211,7 +211,7 @@ def render_slot_3() -> None:
         (
             "03",
             '"Check top rivals for keyword stuffing"',
-            'exact CID refresh <tspan fill="#ff0000">→</tspan> multi-angle Street View <tspan fill="#ff0000">→</tspan> 0 to 5 signage dossier',
+            'exact CID refresh <tspan fill="#ff0000">→</tspan> storefront signage &amp; Street View <tspan fill="#ff0000">→</tspan> 0 to 5 signage dossier',
         ),
         (
             "04",

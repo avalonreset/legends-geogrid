@@ -16,11 +16,11 @@ from typing import Any
 REPO_ROOT = Path(__file__).resolve().parent.parent
 RUNTIME_JS = REPO_ROOT / "assets" / "companion-runtime.js"
 RUNTIME_CSS = REPO_ROOT / "assets" / "companion-runtime.css"
-STARTER_STUDY = REPO_ROOT / "src" / "data" / "home-slice-study.json"
-STARTER_RESEARCH = REPO_ROOT / "src" / "data" / "home-slice-campaign-research.json"
-STARTER_NAME_REVIEW = REPO_ROOT / "src" / "data" / "home-slice-name-review.json"
-STARTER_REPORT_PDF = REPO_ROOT / "examples" / "starter-home-slice" / "report" / "report.pdf"
-STARTER_REPORT_HTML = REPO_ROOT / "examples" / "starter-home-slice" / "report" / "report.html"
+STARTER_STUDY = REPO_ROOT / "src" / "data" / "cosmis-deli-philly-study.json"
+STARTER_RESEARCH = REPO_ROOT / "src" / "data" / "cosmis-deli-philly-campaign-research.json"
+STARTER_NAME_REVIEW = REPO_ROOT / "src" / "data" / "cosmis-deli-philly-name-review.json"
+STARTER_REPORT_PDF = REPO_ROOT / "examples" / "cosmis-deli-philly" / "report" / "report.pdf"
+STARTER_REPORT_HTML: Path | None = None
 
 
 def _safe_local_path(value: str | Path) -> Path:
@@ -71,7 +71,7 @@ def _resolve_study_inputs(
         study_data = _load_json(STARTER_STUDY)
         research_data = _load_json(STARTER_RESEARCH) if research is None else _load_json(Path(research))
         review_data = _load_json(STARTER_NAME_REVIEW) if name_review is None else _load_json(Path(name_review))
-        out_path = Path(output) if output is not None else (REPO_ROOT / "runs" / "starter-home-slice" / "companion.html")
+        out_path = Path(output) if output is not None else (REPO_ROOT / "runs" / "starter-cosmis-deli-philly" / "companion.html")
         return study_data, research_data, review_data, out_path, STARTER_REPORT_PDF, STARTER_REPORT_HTML
 
     candidate = Path(study)

@@ -57,8 +57,13 @@ plan fingerprint. Review the estimate before the paid step:
 ```powershell
 python tools/business_name_review.py submit --output-dir "<private-audit-folder>" --execute --confirm-cost-usd <approved-budget>
 python tools/business_name_review.py retrieve --output-dir "<private-audit-folder>"
+# Uses Firecrawl (managed proxies + JS rendering) automatically when FIRECRAWL_API_KEY is set,
+# or direct public HTTP otherwise (--website-provider firecrawl|auto|direct):
 python tools/business_name_review.py websites --output-dir "<private-audit-folder>"
+# Downloads provider-returned GBP main_image and logo files (no unofficial Street View scraping):
 python tools/business_name_review.py photos --output-dir "<private-audit-folder>"
+# Optional: opt in to Google's official Street View Static API with your own GOOGLE_STREETVIEW_API_KEY:
+python tools/business_name_review.py photos --output-dir "<private-audit-folder>" --official-streetview
 # Optional speed boost when legends-jev v0.2.0+ (jev-1.14.0 optical recognition) is installed:
 python tools/business_name_review.py photos --output-dir "<private-audit-folder>" --jev
 python tools/business_name_review.py export --output-dir "<private-audit-folder>"
@@ -90,16 +95,9 @@ summary. An offline export must not claim it re-read Google's current policy.
 
 ## What Google's rule actually says
 
-Google expects the name customers recognize in the real world, supported by
-consistent branding. Unnecessary services, place names, promotional phrases,
-hours, or contact details may be inappropriate additions; descriptive words can
-also belong to a legitimate brand. Legal entity names are not automatically the
-required display name. Evaluate real-world representation, including applicable
-branch-name exceptions. See the [official naming guidelines](https://support.google.com/business/answer/3038177?hl=en).
+Google expects the business name customers recognize in the real world, as used consistently on storefront signage, website branding, menus, and stationery. Unnecessary services, place names, promotional phrases, hours, or contact details may be inappropriate additions; descriptive words can also belong to a genuine brand. Evaluate real-world physical signage and customer-facing branding, including applicable branch-name exceptions. See the [official naming guidelines](https://support.google.com/business/answer/3038177?hl=en).
 
-A DBA is useful identity evidence, not an automatic Google-policy exemption.
-Conversely, no matching DBA record is not proof of stuffing. Do not infer intent
-from a company's name, rankings, or registration timing.
+Do not infer intent from a company's name or rankings; anchor every review in visible storefront signage, website branding, and current profile evidence.
 
 For a straightforward inaccurate name, Google's [Maps editing workflow](https://support.google.com/maps/answer/7084895?hl=en)
 is the relevant starting point. Google's [reporting guidance](https://support.google.com/maps/answer/16109801?hl=en)
@@ -156,53 +154,45 @@ Each case retains:
    Differentiate an SEO page title from the displayed company name. A website
    footer may identify a parent entity, not its trading name. Record branch
    identity using address, phone, license or profile link.
-3. **Seek physical-world corroboration (Standard Operating Procedure).** Run `photos`
-   to pull high-resolution GBP `main_image` and `logo` files plus a **multi-vantage
-   Google Street View search quest** (`streetview`, `streetview_v1`, `streetview_v2`)
-   into `<private-audit-folder>/photos/` (requires no extra API keys or paid calls).
-   - **Multi-Vantage Street View Search Quest rules**:
-     - Query `SingleImageSearch` at progressive radii (`18m`, `30m`, `50m`, `85m`) so
-       corner buildings lock onto the front street rather than a rear alley.
-     - Detect and skip isolated indoor 360 photospheres (`<= 2` connected road nodes)
-       so shopping-center pins step out to the outdoor street graph.
-     - Exclude historical time-machine indices (`info[5][0][8]`) and select up to 3
-       spatially distinct current-year road panoramas (`>= 10m` apart, preferring the
-       `13m..38m` standoff sweet spot) aiming their compass bearing (`yaw`) at `(lat, lng)`
-       to step around trees, utility poles, and side walls.
+3. **Seek physical-world corroboration (ToS-compliant Standard Operating Procedure).**
+   Run `photos` to download provider-returned high-resolution GBP `main_image` and
+   `logo` files into `<private-audit-folder>/photos/` and generate official keyless
+   Google Maps Street View clickout links (`streetview_map_url`) for every profile.
+   - **No undocumented endpoints:** `legends-geogrid` never calls undocumented or
+     internal Google Maps RPCs and never hotlinks or re-hosts scraped Street View
+     tiles.
+   - **Official Street View Static API (opt-in):** When outdoor facade corroboration
+     is needed beyond GBP storefront photos and the operator holds a Google Maps
+     Platform key (`GOOGLE_STREETVIEW_API_KEY` or `GOOGLE_MAPS_API_KEY`), pass
+     `--official-streetview`. The tool queries Google's free official Street View
+     Metadata API (`source=outdoor`) first, computes the compass heading toward the
+     storefront, and fetches through the official Street View Static API for local
+     ephemeral inspection only (API keys are never written into manifest or export
+     JSON, and Street View imagery is never bundled into public repositories).
+   - **Website capture via Firecrawl:** Set `FIRECRAWL_API_KEY` (or install
+     `legends-firecrawl`) so `websites` runs behind managed proxies with JavaScript
+     rendering, reducing blocks on Cloudflare-protected or SPA business sites.
    - **Optional `legends-jev` Optical Accelerator (`--jev`)**:
      - The pipeline works 100% standalone without `legends-jev` using agent multimodal
        file reading.
-     - When `legends-jev` (`v0.2.0+`, `jev-1.14.0` with `TypeSafe-Danger-Zone-Images: true`)
-       is installed and `--jev` is passed, `photos` batch-screens the downloaded
-       storefront, Street View, and logo images in ~200ms per profile (`sign_visible`,
-       `suspect_terms_shown`, `best_image`, `sign_box`, and `verdict`), automatically
-       promotes an unobstructed alternate Street View vantage (`streetview_v1`/`v2`) when
-       `v0` is blocked by a tree, and records the typed receipt in `photos-manifest.json`
-       for operator verification.
-   - Visually inspect the downloaded storefront, Street View, and logo images before
-     scoring a case: immediately clear false positives where physical building signage
-     or the official logo badge supports the displayed title, record confirmed signage
-     mismatches in `visual_review`, and leave obstructed or indoor-only photos as open
-     questions to investigate.
+     - When `legends-jev` (`v0.2.0+`, `jev-1.14.0`) is installed and `--jev` is passed,
+       `photos` batch-screens the downloaded storefront and logo images (`sign_visible`,
+       `suspect_terms_shown`, `best_image`, `sign_box`, and `verdict`) and records the
+       typed receipt in `photos-manifest.json` for operator verification.
+   - Visually inspect the downloaded storefront and logo images (and use the inspector's
+     1-click **Street View** link in Google Maps when needed) before scoring a case:
+     immediately clear false positives where physical building signage or the official
+     logo badge supports the displayed title, record confirmed signage mismatches in
+     `visual_review`, and leave obstructed or indoor-only photos as open questions.
    A service-area business may not have a public storefront; lack of a sign is
    not automatically adverse evidence. Do not expose private residential details.
-4. **Check identity records where useful.** For California contractors, start
-   with the displayed license number at [CSLB](https://www.cslb.ca.gov/onlineservices/checklicenseII/checklicense.aspx).
-   Search legal entities at the [California Secretary of State](https://www.sos.ca.gov/business-programs/business-entities/information-requests)
-   and trade names in the relevant county. California's Secretary of State does
-   not hold county FBN filings or all sole proprietorship records.
-   [Sacramento County explains](https://finance.saccounty.gov/us/en/tax/faqs/fbn.html)
-   that an absent local filing has several possible explanations. Log searched
-   jurisdiction, spelling variants, date and result; do not equate a no-match
-   with illegitimacy. Do not reproduce owner home addresses or other irrelevant
-   personal data in the workbench.
-5. **Reconcile counterevidence.** A new brand, acquisition, multi-location
-   variation, DBA, logo variation, or recently changed profile may explain the
+4. **Reconcile counterevidence.** A new brand, acquisition, multi-location
+   variation, logo variation, printed menu, or recently changed profile may explain the
    mismatch. An accessible business website alone does not establish what
    signage says. Record conflicts rather than picking the name that helps the primary business.
-6. **Make a bounded decision.** Identify exact disputed additions and cite the
+5. **Make a bounded decision.** Identify exact disputed additions and cite the
    evidence for a replacement. Require a current profile check plus corroborated
-   real-world name evidence before preparing a correction-ready draft. Where
+   real-world signage or branding evidence before preparing a correction-ready draft. Where
    evidence is insufficient or contradictory, keep the next research step.
 
 ## Status model and evidence quality
@@ -214,7 +204,7 @@ Suggested user-facing stages:
 | Not reviewed | Only a saved study listing or automated signals exist. |
 | Research needed | One or more checks ran; current identity or branding remains unresolved. |
 | Name supported | Available current evidence supports the displayed name; no discrepancy established. |
-| Conflicting evidence | Sources disagree or a plausible branding/DBA explanation remains unresolved. |
+| Conflicting evidence | Sources disagree or a plausible real-world branding explanation remains unresolved. |
 | Discrepancy supported | Current profile and corroborated naming evidence support a specific mismatch. |
 | Draft ready for review | A factual proposed correction and evidence packet have been prepared. |
 | Submitted / monitoring | Used only after a human-authorized submission actually occurred. |
@@ -301,8 +291,8 @@ the primary business into the next ranking slot. Measure outcomes with unchanged
 - Same-name branches remain separate; primary business is reviewed consistently.
 - Keywords, city names, punctuation, long names and good rankings cannot alone
   create a supported-discrepancy classification.
-- A real trading name can contain service and geographic terms.
-- DBA evidence is retained without automatic exoneration or accusation.
+- A real-world brand name on storefront signage can contain service and geographic terms.
+- Conflicting branding evidence is retained without automatic exoneration or accusation.
 - Blocked websites, short captures and unchecked profiles remain unresolved.
 - Supporting and contradicting evidence are both visible in the same case.
 - Exports show provenance, freshness and draft-only state without submitting.

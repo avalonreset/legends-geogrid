@@ -22,7 +22,7 @@ Cosmi's Deli ranks in the top three at 38 of 458 dry-land search points around S
 
 **The human is the controller. The agents do the operating.**
 
-`legends-geogrid` turns your coding agent into a local rank tracker, circular honeycomb Google Maps study engine, storefront signage and branding auditor, and 30-layer vector-hex PDF strategy studio. Clone the repository or install it through [`cto-legends`](https://github.com/avalonreset/cto-legends), and the complete 458-point river-clipped South Philadelphia study opens in your browser with no API keys and zero spend.
+`legends-geogrid` turns your coding agent into a local rank tracker, coastline-clipped **radial hexagonal lattice** Google Maps engine, storefront signage and branding auditor, and 30-layer vector-hex PDF strategy studio. Clone the repository or install it through [`cto-legends`](https://github.com/avalonreset/cto-legends), and the complete 458-point river-clipped South Philadelphia study opens in your browser with no API keys and zero spend.
 
 **Specification & local visibility guide:** [cto-legends.com/modules/legends-geogrid](https://cto-legends.com/modules/legends-geogrid) · [The 60-Minute AI Visibility Audit and Fix Scorecard](https://cto-legends.com/blog?post=ai-visibility-audit)
 
@@ -33,7 +33,7 @@ Use cto-legends to install legends-geogrid, then open the bundled South Philadel
 sandwich shop study so I can explore it without spending credits.
 ```
 
-<p align="center"><img src="assets/cards/r1/slot-2-three-pillars.svg" width="100%" alt="Three pillars of legends-geogrid: 01 Circular territory lattice, 02 Interactive and PDF studio, and 03 Street View signage audit"></p>
+<p align="center"><img src="assets/cards/r1/slot-2-three-pillars.svg" width="100%" alt="Three pillars of legends-geogrid: 01 Radial hexagonal lattice, 02 Interactive and PDF studio, and 03 Street View signage audit"></p>
 
 [Plain english](#hand-this-local-seo-tool-to-your-agent-in-plain-english) · [458 ranks](#you-do-not-have-a-rank-you-have-458-of-them) · [Measurement honesty](#a-google-maps-rank-checker-has-to-show-its-measurements) · [In the box](#in-the-box) · [Views & viewer](#views) · [Cost](#cost) · [Boundaries](#boundaries) · [FAQ](#faq) · [Reference](#reference)
 
@@ -87,9 +87,16 @@ So which one is its rank? Any single number has to pick one of those maps and th
 
 <br>
 
-<p align="center"><img src="assets/cards/r1/slot-4-circular-vs-square.svg" width="100%" alt="Why circular territory geometry beats square rank grids: The Square Grid Trap (+41% corner stretch) versus True Circular Lattice in legends-geogrid"></p>
+<p align="center"><img src="assets/cards/r1/slot-4-circular-vs-square.svg" width="100%" alt="Why square rank grids waste budget and distort local rank: Legacy Square Grid (+41.4% corner stretch, 21.5% wasted corner area, diagonal blind spots) versus Radial Hexagonal Lattice in legends-geogrid (39.5% fewer pins for equal blind-spot accuracy, 52.3% fewer with river clipping)"></p>
 
-That is why `legends-geogrid` reports territory on a true circular lattice clipped by distance from the business. In a traditional square grid, the four corners sit 41 percent farther from the storefront than the top, bottom, left, or right edges, skewing visibility scores toward distant corner zip codes.
+### Why paying for square rank grids is a geometric tax
+
+Every major local SEO SaaS tool still sells you **square coordinate grids** because a nested `for x / for y` loop is easy to code, not because markets are square. Real trade areas radiate outward from a storefront in circles, and square grids punish you on both accuracy and cost at the same time:
+
+- **21.5% of every square grid is wasted corner deadweight.** The four corners of a square sit **41.4% farther** (`sqrt(2)`) from your storefront than the north, south, east, and west edges. More than 1 in 5 pins you pay for sits outside your actual target radius in distant corner zip codes, dragging down your average rank and Share of Local Voice with irrelevant outer-ring noise.
+- **Square grids have +41.4% diagonal blind spots.** Each interior pin in a square grid has only 4 close neighbors; diagonal neighbors sit 41.4% farther apart, leaving uneven blind pockets between diagonal pins (worst-case blind spot `0.707s`). In a **radial hexagonal lattice** (circular honeycomb), every interior pin has **6 equidistant neighbors at 60-degree symmetry**, cutting the worst-case blind spot by **18.4%** at the same spacing (`0.577s`) or **12.3%** at the same pin density.
+- **39.5% fewer pins for the exact same blind-spot accuracy (52.3% fewer with river clipping).** By Kershner's optimal 2D covering theorem, hexagonal packing requires **23.0% fewer pins** than a square grid to guarantee the exact same maximum blind-spot distance inside the same area. Combine circular radius clipping (**21.5% dead corners cut**) with hexagonal packing (**23.0% fewer pins**), and a radial hexagonal lattice needs **39.5% fewer pins** for equal worst-case accuracy. Add OSM coastline and river clipping so you never pay to scan open water, and the gap becomes brutal: matching the `0.289 mi` worst-case blind spot of our **458-pin** South Philadelphia river-clipped radial hex study (`$0.82` wholesale for 3 searches) would require a **31x31 unclipped square grid (961 pins)**, more than double the API calls.
+- **Nested halving ladder without paying twice.** `tools/hex_sampling.py` refines spacing on a halving ladder (`4 -> 2 -> 1 -> 0.5 mi`) where every coarse coordinate stays an exact subset of the finer rung, so zooming in on a contested corridor reuses 100% of your existing scans instead of re-buying the whole map.
 
 The searches are selected as carefully as the coordinates. A study covers 3 to 5 researched themes with one representative query each, chosen from the business's website, its public Google profile, and real search demand, never padded with synonyms.
 

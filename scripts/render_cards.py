@@ -71,6 +71,15 @@ def panel_defs(h: float) -> str:
     )
 
 
+def hex_pts(cx: float, cy: float, r: float, flat_top: bool = False) -> str:
+    offset = 0.0 if flat_top else 30.0
+    pts = []
+    for i in range(6):
+        ang = math.radians(offset + i * 60.0)
+        pts.append(f"{cx + r * math.cos(ang):.2f},{cy + r * math.sin(ang):.2f}")
+    return " ".join(pts)
+
+
 def octagon_pts(cx: float, cy: float, r: float) -> str:
     pts = []
     for i in range(8):
@@ -112,17 +121,17 @@ def render_slot_2() -> None:
     body += t.run(x0, y_head, ti, "&gt;_", "#ff0000", "700")
     x_title = x0 + width("&gt;_", ti) + 8
     body += t.run(x_title, y_head, hd, "You do not have one rank. You have a whole territory.", "#ffffff", "700")
-    body += t.run(x1, y_head, lb, "// google maps · circular lattice · depth 30", "#a1a1aa", "400", "end")
+    body += t.run(x1, y_head, lb, "// google maps · radial hex lattice · depth 30", "#a1a1aa", "400", "end")
     body += f'  <line x1="{x0}" y1="40" x2="{x1}" y2="40" {HAIR}/>\n'
 
     pillars = [
         (
             "01",
-            "Circular territory lattice",
+            "Radial hexagonal lattice",
             [
-                "True circular distance rings up to 30",
-                "results deep, without the 41% corner",
-                "distortion of square rank grids.",
+                "River-clipped honeycomb to depth 30:",
+                "39.5% fewer pins for equal blind-spot",
+                "accuracy vs +41.4% square corners.",
             ],
         ),
         (
@@ -130,8 +139,8 @@ def render_slot_2() -> None:
             "Interactive &amp; PDF studio",
             [
                 "Explore Local Leaders, Campaigns,",
-                "Strategy Room, and vector PDF",
-                "reports at wholesale API rates.",
+                "Strategy Room, and vector-hex PDF",
+                "reports at wholesale API rates ($0.82).",
             ],
         ),
         (
@@ -139,8 +148,8 @@ def render_slot_2() -> None:
             "Street View signage audit",
             [
                 "Pairs live GBP titles with website",
-                "branding, multi-angle Street View,",
-                "and optical storefront sign reads.",
+                "branding, storefront &amp; logo photos,",
+                "Street View links &amp; optional OCR.",
             ],
         ),
     ]
@@ -239,90 +248,213 @@ def render_slot_3() -> None:
 
 
 def render_slot_4() -> None:
-    """Slot 4: Circular Territory Lattice vs. Square Grid Trap architectural diagram card."""
+    """Slot 4: Radial Hexagonal Lattice vs. Legacy Square Grid architectural proof card."""
     t = Typesetter()
     hd, ti, bd, lb = u("head", K_WIDE), u("title", K_WIDE), u("body", K_WIDE), u("label", K_WIDE)
+    sm = round(lb * 0.92, 2)
     x0, x1 = 20, 866
-    h = 204
+    h = 424
+
     body = (
-        panel_defs(h)
+        "  <defs>\n"
+        f'    <linearGradient id="sheen" x1="0" y1="0" x2="0" y2="{h}" gradientUnits="userSpaceOnUse">'
+        '<stop offset="0" stop-color="#ffffff" stop-opacity="0.04"/>'
+        '<stop offset="0.55" stop-color="#ffffff" stop-opacity="0"/></linearGradient>\n'
+        f'    <linearGradient id="edge" x1="0" y1="0" x2="0" y2="{h}" gradientUnits="userSpaceOnUse">'
+        '<stop offset="0" stop-color="#ffffff" stop-opacity="0.22"/>'
+        '<stop offset="1" stop-color="#ffffff" stop-opacity="0.08"/></linearGradient>\n'
+        '    <mask id="sq-waste-mask">\n'
+        '      <rect x="44" y="122" width="112" height="112" fill="#ffffff"/>\n'
+        '      <circle cx="100" cy="178" r="56" fill="#000000"/>\n'
+        '    </mask>\n'
+        '    <clipPath id="hex-circle-clip">\n'
+        '      <circle cx="532" cy="178" r="57"/>\n'
+        '    </clipPath>\n'
+        "  </defs>\n"
         + f'  <rect x="1" y="1" width="884" height="{h - 2}" rx="4" fill="#000000"/>\n'
         + f'  <rect x="1" y="1" width="884" height="{h - 2}" rx="4" fill="url(#sheen)" stroke="url(#edge)" stroke-width="1"/>\n'
         + f'  <rect x="1" y="1" width="4" height="{h - 2}" rx="2" fill="#ff0000"/>\n'
     )
-    body += t.run(x0, 26, hd, "Why circular territory geometry beats square rank grids", "#ffffff", "700")
-    body += t.run(x1, 26, lb, "// true circular lattice vs +41% square corners", "#a1a1aa", "400", "end")
-    body += f'  <line x1="{x0}" y1="40" x2="{x1}" y2="40" {HAIR}/>\n'
 
-    box_w = 412
-    box_h = 92
-    # Left chamber: The Square Grid Trap
-    body += f'  <rect x="{x0}" y="52" width="{box_w}" height="{box_h}" rx="3" fill="#090a0e" {BORDER}/>\n'
-    # Mini vector illustration of square grid + inscribed circle (center at x0+44, y=98, r=24)
-    lcx, lcy, lr = x0 + 44, 98, 24
-    body += f'  <rect x="{lcx - lr}" y="{lcy - lr}" width="{lr * 2}" height="{lr * 2}" fill="none" stroke="#8b8b94" stroke-opacity="0.55" stroke-width="1"/>\n'
-    body += f'  <circle cx="{lcx}" cy="{lcy}" r="{lr}" fill="none" stroke="#ffffff" stroke-opacity="0.25" stroke-dasharray="2 2" stroke-width="1"/>\n'
-    # Corner distortion diagonals and corner dots outside circle
-    for dx in (-1, 1):
-        for dy in (-1, 1):
-            px, py = lcx + dx * lr, lcy + dy * lr
-            body += f'  <line x1="{lcx}" y1="{lcy}" x2="{px}" y2="{py}" stroke="#ff0000" stroke-opacity="0.35" stroke-width="1"/>\n'
-            body += f'  <circle cx="{px}" cy="{py}" r="2.6" fill="#ff0000"/>\n'
-    body += f'  <circle cx="{lcx}" cy="{lcy}" r="3" fill="#a1a1aa"/>\n'
+    # Header
+    body += t.run(x0, 27, hd, "Why square rank grids waste budget and distort local rank", "#ffffff", "700")
+    body += t.run(x1, 27, lb, "// radial hexagonal lattice vs square grid", "#ff0000", "600", "end")
+    body += f'  <line x1="{x0}" y1="41" x2="{x1}" y2="41" {HAIR}/>\n'
 
-    ltx = x0 + 84
-    body += t.run(ltx, 73, ti, "The Square Grid Trap", "#ffffff", "700")
-    body += t.run(ltx + width("The Square Grid Trap", ti) + 8, 73, lb, "// +41% corner stretch", "#ff0000", "600")
-    body += t.run(ltx, 94, bd, "Corners sit 41% farther out than the sides,", "#d4d4d8", "400")
-    body += t.run(ltx, 112, bd, "skewing visibility toward distant corners and", "#a1a1aa", "400")
-    body += t.run(ltx, 130, bd, "cutting off every competitor ranked 21 to 30.", "#a1a1aa", "400")
+    box_w = 414
+    box_y = 54
+    box_h = 272
 
-    # Right chamber: True Circular Lattice
+    # ================= LEFT CHAMBER: LEGACY SQUARE GRID =================
+    body += f'  <rect x="{x0}" y="{box_y}" width="{box_w}" height="{box_h}" rx="3" fill="#090a0e" {BORDER}/>\n'
+    body += t.run(x0 + 16, box_y + 23, ti, "LEGACY SQUARE GRID", "#d4d4d8", "700")
+    body += t.run(x0 + box_w - 14, box_y + 23, lb, "// +41.4% corner stretch", "#ff0000", "600", "end")
+    body += f'  <line x1="{x0 + 14}" y1="{box_y + 34}" x2="{x0 + box_w - 14}" y2="{box_y + 34}" {HAIR}/>\n'
+
+    # Vector 5x5 square grid diagram (center 100, 178, half-width 56 -> 112x112)
+    lcx, lcy, lr = 100.0, 178.0, 56.0
+    # Highlight the 21.5% wasted corner area outside the inscribed circle
+    body += f'  <rect x="{lcx - lr:.1f}" y="{lcy - lr:.1f}" width="{lr * 2:.1f}" height="{lr * 2:.1f}" fill="#ff0000" fill-opacity="0.18" mask="url(#sq-waste-mask)"/>\n'
+    # Square grid lines (4x4 cells = 5x5 vertices, step = 28)
+    step = lr / 2.0
+    for k in range(-2, 3):
+        gx = lcx + k * step
+        gy = lcy + k * step
+        body += f'  <line x1="{gx:.1f}" y1="{lcy - lr:.1f}" x2="{gx:.1f}" y2="{lcy + lr:.1f}" stroke="#ffffff" stroke-opacity="0.14" stroke-width="1"/>\n'
+        body += f'  <line x1="{lcx - lr:.1f}" y1="{gy:.1f}" x2="{lcx + lr:.1f}" y2="{gy:.1f}" stroke="#ffffff" stroke-opacity="0.14" stroke-width="1"/>\n'
+    # Outer square frame
+    body += f'  <rect x="{lcx - lr:.1f}" y="{lcy - lr:.1f}" width="{lr * 2:.1f}" height="{lr * 2:.1f}" fill="none" stroke="#8b8b94" stroke-opacity="0.65" stroke-width="1.2"/>\n'
+    # Dashed inscribed trade-area circle
+    body += f'  <circle cx="{lcx:.1f}" cy="{lcy:.1f}" r="{lr:.1f}" fill="none" stroke="#ffffff" stroke-opacity="0.45" stroke-dasharray="3 3" stroke-width="1"/>\n'
+    # Diagonal stretch ray to top-right corner
+    body += f'  <line x1="{lcx:.1f}" y1="{lcy:.1f}" x2="{lcx + lr:.1f}" y2="{lcy - lr:.1f}" stroke="#ff0000" stroke-opacity="0.85" stroke-width="1.3" stroke-dasharray="3 2"/>\n'
+    # Diagonal blind-spot highlight in bottom-left interior square cell
+    body += f'  <line x1="{lcx - step:.1f}" y1="{lcy:.1f}" x2="{lcx:.1f}" y2="{lcy + step:.1f}" stroke="#ff0000" stroke-opacity="0.72" stroke-width="1.2" stroke-dasharray="2 2"/>\n'
+    # Plot all 25 square grid pins: red if outside radius R, muted grey inside
+    for ix in range(-2, 3):
+        for iy in range(-2, 3):
+            px, py = lcx + ix * step, lcy + iy * step
+            dist = math.hypot(ix * step, iy * step)
+            if ix == 0 and iy == 0:
+                body += f'  <circle cx="{px:.1f}" cy="{py:.1f}" r="3.8" fill="#ffffff"/>\n'
+            elif dist > lr + 0.5:
+                # Out-of-radius wasted corner pin
+                body += f'  <circle cx="{px:.1f}" cy="{py:.1f}" r="3.2" fill="#ff0000"/>\n'
+            else:
+                body += f'  <circle cx="{px:.1f}" cy="{py:.1f}" r="2.2" fill="#8b8b94"/>\n'
+    # Diagram micro-captions beneath square
+    body += t.run(lcx, lcy + lr + 18, sm, "red pins = outside radius", "#ff0000", "600", "middle")
+    body += t.run(lcx, lcy + lr + 33, sm, "21.5% dead corner area", "#a1a1aa", "400", "middle")
+
+    # Right text column inside Left Chamber
+    ltx = x0 + 174
+    left_bullets = [
+        ("21.5% dead corner waste", "Corners sit 41.4% farther out", "than edges; 1 in 5 pins is junk."),
+        ("+41.4% diagonal gaps", "Only 4 close neighbors; diagonal", "blind spots stretch 1.41x wider."),
+        ("Scans open water", "Unclipped boxes burn credits", "on rivers, bays, and lakes."),
+        ("Depth 20 + SaaS tax", "Hides ranks 21-30 behind", "$50-$250/mo credit markups."),
+    ]
+    for i, (head_txt, ln1, ln2) in enumerate(left_bullets):
+        by = box_y + 56 + i * 54
+        for check_txt, sz in ((head_txt, lb), (ln1, sm), (ln2, sm)):
+            assert ltx + width(check_txt, sz) <= x0 + box_w - 10, f"Left bullet overflow: {check_txt}"
+        body += t.run(ltx, by, lb, head_txt, "#ff0000", "700")
+        body += t.run(ltx, by + 15, sm, ln1, "#d4d4d8", "400")
+        body += t.run(ltx, by + 29, sm, ln2, "#a1a1aa", "400")
+
+    # ================= RIGHT CHAMBER: RADIAL HEXAGONAL LATTICE =================
     rx0 = x1 - box_w
-    body += f'  <rect x="{rx0}" y="52" width="{box_w}" height="{box_h}" rx="3" fill="#0c0507" {RED_HAIR}/>\n'
-    rcx, rcy = rx0 + 44, 98
-    for rr, op in ((26, "0.65"), (17, "0.45"), (8.5, "0.35")):
-        body += f'  <circle cx="{rcx}" cy="{rcy}" r="{rr}" fill="none" stroke="#ff0000" stroke-opacity="{op}" stroke-width="1"/>\n'
-    # Cardinal and diagonal pins strictly inside the circle
-    for ang_deg in range(0, 360, 45):
-        ang = math.radians(ang_deg)
-        px, py = rcx + 17 * math.cos(ang), rcy + 17 * math.sin(ang)
-        body += f'  <polygon points="{octagon_pts(px, py, 2.5)}" fill="#ffffff" opacity="0.85"/>\n'
-    body += f'  <polygon points="{octagon_pts(rcx, rcy, 4.2)}" fill="#ff0000"/>\n'
+    body += f'  <rect x="{rx0}" y="{box_y}" width="{box_w}" height="{box_h}" rx="3" fill="#0c0507" {RED_HAIR}/>\n'
+    body += t.run(rx0 + 16, box_y + 23, ti, "RADIAL HEXAGONAL LATTICE", "#ffffff", "700")
+    body += t.run(rx0 + box_w - 14, box_y + 23, lb, "// legends-geogrid", "#ff0000", "600", "end")
+    body += f'  <line x1="{rx0 + 14}" y1="{box_y + 34}" x2="{rx0 + box_w - 14}" y2="{box_y + 34}" {RED_HAIR}/>\n'
 
-    rtx = rx0 + 84
-    body += t.run(rtx, 73, ti, "True Circular Lattice", "#ffffff", "700")
-    body += t.run(rtx + width("True Circular Lattice", ti) + 8, 73, lb, "// legends-geogrid", "#ff0000", "600")
-    rlines = (
-        ("Uniform distance rings clipped to a circle", "#d4d4d8"),
-        ("at depth 30, with open search by default", "#a1a1aa"),
-        ("and straight-edge diagnostics built in.", "#a1a1aa"),
+    # Real circle-clipped hexagonal honeycomb vector diagram (center 532, 178, r = 56)
+    rcx, rcy, rr = 532.0, 178.0, 56.0
+    hex_step = 19.5
+    hex_r = hex_step / math.sqrt(3.0)  # exact Voronoi cell circumradius!
+    # Clean river band notched out inside circle on east-southeast side
+    river_path = (
+        f"M {rcx + 28:.1f},{rcy - 60:.1f} "
+        f"C {rcx + 22:.1f},{rcy - 18:.1f} {rcx + 36:.1f},{rcy + 12:.1f} {rcx + 14:.1f},{rcy + 60:.1f} "
+        f"L {rcx + 26:.1f},{rcy + 60:.1f} "
+        f"C {rcx + 48:.1f},{rcy + 12:.1f} {rcx + 34:.1f},{rcy - 18:.1f} {rcx + 40:.1f},{rcy - 60:.1f} Z"
     )
-    for j, (rln, rcol) in enumerate(rlines):
-        assert rtx + width(rln, bd) <= rx0 + box_w - 12, f"Right chamber line overflows: {rln}"
-        body += t.run(rtx, 94 + 18 * j, bd, rln, rcol, "400")
+    body += '  <g clip-path="url(#hex-circle-clip)">\n'
+    body += f'    <circle cx="{rcx:.1f}" cy="{rcy:.1f}" r="{rr:.1f}" fill="#090a0e"/>\n'
+    body += f'    <path d="{river_path}" fill="#000000" stroke="#52525b" stroke-opacity="0.7" stroke-dasharray="2 2" stroke-width="0.9"/>\n'
 
-    # Bottom bar with all 7 interactive & print views
-    body += f'  <line x1="{x0}" y1="156" x2="{x1}" y2="156" {HAIR}/>\n'
-    chip_top = 170
-    base = chip_top + 13.5
-    views = (
-        ("01", "Local Leaders"),
-        ("02", "Rankings"),
-        ("03", "Campaigns"),
-        ("04", "Signage Audit"),
-        ("05", "Strategy Room"),
-        ("06", "Lightbox"),
-        ("07", "PDF Report"),
+    # Generate true axial hex lattice inside circle, excluding the river ribbon!
+    sqrt3 = math.sqrt(3.0)
+    hex_centers = []
+    for qr in range(-4, 5):
+        for qq in range(-4, 5):
+            ex = hex_step * (qq + qr / 2.0)
+            ey = hex_step * (sqrt3 / 2.0 * qr)
+            dist = math.hypot(ex, ey)
+            if dist <= rr - 2.0:
+                river_x = 29.0 + 5.0 * math.sin((ey / rr) * 2.2) - (8.0 if ey > 24 else 0.0)
+                if abs(ex - river_x) < 7.8:
+                    continue
+                hex_centers.append((qq, qr, rcx + ex, rcy + ey, dist))
+
+    # Draw interlocking hexagonal Voronoi cells
+    for qq, qr, hx, hy, dist in hex_centers:
+        is_center = (qq == 0 and qr == 0)
+        is_ring1 = (max(abs(qq), abs(qr), abs(qq + qr)) == 1)
+        fill = "#ff0000" if is_center else ("#ff0000" if is_ring1 else "#ffffff")
+        fop = "0.28" if is_center else ("0.11" if is_ring1 else "0.03")
+        stroke = "#ff0000" if (is_center or is_ring1) else "#ffffff"
+        sop = "0.85" if is_center else ("0.52" if is_ring1 else "0.20")
+        body += (
+            f'    <polygon points="{hex_pts(hx, hy, hex_r - 0.5, flat_top=False)}" '
+            f'fill="{fill}" fill-opacity="{fop}" stroke="{stroke}" stroke-opacity="{sop}" stroke-width="0.9"/>\n'
+        )
+
+    # 6 equidistant 60-degree neighbor spokes from storefront center
+    for qq, qr, hx, hy, dist in hex_centers:
+        if max(abs(qq), abs(qr), abs(qq + qr)) == 1:
+            body += f'    <line x1="{rcx:.1f}" y1="{rcy:.1f}" x2="{hx:.1f}" y2="{hy:.1f}" stroke="#ffffff" stroke-opacity="0.58" stroke-width="1"/>\n'
+
+    # Plot dry-land hex pin nodes
+    for qq, qr, hx, hy, dist in hex_centers:
+        if qq == 0 and qr == 0:
+            body += f'    <circle cx="{hx:.1f}" cy="{hy:.1f}" r="4.0" fill="#ff0000" stroke="#ffffff" stroke-width="1.2"/>\n'
+        elif max(abs(qq), abs(qr), abs(qq + qr)) == 1:
+            body += f'    <circle cx="{hx:.1f}" cy="{hy:.1f}" r="2.4" fill="#ffffff"/>\n'
+        else:
+            body += f'    <circle cx="{hx:.1f}" cy="{hy:.1f}" r="1.8" fill="#e4e4e7" fill-opacity="0.72"/>\n'
+    body += "  </g>\n"
+    # Crisp circular radius boundary
+    body += f'  <circle cx="{rcx:.1f}" cy="{rcy:.1f}" r="{rr:.1f}" fill="none" stroke="#ff0000" stroke-opacity="0.88" stroke-width="1.4"/>\n'
+    body += t.run(rcx, rcy + rr + 18, sm, "6 equal 60-deg neighbors", "#ffffff", "600", "middle")
+    body += t.run(rcx, rcy + rr + 33, sm, "exact circle + river clip", "#a1a1aa", "400", "middle")
+
+    # Right text column inside Right Chamber
+    rtx = rx0 + 174
+    right_bullets = [
+        ("0% corner distortion", "Exact haversine circle clip keeps", "100% of pins in your true radius."),
+        ("6 equidistant neighbors", "Isotropic honeycomb cuts max", "blind spot 18.4% at same spacing."),
+        ("39.5% fewer pins needed", "Optimal 2D hex covering + river", "clip eliminates wasted water scans."),
+        ("Depth 30 + nested ladder", "Refine 4->2->1->0.5 mi reusing", "every pin; $0.82 wholesale cost."),
+    ]
+    for i, (head_txt, ln1, ln2) in enumerate(right_bullets):
+        by = box_y + 56 + i * 54
+        for check_txt, sz in ((head_txt, lb), (ln1, sm), (ln2, sm)):
+            assert rtx + width(check_txt, sz) <= rx0 + box_w - 10, f"Right bullet overflow: {check_txt}"
+        body += t.run(rtx, by, lb, head_txt, "#ffffff", "700")
+        body += t.run(rtx, by + 15, sm, ln1, "#e4e4e7", "400")
+        body += t.run(rtx, by + 29, sm, ln2, "#a1a1aa", "400")
+
+    # ================= BOTTOM PROOF BAR =================
+    bar_y = 338
+    bar_h = 72
+    body += f'  <rect x="{x0}" y="{bar_y}" width="{x1 - x0}" height="{bar_h}" rx="3" fill="#090a0e" {RED_HAIR}/>\n'
+    body += f'  <rect x="{x0}" y="{bar_y}" width="3" height="{bar_h}" rx="1.5" fill="#ff0000"/>\n'
+    body += t.run(x0 + 14, bar_y + 18, sm, "MEASURED 6-MILE SOUTH PHILLY PROOF", "#ff0000", "700")
+    body += t.run(
+        x0 + 14 + width("MEASURED 6-MILE SOUTH PHILLY PROOF", sm) + 10,
+        bar_y + 18,
+        sm,
+        "// equal 0.289 mi worst-case blind spot (Cosmi's Deli)",
+        "#a1a1aa",
+        "400",
     )
-    total_slots = len(views)
-    slot_gap = 8
-    slot_w = (x1 - x0 - (total_slots - 1) * slot_gap) / total_slots
-    for idx, (num, vname) in enumerate(views):
-        px = x0 + idx * (slot_w + slot_gap)
-        body += f'  <rect x="{px:.2f}" y="{chip_top}" width="{slot_w:.2f}" height="21" rx="3" {CHIP}/>\n'
-        label_markup = f'<tspan fill="#ff0000">{num}</tspan> {vname}'
-        body += t.run(px + slot_w / 2, base, lb, label_markup, "#ffffff", "600", "middle")
+    body += f'  <line x1="{x0 + 14}" y1="{bar_y + 26}" x2="{x1 - 14}" y2="{bar_y + 26}" {HAIR}/>\n'
+
+    stats = [
+        ("961 -> 458 pins", "52.3% fewer pins vs equal-accuracy square"),
+        ("55 water pins cut", "10.7% open-river waste clipped via OSM"),
+        ("$0.82 wholesale", "1,374 depth-30 searches; $0/mo SaaS fee"),
+    ]
+    col_w = (x1 - x0 - 28) / 3.0
+    for idx, (val, desc) in enumerate(stats):
+        sx = x0 + 14 + idx * col_w
+        if idx > 0:
+            body += f'  <line x1="{sx - 8:.1f}" y1="{bar_y + 32}" x2="{sx - 8:.1f}" y2="{bar_y + bar_h - 8}" {HAIR}/>\n'
+        assert width(desc, sm) <= col_w - 12, f"Bottom stat overflow: {desc}"
+        body += t.run(sx, bar_y + 45, ti, val, "#ffffff", "700")
+        body += t.run(sx, bar_y + 61, sm, desc, "#a1a1aa", "400")
 
     (CARDS_DIR / "slot-4-circular-vs-square.svg").write_text(svg(f"0 0 886 {h}", body, t), encoding="utf-8")
 
@@ -332,10 +464,10 @@ def render_slot_5() -> None:
     t = Typesetter()
     ti, lb = u("title", K_WIDE), u("label", K_WIDE)
     rows = [
-        ("Grid geometry &amp; depth", "Square grid (+41% corners), stops at rank 20", "True circular lattice captured 30 results deep"),
+        ("Grid geometry &amp; depth", "Square (+41.4% corners, 21.5% waste), rank 20", "Radial hex lattice + river clip, depth 30 (39.5% fewer pins)"),
         ("Search window accuracy", "Restricted viewport clips real competitors", "Open search by default + straight-edge diagnostic"),
-        ("Competitor name checks", "Manual eyeballing or blind keyword flags", "Website brand + 3 Street View angles + sign OCR"),
-        ("Data cost &amp; ownership", "Recurring SaaS subscription &amp; locked exports", "Wholesale DataForSEO rates (~$0.74 to $3.00) on disk"),
+        ("Competitor name checks", "Manual eyeballing or blind keyword flags", "Website brand + storefront photos + Street View + OCR"),
+        ("Data cost &amp; ownership", "Recurring $50-$250/mo SaaS &amp; locked exports", "Wholesale DataForSEO (~$0.82 to $3.00) on local disk"),
     ]
     h = 198
     col0_x, col1_x, col2_x = 20, 206, 500

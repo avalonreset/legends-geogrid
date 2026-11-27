@@ -138,3 +138,43 @@ test('release 0.3.1 version strings stay in parity', () => {
   assert.ok(!topo.includes('v0.3.0'))
   assert.ok(topo.includes('v0.3.1'))
 })
+
+test('dominance tier guard returns no tier outside the clipped study circle', () => {
+  const p = { x: 1, y: 2 }
+  assert.equal(dominanceTierAtAllowed({ point: p, insideTerritory: true, clipTerritories: true, hasBoundary: true, insideBoundary: false }), false)
+  assert.equal(dominanceTierAtAllowed({ point: p, insideTerritory: true, clipTerritories: true, hasBoundary: true, insideBoundary: true }), true)
+  assert.equal(dominanceTierAtAllowed({ point: p, insideTerritory: true, clipTerritories: false, hasBoundary: true, insideBoundary: false }), true)
+  assert.equal(dominanceTierAtAllowed({ point: p, insideTerritory: true, clipTerritories: true, hasBoundary: false, insideBoundary: false }), true)
+})
+
+test('rank canvas wires study-circle clips into territory and dominance lookups', () => {
+  const src = readFileSync(new URL('../src/rank-canvas.js', import.meta.url), 'utf8')
+  const terrStart = src.indexOf('territoryAt({ x, y })')
+  const terrSlice = src.slice(terrStart, terrStart + 700)
+  assert.ok(terrStart >= 0)
+  assert.match(terrSlice, /landMaskProjected\?\.length/)
+  assert.match(terrSlice, /this\.clipTerritories && this\.blendBoundary\?\.length && !pointInRings\(\[this\.blendBoundary\], px, py\)/)
+  const tierStart = src.indexOf('dominanceTierAt(containerPoint')
+  const tierSlice = src.slice(tierStart, tierStart + 1600)
+  assert.ok(tierStart >= 0)
+  assert.match(tierSlice, /clipTerritories: Boolean\(this\.clipTerritories\), hasBoundary, insideBoundary/)
+  assert.match(tierSlice, /pointInRings\(\[this\.blendBoundary\], p\.x, p\.y\)/)
+  const tipStart = src.indexOf('showTooltip(cell, containerPoint')
+  const tipSlice = src.slice(tipStart, tipStart + 500)
+  assert.match(tipSlice, /this\.dominanceTierAt\(containerPoint, cell\.leaderId\)/)
+})
+
+test('tectonic hover prefers clip-guarded territory over nearCellAt with no phantom water hover', () => {
+  const src = readFileSync(new URL('../src/rank-canvas.js', import.meta.url), 'utf8')
+  assert.match(src, /const hasTectonic = Boolean\(this\.territories\?\.some\(t => t\.tectonic\)\)/)
+  assert.match(src, /const terrLeader = \(!seam && !cursorRank && !this\.focus\?\.elevation\?\.levels\?\.length\)/)
+  assert.match(src, /\(hit && pointIsAllowed \? hit\.leaderId : null\) \|\| terrLeader \|\| null/)
+  assert.match(src, /if \(!hit && terrLeader && this\.leaderRelief\)/)
+  assert.match(src, /style\.cursor = allowedHit \|\| nextLeader \? 'pointer' : ''/)
+  assert.ok(!src.includes('const nextLeader = seam ? null : near?.leaderId || terrLeader || null'))
+  const nearStart = src.indexOf('nearCellAt({ x, y })')
+  const nearSlice = src.slice(nearStart, nearStart + 700)
+  assert.ok(nearStart >= 0)
+  assert.match(nearSlice, /landMaskProjected\?\.length/)
+  assert.match(nearSlice, /this\.clipTerritories && this\.blendBoundary\?\.length/)
+})

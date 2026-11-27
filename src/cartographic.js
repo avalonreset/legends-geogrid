@@ -52,10 +52,11 @@ export function attenuateScoreAtTau(score, neighborWinShare, tau = 0) {
 // when it is known, not under draped focus topography, on land when a land
 // mask exists, and strictly inside the leader territory. Anything else is
 // null (no phantom tier), never Contested Edge.
-export function dominanceTierAtAllowed({ point = null, draped = false, hasLandMask = false, insideLand = true, insideTerritory = false } = {}) {
+export function dominanceTierAtAllowed({ point = null, draped = false, hasLandMask = false, insideLand = true, insideTerritory = false, clipTerritories = false, hasBoundary = false, insideBoundary = true } = {}) {
   if (!point) return false
   if (draped) return false
   if (hasLandMask && !insideLand) return false
+  if (clipTerritories && hasBoundary && !insideBoundary) return false
   if (!insideTerritory) return false
   return true
 }

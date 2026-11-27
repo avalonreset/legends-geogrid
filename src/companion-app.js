@@ -524,7 +524,10 @@ function animateContested() {
     if (destroyed) return
     const t = instant ? 1 : Math.min(1, Math.max(0, (now - started) / 280))
     territoryTau = from + (to - from) * (1 - (1 - t) ** 3)
-    if (territoryPrep && focusesTerritory()) pointsLayer.setTerritories(territoriesAt(territoryTau))
+    if (territoryPrep && focusesTerritory()) {
+      if (state.contours) pointsLayer.setLeaderRelief(computeLeaderRelief(model, state.query, { project: ll => map.project(ll, 0), extrapolateOffshore: Boolean(model.landMaskPolygons?.length), tau: territoryTau }), false)
+      pointsLayer.setTerritories(territoriesAt(territoryTau))
+    }
     tauFrame = t < 1 ? requestAnimationFrame(step) : 0
   }
   tauFrame = requestAnimationFrame(step)
@@ -1064,7 +1067,7 @@ function drawMap() {
   const focusOverlay = focusBusiness ? computeFocusOverlay(model, state.query, state.focus, { project: proj, extrapolateOffshore }) : null
   const focusElevation = focusBusiness && state.contours ? computeElevationStack(model, state.query, state.focus, { project: proj, extrapolateOffshore }) : null
   if (focusOverlay && focusElevation) focusOverlay.elevation = focusElevation
-  const leaderRelief = hexTerritory && state.contours ? computeLeaderRelief(model, state.query, { project: proj, extrapolateOffshore }) : null
+  const leaderRelief = hexTerritory && state.contours ? computeLeaderRelief(model, state.query, { project: proj, extrapolateOffshore, tau: territoryTau }) : null
 
   let elevOverlay = null
   let campaignOverlay = null

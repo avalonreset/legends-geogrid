@@ -1,6 +1,6 @@
 {
   "name": "legends-geogrid",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "type": "module",
   "description": "legends-geogrid: open-source Google Maps rank checker, circular-lattice local rank tracker, Street View signage audit studio, and vector PDF strategy report engine.",
   "license": "MIT",

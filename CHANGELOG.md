@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.1 - 2026-11-27
+
+- Cartographic hotfix (`src/cartographic.js`, `src/rank-canvas.js`, `src/map-geometry.js`, `src/companion-app.js`): inward-only contour edge gradient (innerWidth 48px, innerOpacity 0.16, borderScale 0.45), 200ms cubic-bezier hover for leaders and rank master tiers with exact interpolated rank tooltip, Fortress Core dominance tier tooltip, tau-coupled relief contraction in contested mode, and 0.04 background dim under draped topography.
+
 ## 0.3.0 - 2026-11-26
 
 - **Cosmi's Deli South Philadelphia Starter Study & 5-Page Vector-Hex PDF (`src/starter-data.js`, `src/data/cosmis-deli-philly-*.json`, `examples/cosmis-deli-philly/report/report.pdf`, `tools/companion_standalone.py`, `tools/geogrid_doctor.py`)**: replace legacy starter defaults with a 6.0-mile, river-clipped 458-pin South Philadelphia circular honeycomb study (`sandwich shop`, `hoagie`, `cheesesteak`, `1,170` observed profiles), all 250 `#1` winners audited (`Pending 0`), 4 grounded agent campaign plans, 5 avoid zones (including detached New Jersey landmass and Point Breeze / PES Refinery industrial tract), and a 5-page 30-layer marching-squares vector-hex PDF report opened via `python tools/study.py --open`.

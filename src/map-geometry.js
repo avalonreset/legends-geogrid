@@ -1,3 +1,6 @@
+import { dominanceScore, reliefThresholdsAtTau, attenuateScoreAtTau } from './cartographic.js'
+export { dominanceTierForScore, reliefThresholdsAtTau } from './cartographic.js'
+
 // Nearest separation in projected map space. Chebyshev distance protects the
 // entire square bounding box of each octagon, including diagonal neighbors.
 export function cellSpacings(points) {
@@ -1279,8 +1282,10 @@ export function computeElevationStack(model, lane, businessCid, {
 //   - runnerGap: how far the point's #2 runner-up falls across its immediate lattice neighbors (0..1)
 // Returns Map<leaderId, Array<{ tier: number, parts: Array }>> clipped to the study circle.
 const reliefCache = new WeakMap()
-export function computeLeaderRelief(model, lane, { project = mercatorZoom0, extrapolateOffshore = hasLandMask(model) } = {}) {
-  const cacheKey = `${lane}:${extrapolateOffshore ? 1 : 0}`
+export function computeLeaderRelief(model, lane, { project = mercatorZoom0, extrapolateOffshore = hasLandMask(model), tau = 0 } = {}) {
+  const tauClamped = Math.max(0, Math.min(1, Number(tau) || 0))
+  const tauBucket = Math.round(tauClamped * 20) / 20
+  const cacheKey = `${lane}:${extrapolateOffshore ? 1 : 0}:tau${tauBucket}`
   if (!reliefCache.has(model)) reliefCache.set(model, new Map())
   const byLane = reliefCache.get(model)
   if (byLane.has(cacheKey)) return byLane.get(cacheKey)
@@ -1336,10 +1341,10 @@ export function computeLeaderRelief(model, lane, { project = mercatorZoom0, extr
     const interiorFrac = ns.length ? same / ns.length : 0
     const runnerAvg = ns.length ? rSum / ns.length : 11
     const runnerGap = Math.max(0, Math.min(1, (runnerAvg - 2) / 3))
-    scores[i] = 1 + 4.5 * interiorFrac + 4.5 * runnerGap
+    scores[i] = attenuateScoreAtTau(dominanceScore(interiorFrac, runnerGap), interiorFrac, tauBucket)
   }
 
-  const thresholds = [4.2, 6.2, 7.8]
+  const thresholds = reliefThresholdsAtTau(tauBucket)
   for (const [lid, wins] of winsByLeader) {
     if (wins < 4) continue
     const val = v => {

@@ -2,6 +2,7 @@ import L from 'leaflet'
 import { OCTAGON_CUT, STOP_SIGN_SCALE, DIAMOND_HALF, HONEYCOMB_SHAPES, honeycombLayers, honeycombOutline,
   honeycombNest, honeycombRotation, honeycombVertices, premultipliedMix, traceTerritoryRing, flattenTerritoryRing,
   pointInRings, mercatorZoom0 } from './map-geometry.js'
+import { CARTOGRAPHIC, innerShapeburstStrokes, cubicBezierEase, masterTierForRank, DOMINANCE_TIERS, CONTESTED_EDGE } from './cartographic.js'
 
 const escapeText = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c])
 
@@ -124,6 +125,13 @@ export const RankCanvasLayer = L.Layer.extend({
     this.leaderWeights = new Map()
     this.hoverAnimFrame = 0
     this.hoverLastTime = 0
+    this.hoverTween = null
+    this.hoverTierId = null
+    this.tierWeights = new Map()
+    this.hoverRank = null
+    this.lastScale = 0
+    this.lastOrigin = null
+    this.shapeburstCache = new WeakMap()
     this.spacing = 0
     this.stepPx = 0
     this.hits = []
@@ -168,12 +176,30 @@ export const RankCanvasLayer = L.Layer.extend({
       if (this.onHoverLeader && nextLeader !== this.hoverLeaderId) {
         this.onHoverLeader(nextLeader)
       }
+      // Rank Topography: smooth master-tier hover + exact interpolated rank at cursor.
+      const topoRank = (!seam && this.elevation?.levels?.length && this.elevation.mode !== 'scalar' && typeof this.elevation.bandStyle !== 'function')
+        ? this.rankAtPoint(event.containerPoint) : null
+      const focusTopoRank = (!seam && !topoRank && this.focus?.elevation?.levels?.length)
+        ? this.rankAtPoint(event.containerPoint, this.focus.elevation) : null
+      const cursorRank = topoRank || focusTopoRank
+      this.setHoverTier(cursorRank ? masterTierForRank(cursorRank.rank)?.id || null : null)
+      this.hoverRank = cursorRank?.rank ?? null
+      if (cursorRank) {
+        const tier = masterTierForRank(cursorRank.rank)
+        const base = hit ? `${hit.label} · ` : ''
+        this.hoverId = hit?.id ?? '__topo__'
+        this.tooltip.setLatLng(event.latlng).setContent(`${base}Topography #${cursorRank.rank} · ${tier ? tier.label : ''}`).addTo(map)
+        map.getContainer().style.cursor = hit || nextLeader ? 'pointer' : ''
+        return
+      }
       if (hit?.id === this.hoverId) {
+        // Refresh dominance tier as cursor moves across relief rings within one cell.
+        if (hit && this.leaderRelief && hit.leaderId) this.showTooltip(hit, event.containerPoint)
         map.getContainer().style.cursor = hit || nextLeader ? 'pointer' : ''
         return
       }
       this.hideTooltip()
-      if (hit) this.showTooltip(hit)
+      if (hit) this.showTooltip(hit, event.containerPoint)
       map.getContainer().style.cursor = hit || nextLeader ? 'pointer' : ''
     }
     this.click = event => {
@@ -203,6 +229,8 @@ export const RankCanvasLayer = L.Layer.extend({
     this.mouseOut = () => {
       this.hideTooltip()
       this.setHoverSeam(null)
+      this.setHoverTier(null)
+      this.hoverRank = null
       if (this.onHoverLeader && this.hoverLeaderId) this.onHoverLeader(null)
     }
     this.onCameraChange = () => {
@@ -657,48 +685,140 @@ export const RankCanvasLayer = L.Layer.extend({
   glowing() {
     return this.honeycombGlow ? this.honeycombGlow.some(c => c.haloR >= 3) : this.hits.some(cell => cell.dominant && cell.size >= 3)
   },
+  // 200ms cubic-bezier(0.22, 1, 0.36, 1) hover tween for leaders and rank master tiers.
+  beginHoverTween() {
+    if (this.motionPreference?.matches) {
+      this.hoverMix = this.hoverLeaderId ? 1 : 0
+      this.leaderWeights.clear()
+      if (this.hoverLeaderId) this.leaderWeights.set(this.hoverLeaderId, 1)
+      this.tierWeights.clear()
+      if (this.hoverTierId) this.tierWeights.set(this.hoverTierId, 1)
+      this.hoverTween = null
+      this.queueDraw()
+      return
+    }
+    this.hoverTween = {
+      started: performance.now(),
+      fromMix: this.hoverMix || 0,
+      fromLeaders: new Map(this.leaderWeights),
+      fromTiers: new Map(this.tierWeights),
+    }
+    if (!this.hoverAnimFrame) this.hoverAnimFrame = requestAnimationFrame(t => this.stepHoverAnimation(t))
+  },
   setHoverLeader(leaderId) {
     const next = leaderId || null
     if (this.hoverLeaderId === next) return
     this.hoverLeaderId = next
     if (next && !this.leaderWeights.has(next)) this.leaderWeights.set(next, 0)
-    if (this.motionPreference?.matches) {
-      this.hoverMix = next ? 1 : 0
-      this.leaderWeights.clear()
-      if (next) this.leaderWeights.set(next, 1)
-      this.queueDraw()
-      return
-    }
-    if (!this.hoverAnimFrame) {
-      this.hoverLastTime = performance.now()
-      this.hoverAnimFrame = requestAnimationFrame(t => this.stepHoverAnimation(t))
-    }
+    this.beginHoverTween()
+  },
+  setHoverTier(tierId) {
+    const next = tierId || null
+    if (this.hoverTierId === next) return
+    this.hoverTierId = next
+    if (next && !this.tierWeights.has(next)) this.tierWeights.set(next, 0)
+    this.beginHoverTween()
   },
   stepHoverAnimation(now) {
     this.hoverAnimFrame = 0
-    const dt = Math.min(50, Math.max(8, now - (this.hoverLastTime || now)))
-    this.hoverLastTime = now
-    const step = 1 - Math.exp(-dt / 55)
+    const tween = this.hoverTween
+    if (!tween) return
+    const raw = Math.max(0, Math.min(1, (now - tween.started) / CARTOGRAPHIC.hoverDurationMs))
+    const e = cubicBezierEase(raw)
     const targetMix = this.hoverLeaderId ? 1 : 0
-    this.hoverMix += (targetMix - this.hoverMix) * step
-    if (Math.abs(targetMix - this.hoverMix) < .008) this.hoverMix = targetMix
-    let moving = this.hoverMix !== targetMix
-    for (const [id, w] of [...this.leaderWeights.entries()]) {
-      const targetW = id === this.hoverLeaderId ? 1 : 0
-      const nextW = w + (targetW - w) * step
-      if (targetW === 0 && nextW < .008) {
-        this.leaderWeights.delete(id)
-      } else if (Math.abs(targetW - nextW) < .008) {
-        this.leaderWeights.set(id, targetW)
-      } else {
-        this.leaderWeights.set(id, nextW)
-        moving = true
+    this.hoverMix = tween.fromMix + (targetMix - tween.fromMix) * e
+    const apply = (weights, from, activeId) => {
+      const ids = new Set([...from.keys(), ...weights.keys(), ...(activeId ? [activeId] : [])])
+      for (const id of ids) {
+        const start = from.get(id) || 0
+        const target = id === activeId ? 1 : 0
+        const w = start + (target - start) * e
+        if (target === 0 && w < .008) weights.delete(id); else weights.set(id, w)
       }
     }
+    apply(this.leaderWeights, tween.fromLeaders, this.hoverLeaderId)
+    apply(this.tierWeights, tween.fromTiers, this.hoverTierId)
     this.draw()
-    if (moving && this._map) {
-      this.hoverAnimFrame = requestAnimationFrame(t => this.stepHoverAnimation(t))
+    if (raw < 1 && this._map) this.hoverAnimFrame = requestAnimationFrame(t => this.stepHoverAnimation(t))
+    else this.hoverTween = null
+  },
+  containerToZoom0({ x, y }) {
+    if (!this._map || !this.lastScale || !this.lastOrigin) return null
+    return { x: (x + this.lastOrigin.x) / this.lastScale, y: (y + this.lastOrigin.y) / this.lastScale }
+  },
+  // Exact interpolated rank band at cursor: smallest rank contour containing the point.
+  rankAtPoint(containerPoint, elevation = this.elevation) {
+    const levels = elevation?.levels
+    if (!levels?.length) return null
+    const p = this.containerToZoom0(containerPoint)
+    if (!p) return null
+    const sorted = [...levels].filter(l => l.parts?.length).sort((a, b) => a.rank - b.rank)
+    for (const level of sorted) {
+      for (const part of level.parts) {
+        const rings = part.rings.map(r => flattenTerritoryRing(r))
+        if (pointInRings(rings, p.x, p.y)) return { rank: level.rank }
+      }
     }
+    return null
+  },
+  // Fortress Core dominance tier at cursor for a leader (innermost relief ring wins).
+  dominanceTierAt(containerPoint, leaderId) {
+    if (!leaderId || !this.leaderRelief) return null
+    const tiers = this.leaderRelief.get(leaderId)
+    if (!tiers?.length) return CONTESTED_EDGE
+    const p = this.containerToZoom0(containerPoint)
+    if (!p) return null
+    const sorted = [...tiers].sort((a, b) => b.tier - a.tier)
+    for (const rt of sorted) {
+      for (const part of rt.parts) {
+        const rings = part.rings.map(r => flattenTerritoryRing(r))
+        if (pointInRings(rings, p.x, p.y)) return DOMINANCE_TIERS[rt.tier] || CONTESTED_EDGE
+      }
+    }
+    return CONTESTED_EDGE
+  },
+  // Cached Path2D in screen space for contour parts (rebuilt when scale/origin changes).
+  buildScreenPath(parts, scale, origin) {
+    const cacheKey = `${Math.round(scale * 1000)}:${Math.round(origin.x)}:${Math.round(origin.y)}`
+    let byKey = this.shapeburstCache.get(parts)
+    if (byKey?.key === cacheKey) return byKey.path
+    const path = new Path2D()
+    const sink = {
+      moveTo: (x, y) => path.moveTo(x * scale - origin.x, y * scale - origin.y),
+      lineTo: (x, y) => path.lineTo(x * scale - origin.x, y * scale - origin.y),
+      quadraticCurveTo: (cx, cy, x, y) => path.quadraticCurveTo(cx * scale - origin.x, cy * scale - origin.y, x * scale - origin.x, y * scale - origin.y),
+      closePath: () => path.closePath(),
+    }
+    for (const part of parts) for (const ring of part.rings) traceTerritoryRing(ring, sink)
+    this.shapeburstCache.set(parts, { key: cacheKey, path })
+    return path
+  },
+  buildRingsPath(rings, scale, origin) {
+    const path = new Path2D()
+    const sink = {
+      moveTo: (x, y) => path.moveTo(x * scale - origin.x, y * scale - origin.y),
+      lineTo: (x, y) => path.lineTo(x * scale - origin.x, y * scale - origin.y),
+      quadraticCurveTo: (cx, cy, x, y) => path.quadraticCurveTo(cx * scale - origin.x, cy * scale - origin.y, x * scale - origin.x, y * scale - origin.y),
+      closePath: () => path.closePath(),
+    }
+    for (const ring of rings) traceTerritoryRing(ring, sink)
+    return path
+  },
+  // Inward-only shapeburst: clip to shape, then incremental inward strokes (0% exterior bleed).
+  drawInnerShapeburst(ctx, clipPath, color, { widthPx = CARTOGRAPHIC.innerWidth, maxOpacity = CARTOGRAPHIC.innerOpacity, dim = 1 } = {}) {
+    if (!clipPath || widthPx <= 0 || maxOpacity <= 0 || dim <= 0) return
+    const strokes = innerShapeburstStrokes(widthPx, maxOpacity * dim)
+    if (!strokes.length) return
+    ctx.save()
+    ctx.clip(clipPath, 'evenodd')
+    ctx.lineJoin = 'round'
+    ctx.strokeStyle = color
+    for (const s of strokes) {
+      ctx.globalAlpha = s.alpha
+      ctx.lineWidth = s.lineWidth
+      ctx.stroke(clipPath)
+    }
+    ctx.restore()
   },
   nearCellAt({ x, y }) {
     const halfStep = (this.stepPx || 0) * .54
@@ -717,9 +837,14 @@ export const RankCanvasLayer = L.Layer.extend({
     if (this.tooltip) this.tooltip.remove()
     this.hoverId = null
   },
-  showTooltip(cell) {
+  showTooltip(cell, containerPoint = null) {
     this.hoverId = cell.id
-    this.tooltip.setLatLng([cell.lat, cell.lng]).setContent(cell.label).addTo(this._map)
+    let content = cell.label
+    if (containerPoint && cell.leaderId && this.leaderRelief) {
+      const tier = this.dominanceTierAt(containerPoint, cell.leaderId)
+      if (tier) content = `${content} · ${tier.label}`
+    }
+    this.tooltip.setLatLng([cell.lat, cell.lng]).setContent(content).addTo(this._map)
   },
   hitAt({ x, y }) {
     return this.hits.find(cell => {
@@ -1260,6 +1385,9 @@ export const RankCanvasLayer = L.Layer.extend({
 
     ctx.save()
     ctx.lineJoin = 'round'
+    const tierW = rank => this.tierWeights?.get(masterTierForRank(rank)?.id) || 0
+    const anyTier = this.tierWeights?.size ? Math.max(...this.tierWeights.values()) : 0
+    const scale = this.lastScale, origin = this.lastOrigin
 
     // Pass 1: Non-overlapping 1-rank hypsometric bands (outer[k] \ inner[k-1] via evenodd -> zero mud/stacking).
     for (let i = levels.length - 1; i >= 0; i--) {
@@ -1267,12 +1395,24 @@ export const RankCanvasLayer = L.Layer.extend({
       if (!outer.length) continue
       const inner = i > 0 ? levels[i - 1].parts : null
       const st = bandStyle(levels[i].rank)
+      const tw = tierW(levels[i].rank)
       ctx.beginPath()
       traceParts(outer)
       if (inner?.length) traceParts(inner)
       ctx.fillStyle = st.fill
-      ctx.globalAlpha = st.fillAlpha
+      ctx.globalAlpha = st.fillAlpha * (1 - anyTier * .35) + tw * .14
       ctx.fill('evenodd')
+    }
+
+    // Pass 1b: Inward-only shapeburst on intermediate contours at gentler weight.
+    if (scale && origin && typeof Path2D !== 'undefined') {
+      for (let i = levels.length - 1; i >= 0; i--) {
+        const { rank, parts } = levels[i]
+        if (!parts.length || [1, 3, 10, 20, 30].includes(rank)) continue
+        const st = bandStyle(rank)
+        const path = this.buildScreenPath(parts, scale, origin)
+        this.drawInnerShapeburst(ctx, path, st.stroke, { widthPx: CARTOGRAPHIC.innerWidth * .35, maxOpacity: CARTOGRAPHIC.innerOpacity * .35, dim: 1 - anyTier * .3 + tierW(rank) * .6 })
+      }
     }
 
     // Pass 2: Fine 1-rank intermediate topographic contour lines (every single rank step shows true slope/cliffs!).
@@ -1282,11 +1422,12 @@ export const RankCanvasLayer = L.Layer.extend({
       const { rank, parts } = levels[i]
       if (!parts.length || indexRanks.has(rank)) continue
       const st = bandStyle(rank)
+      const tw = tierW(rank)
       ctx.beginPath()
       traceParts(parts)
       ctx.strokeStyle = st.stroke
-      ctx.globalAlpha = st.lineAlpha
-      ctx.lineWidth = rank <= 10 ? .75 : rank <= 20 ? .65 : .55
+      ctx.globalAlpha = Math.min(1, st.lineAlpha * (1 - anyTier * .3) + tw * .35)
+      ctx.lineWidth = (rank <= 10 ? .75 : rank <= 20 ? .65 : .55) * CARTOGRAPHIC.borderScale + tw * .8
       ctx.stroke()
     }
 
@@ -1301,16 +1442,23 @@ export const RankCanvasLayer = L.Layer.extend({
     for (const spec of indexSpecs) {
       const entry = levels.find(l => l.rank === spec.rank)
       if (!entry?.parts.length) continue
+      const tw = tierW(spec.rank)
+      const w = spec.width * CARTOGRAPHIC.borderScale + tw * 1.1
+      if (scale && origin && typeof Path2D !== 'undefined') {
+        const path = this.buildScreenPath(entry.parts, scale, origin)
+        ctx.setLineDash([])
+        this.drawInnerShapeburst(ctx, path, spec.stroke, { widthPx: CARTOGRAPHIC.innerWidth, maxOpacity: CARTOGRAPHIC.innerOpacity * spec.alpha, dim: 1 - anyTier * .25 + tw * .5 })
+      }
       ctx.beginPath()
       traceParts(entry.parts)
       ctx.setLineDash(spec.dash)
       ctx.strokeStyle = '#000000'
-      ctx.globalAlpha = .68 * spec.alpha
-      ctx.lineWidth = spec.width + 2.2
+      ctx.globalAlpha = .68 * spec.alpha * (1 - anyTier * .2 + tw * .3)
+      ctx.lineWidth = w + 2.2 * CARTOGRAPHIC.borderScale
       ctx.stroke()
       ctx.strokeStyle = spec.stroke
-      ctx.globalAlpha = spec.alpha
-      ctx.lineWidth = spec.width
+      ctx.globalAlpha = Math.min(1, spec.alpha * (1 - anyTier * .25) + tw * .25)
+      ctx.lineWidth = w
       ctx.stroke()
     }
     ctx.restore()
@@ -1374,6 +1522,8 @@ export const RankCanvasLayer = L.Layer.extend({
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
     ctx.clearRect(0, 0, viewport.x, viewport.y)
     const origin = map.project(map.containerPointToLatLng([0, 0]), map.getZoom())
+    this.lastScale = scale
+    this.lastOrigin = origin
     const stepPx = this.spacing * scale
     this.stepPx = stepPx
     // Honeycomb: calibrate every real hexagon to public STOP_SIGN_SCALE (0.30) of the finest rung spacing
@@ -1518,8 +1668,8 @@ export const RankCanvasLayer = L.Layer.extend({
         if (!t.tectonic) continue
         const focusT = weightOf(t.leaderId)
         const dimT = mix * (1 - focusT)
-        // When topographic Focus Mode is active, dim all background empires softly (~16%) so rival context stays visible under the elevation map.
-        const focusDim = focusId != null ? (focusHasTopo ? .18 : (t.leaderId !== focusId ? .25 : 1)) : 1
+        // Topographic drape: background empires fade to 0.04 so no ghost double-border peeks through.
+        const focusDim = focusId != null ? (focusHasTopo ? CARTOGRAPHIC.focusTopoBackgroundDim : (t.leaderId !== focusId ? .25 : 1)) : 1
         ctx.save()
         ctx.beginPath()
         for (const ring of t.rings) traceTerritoryRing(ring, screenSink)
@@ -1528,6 +1678,10 @@ export const RankCanvasLayer = L.Layer.extend({
         ctx.fill('evenodd')
         // Clip to this leader's exact head-to-head polygon so internal Fortress Cores and inner stroke never cross a border or contested seam.
         ctx.clip('evenodd')
+        if (typeof Path2D !== 'undefined') {
+          const outerPath = this.buildRingsPath(t.rings, scale, origin)
+          this.drawInnerShapeburst(ctx, outerPath, t.color, { widthPx: CARTOGRAPHIC.innerWidth, maxOpacity: CARTOGRAPHIC.innerOpacity, dim: (1 - dimT * .45) * focusDim })
+        }
         const reliefTiers = !focusHasTopo ? this.leaderRelief?.get(t.leaderId) : null
         if (reliefTiers?.length) {
           ctx.lineJoin = 'round'
@@ -1537,9 +1691,13 @@ export const RankCanvasLayer = L.Layer.extend({
             ctx.fillStyle = t.color
             ctx.globalAlpha = (reliefTierAlpha[rt.tier] ?? .09) * (1 - dimT * .45) * focusDim
             ctx.fill('evenodd')
+            if (typeof Path2D !== 'undefined') {
+              const reliefPath = this.buildScreenPath(rt.parts, scale, origin)
+              this.drawInnerShapeburst(ctx, reliefPath, t.color, { widthPx: CARTOGRAPHIC.innerWidth * (.5 + rt.tier * .25), maxOpacity: CARTOGRAPHIC.innerOpacity * .7, dim: (1 - dimT * .45) * focusDim })
+            }
             ctx.strokeStyle = t.color
             ctx.globalAlpha = (reliefLineAlpha[rt.tier] ?? .5) * (1 - dimT * .45) * focusDim
-            ctx.lineWidth = reliefLineW[rt.tier] ?? 1
+            ctx.lineWidth = (reliefLineW[rt.tier] ?? 1) * CARTOGRAPHIC.borderScale + .35
             ctx.stroke()
           }
         }
@@ -1548,7 +1706,7 @@ export const RankCanvasLayer = L.Layer.extend({
         ctx.lineJoin = 'round'
         ctx.strokeStyle = t.color
         ctx.globalAlpha = Math.min(1, .88 * (1 - dimT * .45) + .12 * focusT) * focusDim
-        ctx.lineWidth = baseStrokeW + 1.5 * focusT
+        ctx.lineWidth = (baseStrokeW + 1.5 * focusT) * CARTOGRAPHIC.borderScale + .4 * focusT
         ctx.stroke()
         ctx.restore()
       }

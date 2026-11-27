@@ -2,7 +2,7 @@ import L from 'leaflet'
 import { OCTAGON_CUT, STOP_SIGN_SCALE, DIAMOND_HALF, HONEYCOMB_SHAPES, honeycombLayers, honeycombOutline,
   honeycombNest, honeycombRotation, honeycombVertices, premultipliedMix, traceTerritoryRing, flattenTerritoryRing,
   pointInRings, mercatorZoom0 } from './map-geometry.js'
-import { CARTOGRAPHIC, innerShapeburstStrokes, cubicBezierEase, masterTierForRank, DOMINANCE_TIERS, CONTESTED_EDGE } from './cartographic.js'
+import { CARTOGRAPHIC, innerShapeburstStrokes, cubicBezierEase, masterTierForRank, DOMINANCE_TIERS, CONTESTED_EDGE, dominanceTierAtAllowed, rankAtPointAllowed } from './cartographic.js'
 
 const escapeText = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c])
 
@@ -172,29 +172,50 @@ export const RankCanvasLayer = L.Layer.extend({
       const seam = hit ? null : this.seamAt(event.containerPoint)
       this.setHoverSeam(seam, event.containerPoint)
       const near = hit || this.nearCellAt(event.containerPoint)
-      const nextLeader = seam ? null : near?.leaderId || null
-      if (this.onHoverLeader && nextLeader !== this.hoverLeaderId) {
-        this.onHoverLeader(nextLeader)
-      }
       // Rank Topography: smooth master-tier hover + exact interpolated rank at cursor.
       const topoRank = (!seam && this.elevation?.levels?.length && this.elevation.mode !== 'scalar' && typeof this.elevation.bandStyle !== 'function')
         ? this.rankAtPoint(event.containerPoint) : null
       const focusTopoRank = (!seam && !topoRank && this.focus?.elevation?.levels?.length)
         ? this.rankAtPoint(event.containerPoint, this.focus.elevation) : null
       const cursorRank = topoRank || focusTopoRank
+      // Local Leaders relief: the territory polygon itself is hoverable, not only pin cells.
+      const terrLeader = (!seam && !cursorRank && !hit && this.leaderRelief && !this.focus?.elevation?.levels?.length)
+        ? this.territoryAt(event.containerPoint) : null
+      const nextLeader = seam ? null : near?.leaderId || terrLeader || null
+      if (this.onHoverLeader && nextLeader !== this.hoverLeaderId) {
+        this.onHoverLeader(nextLeader)
+      }
       this.setHoverTier(cursorRank ? masterTierForRank(cursorRank.rank)?.id || null : null)
       this.hoverRank = cursorRank?.rank ?? null
       if (cursorRank) {
         const tier = masterTierForRank(cursorRank.rank)
         const base = hit ? `${hit.label} · ` : ''
         this.hoverId = hit?.id ?? '__topo__'
+        this.hoverWasTopo = true
         this.tooltip.setLatLng(event.latlng).setContent(`${base}Topography #${cursorRank.rank} · ${tier ? tier.label : ''}`).addTo(map)
         map.getContainer().style.cursor = hit || nextLeader ? 'pointer' : ''
         return
       }
+      if (terrLeader) {
+        let tier = this.dominanceTierAt(event.containerPoint, terrLeader)
+        if (tier && this.clipTerritories && this.blendBoundary?.length) {
+          const p = this.containerToZoom0(event.containerPoint)
+          if (!p || !pointInRings([this.blendBoundary], p.x, p.y)) tier = null
+        }
+        if (tier) {
+          const baseLabel = this.cells?.find(c => (c.winnerId || c.leaderId) === terrLeader)?.leaderName || terrLeader
+          this.hoverId = '__relief__'
+          this.hoverWasTopo = false
+          this.tooltip.setLatLng(event.latlng).setContent(`${escapeText(baseLabel)} · ${tier.label}`).addTo(map)
+          map.getContainer().style.cursor = hit || nextLeader ? 'pointer' : ''
+          return
+        }
+      }
       if (hit?.id === this.hoverId) {
         // Refresh dominance tier as cursor moves across relief rings within one cell.
-        if (hit && this.leaderRelief && hit.leaderId) this.showTooltip(hit, event.containerPoint)
+        // Leaving topography on the same cell restores the plain cell tooltip.
+        if (hit && (this.hoverWasTopo || (this.leaderRelief && hit.leaderId))) this.showTooltip(hit, event.containerPoint)
+        this.hoverWasTopo = false
         map.getContainer().style.cursor = hit || nextLeader ? 'pointer' : ''
         return
       }
@@ -747,11 +768,17 @@ export const RankCanvasLayer = L.Layer.extend({
     return { x: (x + this.lastOrigin.x) / this.lastScale, y: (y + this.lastOrigin.y) / this.lastScale }
   },
   // Exact interpolated rank band at cursor: smallest rank contour containing the point.
+  // Coastline and study-circle clips run first: no rank over clipped water.
   rankAtPoint(containerPoint, elevation = this.elevation) {
     const levels = elevation?.levels
     if (!levels?.length) return null
     const p = this.containerToZoom0(containerPoint)
     if (!p) return null
+    const hasLandMask = Boolean(this.landMaskProjected?.length)
+    const insideLand = hasLandMask ? this.landMaskProjected.some(rings => pointInRings(rings, p.x, p.y)) : true
+    const hasBoundary = Boolean(this.blendBoundary?.length)
+    const insideBoundary = hasBoundary ? pointInRings([this.blendBoundary], p.x, p.y) : true
+    if (!rankAtPointAllowed({ point: p, hasLandMask, insideLand, clipTerritories: Boolean(this.clipTerritories), hasBoundary, insideBoundary })) return null
     const sorted = [...levels].filter(l => l.parts?.length).sort((a, b) => a.rank - b.rank)
     for (const level of sorted) {
       for (const part of level.parts) {
@@ -762,12 +789,19 @@ export const RankCanvasLayer = L.Layer.extend({
     return null
   },
   // Fortress Core dominance tier at cursor for a leader (innermost relief ring wins).
+  // Clip-aware: null outside the leader territory, off land, or under draped
+  // focus topography. Contested Edge only strictly inside the territory.
   dominanceTierAt(containerPoint, leaderId) {
     if (!leaderId || !this.leaderRelief) return null
-    const tiers = this.leaderRelief.get(leaderId)
-    if (!tiers?.length) return CONTESTED_EDGE
     const p = this.containerToZoom0(containerPoint)
     if (!p) return null
+    const draped = Boolean(this.focus?.elevation?.levels?.length)
+    const hasLandMask = Boolean(this.landMaskProjected?.length)
+    const insideLand = hasLandMask ? this.landMaskProjected.some(rings => pointInRings(rings, p.x, p.y)) : true
+    const insideTerritory = Boolean(this.territories?.some(t => t.tectonic && t.leaderId === leaderId && pointInRings((t.flat ||= t.rings.map(r => flattenTerritoryRing(r))), p.x, p.y)))
+    if (!dominanceTierAtAllowed({ point: p, draped, hasLandMask, insideLand, insideTerritory })) return null
+    const tiers = this.leaderRelief.get(leaderId)
+    if (!tiers?.length) return CONTESTED_EDGE
     const sorted = [...tiers].sort((a, b) => b.tier - a.tier)
     for (const rt of sorted) {
       for (const part of rt.parts) {
@@ -836,11 +870,12 @@ export const RankCanvasLayer = L.Layer.extend({
   hideTooltip() {
     if (this.tooltip) this.tooltip.remove()
     this.hoverId = null
+    this.hoverWasTopo = false
   },
   showTooltip(cell, containerPoint = null) {
     this.hoverId = cell.id
     let content = cell.label
-    if (containerPoint && cell.leaderId && this.leaderRelief) {
+    if (containerPoint && cell.leaderId && this.leaderRelief && !this.focus?.elevation?.levels?.length) {
       const tier = this.dominanceTierAt(containerPoint, cell.leaderId)
       if (tier) content = `${content} · ${tier.label}`
     }
@@ -1405,7 +1440,7 @@ export const RankCanvasLayer = L.Layer.extend({
     }
 
     // Pass 1b: Inward-only shapeburst on intermediate contours at gentler weight.
-    if (scale && origin && typeof Path2D !== 'undefined') {
+    if (CARTOGRAPHIC.contours === 'all' && scale && origin && typeof Path2D !== 'undefined') {
       for (let i = levels.length - 1; i >= 0; i--) {
         const { rank, parts } = levels[i]
         if (!parts.length || [1, 3, 10, 20, 30].includes(rank)) continue

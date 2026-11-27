@@ -1,8 +1,10 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
 import {
   CARTOGRAPHIC, dominanceScore, dominanceTierForScore, reliefThresholdsAtTau,
   attenuateScoreAtTau, innerShapeburstStrokes, cubicBezierEase, masterTierForRank,
+  dominanceTierAtAllowed, rankAtPointAllowed,
 } from '../src/cartographic.js'
 
 test('locked cartographic constants', () => {
@@ -66,4 +68,73 @@ test('rank master tiers cover 1..30 without flicker boundaries', () => {
   assert.equal(masterTierForRank(20).id, 'page2')
   assert.equal(masterTierForRank(30).id, 'page3')
   assert.equal(masterTierForRank(31), null)
+})
+
+test('shapeburst steps clamp rejects Infinity and caps finite counts at 64', () => {
+  const fallback = innerShapeburstStrokes(48, 0.16, Infinity)
+  assert.ok(fallback.length >= 1 && fallback.length <= 18)
+  const nanSteps = innerShapeburstStrokes(48, 0.16, Number.NaN)
+  assert.ok(nanSteps.length >= 1 && nanSteps.length <= 18)
+  const capped = innerShapeburstStrokes(48, 0.16, 1000)
+  assert.ok(capped.length <= 64)
+  assert.ok(capped.every(s => Number.isFinite(s.lineWidth) && Number.isFinite(s.alpha)))
+  assert.deepEqual(innerShapeburstStrokes(48, 0.16, -5), [])
+})
+
+test('dominance tier guard earns a tier only inside territory on land undraped', () => {
+  const p = { x: 1, y: 2 }
+  assert.equal(dominanceTierAtAllowed({ point: p, insideTerritory: true }), true)
+  assert.equal(dominanceTierAtAllowed({ point: p, hasLandMask: false, insideLand: false, insideTerritory: true }), true)
+  assert.equal(dominanceTierAtAllowed({ point: null, insideTerritory: true }), false)
+  assert.equal(dominanceTierAtAllowed({ point: p, draped: true, insideTerritory: true }), false)
+  assert.equal(dominanceTierAtAllowed({ point: p, hasLandMask: true, insideLand: false, insideTerritory: true }), false)
+  assert.equal(dominanceTierAtAllowed({ point: p, insideTerritory: false }), false)
+  assert.equal(dominanceTierAtAllowed(), false)
+})
+
+test('rank guard returns no rank over clipped water or outside the study circle', () => {
+  const p = { x: 1, y: 2 }
+  assert.equal(rankAtPointAllowed({ point: p }), true)
+  assert.equal(rankAtPointAllowed({ point: null }), false)
+  assert.equal(rankAtPointAllowed({ point: p, hasLandMask: true, insideLand: false }), false)
+  assert.equal(rankAtPointAllowed({ point: p, clipTerritories: true, hasBoundary: true, insideBoundary: false }), false)
+  assert.equal(rankAtPointAllowed({ point: p, clipTerritories: true, hasBoundary: true, insideBoundary: true }), true)
+  assert.equal(rankAtPointAllowed({ point: p, clipTerritories: false, hasBoundary: true, insideBoundary: false }), true)
+  assert.equal(rankAtPointAllowed({ point: p, clipTerritories: true, hasBoundary: false, insideBoundary: false }), true)
+})
+
+test('rank canvas wires clip guards before contour and relief lookups', () => {
+  const src = readFileSync(new URL('../src/rank-canvas.js', import.meta.url), 'utf8')
+  const rankStart = src.indexOf('rankAtPoint(containerPoint')
+  const rankSlice = src.slice(rankStart, rankStart + 1600)
+  assert.ok(rankStart >= 0)
+  assert.ok(rankSlice.indexOf('rankAtPointAllowed(') >= 0)
+  assert.ok(rankSlice.indexOf('rankAtPointAllowed(') < rankSlice.indexOf('for (const level of sorted)'))
+  assert.match(rankSlice, /landMaskProjected\.some/)
+  assert.match(rankSlice, /pointInRings\(\[this\.blendBoundary\]/)
+  const tierStart = src.indexOf('dominanceTierAt(containerPoint')
+  const tierSlice = src.slice(tierStart, tierStart + 1600)
+  assert.ok(tierStart >= 0)
+  assert.ok(tierSlice.indexOf('containerToZoom0') < tierSlice.indexOf('leaderRelief.get'))
+  assert.match(tierSlice, /dominanceTierAtAllowed\(/)
+  assert.match(tierSlice, /t\.flat \|\|= /)
+  assert.match(tierSlice, /focus\?\.elevation\?\.levels\?\.length/)
+  assert.match(src, /this\.hoverId = '__relief__'/)
+  assert.match(src, /this\.hoverWasTopo = true/)
+  assert.match(src, /CARTOGRAPHIC\.contours === 'all'/)
+  const tipStart = src.indexOf('showTooltip(cell, containerPoint')
+  const tipSlice = src.slice(tipStart, tipStart + 500)
+  assert.match(tipSlice, /!this\.focus\?\.elevation\?\.levels\?\.length/)
+})
+
+test('release 0.3.1 version strings stay in parity', () => {
+  const citation = readFileSync(new URL('../CITATION.cff', import.meta.url), 'utf8')
+  assert.match(citation, /^version: "0\.3\.1"\r?$/m)
+  assert.match(citation, /^date-released: "2026-11-27"\r?$/m)
+  const review = readFileSync(new URL('../tools/business_name_review.py', import.meta.url), 'utf8')
+  assert.ok(!review.includes('legends-geogrid/0.3.0'))
+  assert.ok(review.includes('legends-geogrid/0.3.1'))
+  const topo = readFileSync(new URL('../tools/report_hex_topo.py', import.meta.url), 'utf8')
+  assert.ok(!topo.includes('v0.3.0'))
+  assert.ok(topo.includes('v0.3.1'))
 })

@@ -48,12 +48,37 @@ export function attenuateScoreAtTau(score, neighborWinShare, tau = 0) {
   return (Number(score) || 0) - t * (1 - share) * 2.5
 }
 
+// Clip guards for hover lookups. A cursor point earns a dominance tier only
+// when it is known, not under draped focus topography, on land when a land
+// mask exists, and strictly inside the leader territory. Anything else is
+// null (no phantom tier), never Contested Edge.
+export function dominanceTierAtAllowed({ point = null, draped = false, hasLandMask = false, insideLand = true, insideTerritory = false } = {}) {
+  if (!point) return false
+  if (draped) return false
+  if (hasLandMask && !insideLand) return false
+  if (!insideTerritory) return false
+  return true
+}
+
+// A cursor point earns an interpolated rank only when it is known, on land
+// when a land mask exists, and inside the study boundary when territory
+// clipping is active. Clipped water and offshore points return no rank.
+export function rankAtPointAllowed({ point = null, hasLandMask = false, insideLand = true, clipTerritories = false, hasBoundary = false, insideBoundary = true } = {}) {
+  if (!point) return false
+  if (hasLandMask && !insideLand) return false
+  if (clipTerritories && hasBoundary && !insideBoundary) return false
+  return true
+}
+
 // Inward-only shapeburst strokes: exact Porter-Duff incremental alphas.
 // Returns widest-first strokes; caller clips to the shape (0% exterior bleed).
 export function innerShapeburstStrokes(widthPx = CARTOGRAPHIC.innerWidth, maxOpacity = CARTOGRAPHIC.innerOpacity, steps = null) {
   const w = Math.max(0, Number(widthPx) || 0)
   const max = Math.max(0, Math.min(1, Number(maxOpacity) || 0))
-  const n = steps == null ? Math.max(8, Math.min(18, Math.round(w / 2) || 8)) : Math.max(1, Math.round(steps))
+  const stepCount = Number(steps)
+  const n = steps == null || !Number.isFinite(stepCount)
+    ? Math.max(8, Math.min(18, Math.round(w / 2) || 8))
+    : Math.max(1, Math.min(64, Math.round(stepCount)))
   const out = []
   let prevCum = 0
   for (let k = n; k >= 1; k--) {

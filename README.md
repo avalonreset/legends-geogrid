@@ -2,7 +2,7 @@
 
 <p align="center"><img src="assets/banner.webp" width="100%" alt="legends-geogrid: an open source local rank tracker and Google Maps rank checker that maps every search point around a business"></p>
 
-# legends-geogrid: an open source local rank tracker that maps every search point instead of reporting one number
+# legends-geogrid: open-source Google Maps rank tracker built on a radial hexagonal lattice
 
 [![release](https://img.shields.io/github/v/release/avalonreset/legends-geogrid?label=release&sort=date&style=flat-square&labelColor=000000&color=ff0000)](https://github.com/avalonreset/legends-geogrid/releases/latest)
 [![checks](https://img.shields.io/github/actions/workflow/status/avalonreset/legends-geogrid/ci.yml?branch=main&label=checks&style=flat-square&labelColor=000000)](https://github.com/avalonreset/legends-geogrid/actions/workflows/ci.yml)
@@ -16,7 +16,7 @@ Cosmi's Deli ranks in the top three at 38 of 458 dry-land search points around S
 <p align="center">
   <img src="assets/hero-voronoi-territory.webp" width="100%" alt="legends-geogrid Local Leaders circular Voronoi territory map: 142 first-place Google Maps winners across 458 river-clipped dry-land search points around South Philadelphia">
 </p>
-<p align="center"><sub><strong>142 first-place Google Maps winners across 458 dry-land search points</strong> (Cosmi's Deli, <code>sandwich shop</code>, 6-mile circular honeycomb clipped to the Delaware and Schuylkill rivers). Every territory boundary, contour ring, and river bank is measured public data. Open this exact interactive study locally for $0 with zero API keys.</sub></p>
+<p align="center"><sub><strong>142 first-place Google Maps winners across 458 dry-land origins</strong> (Cosmi's Deli, <code>sandwich shop</code>, 6-mile radial hexagonal lattice clipped to the Delaware and Schuylkill rivers). Every territory boundary, contour ring, and river bank is measured public data you can open locally for $0.</sub></p>
 
 <br>
 
@@ -159,7 +159,7 @@ In the bundled South Philadelphia study, all **250 of 250** `#1` winners were au
 <p align="center">
   <img src="assets/companion-keyword-stuffing.webp" width="100%" alt="Keyword stuffing 3-pane studio: 250 audited first-place profiles with storefront photo, logo, automated website comparison, overlap contours, and Street View link">
 </p>
-<p align="center"><sub><strong>Keyword stuffing 3-pane studio:</strong> rival footprint overlap map on the left, storefront photo, official logo, website title diff, and 1-click Street View link in the center, and filterable 250-winner queue on the right.</sub></p>
+<p align="center"><sub><strong>Keyword stuffing 3-pane studio:</strong> rival footprint overlap map on the left, storefront photo, official logo, website title diff, and 1-click Street View link in the center, and the filterable 250-winner audit queue on the right with every rating preserved for human review.</sub></p>
 
 Same title, different physical evidence, different rating. A human still validates each reading, and the tool never files an edit or a complaint with Google on your behalf.
 
@@ -172,7 +172,7 @@ Same title, different physical evidence, different rating. A human still validat
 <p align="center">
   <img src="assets/companion-strategy-room.webp" width="100%" alt="Strategy Room split view docked beside the 30-layer topography map showing 458 locations, 1,170 observed profiles, 4 grounded agent campaign plans, and Where not to spend avoid zones">
 </p>
-<p align="center"><sub><strong>Split-pane Strategy Room:</strong> top-line territory metrics, 4 prioritized agent campaign plans, and clickable <code>Where not to spend</code> avoid cards docked directly beside the 30-layer topography canvas.</sub></p>
+<p align="center"><sub><strong>Split-pane Strategy Room:</strong> top-line territory metrics (458 pins, 1,170 observed profiles, 73% inner-2-mile share), 4 prioritized agent campaign plans, and clickable <code>Where not to spend</code> avoid cards docked directly beside the live 30-layer topography canvas.</sub></p>
 
 <br>
 

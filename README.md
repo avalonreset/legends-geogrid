@@ -11,6 +11,15 @@
 
 Cosmi's Deli ranks in the top three at 38 of 458 dry-land search points around South Philadelphia for `hoagie`, 7 for `sandwich shop`, and 2 for `cheesesteak`. Ask a single-point rank tracker where that business stands on Google Maps and it gives you one number that hides the other 457 neighborhoods.
 
+<br>
+
+<p align="center">
+  <img src="assets/hero-voronoi-territory.webp" width="100%" alt="legends-geogrid Local Leaders circular Voronoi territory map: 142 first-place Google Maps winners across 458 river-clipped dry-land search points around South Philadelphia">
+</p>
+<p align="center"><sub><strong>142 first-place Google Maps winners across 458 dry-land search points</strong> (Cosmi's Deli, <code>sandwich shop</code>, 6-mile circular honeycomb clipped to the Delaware and Schuylkill rivers). Every territory boundary, contour ring, and river bank is measured public data. Open this exact interactive study locally for $0 with zero API keys.</sub></p>
+
+<br>
+
 **The human is the controller. The agents do the operating.**
 
 `legends-geogrid` turns your coding agent into a local rank tracker, circular honeycomb Google Maps study engine, storefront signage and branding auditor, and 30-layer vector-hex PDF strategy studio. Clone the repository or install it through [`cto-legends`](https://github.com/avalonreset/cto-legends), and the complete 458-point river-clipped South Philadelphia study opens in your browser with no API keys and zero spend.
@@ -58,13 +67,25 @@ The study bundled with `legends-geogrid v0.3.0` measured that around one real So
 
 For `hoagie`, Cosmi's Deli holds 13 first-place wins, 38 top-three pins, and 142 top-ten pins. For `sandwich shop` in the exact same neighborhoods, top-three drops to 7. For `cheesesteak`, visibility collapses past 1 mile (only 2 top-three pins).
 
+<br>
+
 <p align="center">
-  <img src="examples/cosmis-deli-philly/report/map-hoagie.png" width="49%" alt="30-layer vector topography for hoagie around Cosmi's Deli in South Philadelphia, river-clipped to 458 dry-land origins">
-  <img src="examples/cosmis-deli-philly/report/map-leaders.png" width="49%" alt="Local Leaders vector hex map and 365 one-rank flip seams across South Philadelphia and New Jersey">
+  <img src="assets/hero-topography-hoagie.webp" width="100%" alt="30-layer marching-squares rank topography for hoagie around Cosmi's Deli in South Philadelphia, river-clipped to 458 dry-land origins">
 </p>
-<p align="center"><sub>Left: 30-layer marching-squares rank topography for "hoagie" (13 #1 wins, 38 top-three, 142 top-ten), clipped to the Delaware and Schuylkill rivers. Right: Local Leaders vector honeycomb with 365 head-to-head one-rank flip seams.</sub></p>
+<p align="center"><sub><strong>30-layer marching-squares rank topography for <code>hoagie</code></strong> (13 #1 crown wins in cyan, 38 three-pack pins in emerald, 142 Page 1 pins in gold, fading to Page 3 crimson), river-clipped to the Delaware and Schuylkill. Packed contour lines expose steep ranking cliffs street by street.</sub></p>
+
+<br>
 
 So which one is its rank? Any single number has to pick one of those maps and throw the others away. It also throws away the two things an owner can act on: the neighborhood and the search theme. "We rank number four" tells nobody which streets to defend or which service page to write.
+
+<br>
+
+<p align="center">
+  <img src="assets/companion-rankings.webp" width="100%" alt="Interactive Rankings studio: 30-layer rank topography, 6-point home star, and 1,170 observed Google Maps profiles for Cosmi's Deli">
+</p>
+<p align="center"><sub><strong>Interactive Rankings studio:</strong> full 30-layer rank topography with independent <code>topography</code>, <code>triangles</code>, <code>pins</code>, and <code>rings</code> toggles alongside all 1,170 observed Google Maps profiles. Click any rival in the right rail to recolor the entire map to their footprint.</sub></p>
+
+<br>
 
 <p align="center"><img src="assets/cards/r1/slot-4-circular-vs-square.svg" width="100%" alt="Why circular territory geometry beats square rank grids: The Square Grid Trap (+41% corner stretch) versus True Circular Lattice in legends-geogrid"></p>
 
@@ -98,23 +119,55 @@ Collection travels through [`legends-dataforseo`](https://github.com/avalonreset
 
 ## Territory campaigns, Local Leaders and the 3-pane Keyword stuffing studio
 
-Finished studies open as interactive views. **Local Leaders** shows who holds first place in each neighborhood with distinct neighbor colors and 6-point home-star anchoring, and **Campaigns** ranks winnable home-landmass plays (**Winnability relief** contours, smooth weighted **Flip seams**, **Service gap** pockets, **Weak pack** blockers, and **Where not to spend** avoid zones such as separated landmasses across rivers or non-residential refinery/industrial tracts).
+Finished studies open as a full-screen local web studio with zero server running. Every view below is rendered directly from the bundled South Philadelphia dataset so you can inspect the full detail before running a single scan.
+
+### Local Leaders: every first-place winner mapped across the honeycomb
+
+**Local Leaders** maps who holds `#1` in every pocket of the territory with high-contrast rival hues, outside-circle base connectors, live search across all 142 first-place winners, and double-click territory framing.
 
 <p align="center">
-  <img src="assets/companion-local-leaders.webp" width="49%" alt="Local leaders view: first-place winners shown as colored territories across 458 river-clipped South Philadelphia search points">
-  <img src="assets/companion-campaigns.webp" width="49%" alt="Campaigns view: Winnability relief, flip seams, agent-researched plays, and Where not to spend avoid zones for Cosmi's Deli">
+  <img src="assets/companion-local-leaders.webp" width="100%" alt="Local leaders studio view: 142 first-place winners shown as colored Voronoi territories across 458 river-clipped South Philadelphia search points">
 </p>
+<p align="center"><sub><strong>Local Leaders view:</strong> 142 first-place winners across 458 of 458 dry-land pins (<code>sandwich shop</code>), with searchable leader rail and outside-circle base connectors.</sub></p>
 
-Another view audits competitor business names. When a first-place holder's title looks packed with extra keywords, your agent refreshes that exact profile through DataForSEO, reads the branding on its website (behind Firecrawl managed proxies or standard HTTP), inspects the profile's storefront photos and logo (plus optional official Google Street View Static API imagery when you provide your own Google Maps API key, or a 1-click official Google Maps Street View link), and, with [`legends-jev`](https://github.com/avalonreset/legends-jev) or multimodal vision, reads the physical lettering on the storefront sign.
+<br>
+
+### Campaigns: Winnability relief, flip seams, and Where not to spend
+
+**Campaigns** ranks winnable home-landmass plays (**Winnability relief** contours, smooth weighted **Flip seams**, **Service gap** pockets, and **Weak pack** blockers) while isolating **Where not to spend** avoid zones such as detached landmasses across rivers, entrenched high-review fortresses, and non-residential refinery or industrial tracts.
+
+<p align="center">
+  <img src="assets/companion-campaigns.webp" width="100%" alt="Campaigns studio view: Winnability relief contours, flip seams, prioritized plays, and Where not to spend avoid zones for Cosmi's Deli">
+</p>
+<p align="center"><sub><strong>Campaigns view:</strong> gold Winnability relief strike zones, cyan Hold (1-3) core, and 73 filtered <code>Where not to spend</code> avoid pins including the Point Breeze / PES Refinery tract and 167 detached New Jersey pins across the Delaware River.</sub></p>
+
+<br>
+
+### Keyword stuffing: 3-pane storefront signage and branding studio
+
+Another view audits competitor business names. When a first-place holder's title looks packed with extra keywords, your agent refreshes that exact profile through DataForSEO, reads the branding on its website, inspects the profile's storefront photos and logo (plus optional official Google Street View Static API imagery when you provide your own Google Maps API key, or a 1-click official Google Maps Street View link), and, with [`legends-jev`](https://github.com/avalonreset/legends-jev) or multimodal vision, reads the physical lettering on the storefront sign.
 
 In the bundled South Philadelphia study, all **250 of 250** `#1` winners were audited (`Pending 0`): 14 corroborated naming discrepancies were documented (such as `Waterfront Gourmet Cafe & Deli - Catering & Events Services in South St, Philadelphia` and `Cleavers Philadelphia @ Rittenhouse Square`), while high-overlap rivals like `Philly's Hoagie House` and `On a Roll Italian Sandwich Co.` were optically cleared because their physical signage and logos match their Google titles.
 
 <p align="center">
-  <img src="assets/companion-keyword-stuffing.webp" width="49%" alt="Keyword stuffing 3-pane studio: 250 audited first-place profiles with storefront photo, logo, captured website comparison, and Street View link">
-  <img src="assets/companion-strategy-room.webp" width="49%" alt="Strategy Room split view beside the map showing 4 agent campaign plans, Where not to spend avoid zones, and reach matrix">
+  <img src="assets/companion-keyword-stuffing.webp" width="100%" alt="Keyword stuffing 3-pane studio: 250 audited first-place profiles with storefront photo, logo, automated website comparison, overlap contours, and Street View link">
 </p>
+<p align="center"><sub><strong>Keyword stuffing 3-pane studio:</strong> rival footprint overlap map on the left, storefront photo, official logo, website title diff, and 1-click Street View link in the center, and filterable 250-winner queue on the right.</sub></p>
 
 Same title, different physical evidence, different rating. A human still validates each reading, and the tool never files an edit or a complaint with Google on your behalf.
+
+<br>
+
+### Strategy Room: executive briefing docked beside the live map
+
+**Strategy Room** docks beside the interactive canvas so you can inspect the 458-point footprint KPIs, read the 4 grounded agent campaign plans, and isolate any **Where not to spend** avoid zone on the map in one click.
+
+<p align="center">
+  <img src="assets/companion-strategy-room.webp" width="100%" alt="Strategy Room split view docked beside the 30-layer topography map showing 458 locations, 1,170 observed profiles, 4 grounded agent campaign plans, and Where not to spend avoid zones">
+</p>
+<p align="center"><sub><strong>Split-pane Strategy Room:</strong> top-line territory metrics, 4 prioritized agent campaign plans, and clickable <code>Where not to spend</code> avoid cards docked directly beside the 30-layer topography canvas.</sub></p>
+
+<br>
 
 <p align="center"><img src="assets/cards/r1/slot-5-saas-vs-geogrid.svg" width="100%" alt="Comparison: Monthly local rank SaaS versus Your own territory engine with legends-geogrid"></p>
 
@@ -160,10 +213,12 @@ Read the South Philadelphia report at [`examples/cosmis-deli-philly/report/repor
 | Photo Lightbox | Full-size inspection of provider GBP storefront photos and logos |
 | Vector-hex PDF report | Offline 30-layer marching-squares topography and river-clipped Local Leaders hex grid generated via `tools/report_builder.py --hex-study` |
 
+<br>
+
 <p align="center">
-  <img src="assets/companion-rankings.webp" width="49%" alt="Rankings view: 30-layer rank topography and 6-point home star for Cosmi's Deli in South Philadelphia">
-  <img src="assets/companion-strategy-room.webp" width="49%" alt="Strategy Room panel open beside the map with agent campaign plans, Where not to spend avoid zones, and radial reach matrix">
+  <img src="examples/cosmis-deli-philly/report/map-leaders.png" width="88%" alt="Offline vector-hex PDF report plate: Local Leaders and 365 head-to-head one-rank flip seams across South Philadelphia and New Jersey">
 </p>
+<p align="center"><sub><strong>Offline vector-hex PDF plate (Page 5 of 5):</strong> river-clipped Local Leaders hex grid highlighting 365 head-to-head seams where the #2 challenger sits one rank away from flipping #1. Open the full PDF at <a href="examples/cosmis-deli-philly/report/report.pdf"><code>examples/cosmis-deli-philly/report/report.pdf</code></a>.</sub></p>
 
 ### Embeddable report viewer (`GeoGridViewer.mount`)
 

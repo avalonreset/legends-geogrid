@@ -167,7 +167,7 @@ export const RankCanvasLayer = L.Layer.extend({
       if (!this.frame) this.frame = requestAnimationFrame(() => { this.frame = 0; this.draw() })
     }
     this.hover = event => {
-      const hit = this.hitAt(event.containerPoint)
+      const hit = this.pointAllowedAt(event.containerPoint) ? this.hitAt(event.containerPoint) : null
       // A border between unlike leaders explains itself: both endpoints and their head-to-head ranks.
       const seam = hit ? null : this.seamAt(event.containerPoint)
       this.setHoverSeam(seam, event.containerPoint)
@@ -184,18 +184,12 @@ export const RankCanvasLayer = L.Layer.extend({
       // territories (contours off) still get polygon-wide hover.
       const terrLeader = (!seam && !cursorRank && !this.focus?.elevation?.levels?.length)
         ? this.territoryAt(event.containerPoint) : null
-      const cursorP = this.containerToZoom0(event.containerPoint)
-      const pointIsAllowed = Boolean(cursorP)
-        && (!this.landMaskProjected?.length || this.landMaskProjected.some(rings => pointInRings(rings, cursorP.x, cursorP.y)))
-        && (!(this.clipTerritories && this.blendBoundary?.length) || pointInRings([this.blendBoundary], cursorP.x, cursorP.y))
-      // Tectonic studies resolve hover only from clip-guarded rendered geometry:
-      // unclipped nearCellAt must never override terrLeader or fire over open
-      // water, Contested canyons, or outside the study circle. Legacy grids
-      // keep nearCellAt, itself clip-guarded against land and study circle.
+      // hit is clip-guarded across every view via pointAllowedAt, and
+      // nearCellAt applies the same land and study-circle clips, so neither
+      // can fire over open water or outside the study circle.
       const nextLeader = hasTectonic
-        ? (seam || this.focus?.elevation?.levels?.length ? null : (hit && pointIsAllowed ? hit.leaderId : null) || terrLeader || null)
+        ? (seam || this.focus?.elevation?.levels?.length ? null : hit?.leaderId || terrLeader || null)
         : (seam ? null : near?.leaderId || terrLeader || null)
-      const allowedHit = hit && (!hasTectonic || pointIsAllowed) ? hit : null
       if (this.onHoverLeader && nextLeader !== this.hoverLeaderId) {
         this.onHoverLeader(nextLeader)
       }
@@ -207,7 +201,7 @@ export const RankCanvasLayer = L.Layer.extend({
         this.hoverId = hit?.id ?? '__topo__'
         this.hoverWasTopo = true
         this.tooltip.setLatLng(event.latlng).setContent(`${base}Topography #${cursorRank.rank} · ${tier ? tier.label : ''}`).addTo(map)
-        map.getContainer().style.cursor = allowedHit || nextLeader ? 'pointer' : ''
+        map.getContainer().style.cursor = hit || nextLeader ? 'pointer' : ''
         return
       }
       if (!hit && terrLeader && this.leaderRelief) {
@@ -217,7 +211,7 @@ export const RankCanvasLayer = L.Layer.extend({
           this.hoverId = '__relief__'
           this.hoverWasTopo = false
           this.tooltip.setLatLng(event.latlng).setContent(`${escapeText(baseLabel)} · ${tier.label}`).addTo(map)
-          map.getContainer().style.cursor = allowedHit || nextLeader ? 'pointer' : ''
+          map.getContainer().style.cursor = hit || nextLeader ? 'pointer' : ''
           return
         }
       }
@@ -226,16 +220,16 @@ export const RankCanvasLayer = L.Layer.extend({
         // Leaving topography on the same cell restores the plain cell tooltip.
         if (hit && (this.hoverWasTopo || (this.leaderRelief && hit.leaderId))) this.showTooltip(hit, event.containerPoint)
         this.hoverWasTopo = false
-        map.getContainer().style.cursor = allowedHit || nextLeader ? 'pointer' : ''
+        map.getContainer().style.cursor = hit || nextLeader ? 'pointer' : ''
         return
       }
       this.hideTooltip()
       if (hit) this.showTooltip(hit, event.containerPoint)
-      map.getContainer().style.cursor = allowedHit || nextLeader ? 'pointer' : ''
+      map.getContainer().style.cursor = hit || nextLeader ? 'pointer' : ''
     }
     this.click = event => {
       const detail = event.originalEvent?.detail || 1
-      const hit = this.hitAt(event.containerPoint)
+      const hit = this.pointAllowedAt(event.containerPoint) ? this.hitAt(event.containerPoint) : null
       if (detail >= 2 && this.onDoubleClickLeader) {
         const leaderId = hit?.leaderId || this.territoryAt(event.containerPoint)
         if (leaderId) return
@@ -247,7 +241,7 @@ export const RankCanvasLayer = L.Layer.extend({
     }
     this.dblclick = event => {
       if (!this.onDoubleClickLeader) return
-      const hit = this.hitAt(event.containerPoint)
+      const hit = this.pointAllowedAt(event.containerPoint) ? this.hitAt(event.containerPoint) : null
       const leaderId = hit?.leaderId || this.territoryAt(event.containerPoint)
       if (!leaderId) return
       L.DomEvent.stop(event)
@@ -466,6 +460,8 @@ export const RankCanvasLayer = L.Layer.extend({
     if (!this.seams?.length || !this._map) return null
     const { scale, origin } = this.screenFrame()
     const px = (x + origin.x) / scale, py = (y + origin.y) / scale
+    if (this.landMaskProjected?.length && !this.landMaskProjected.some(rings => pointInRings(rings, px, py))) return null
+    if (this.clipTerritories && this.blendBoundary?.length && !pointInRings([this.blendBoundary], px, py)) return null
     const limit = Math.max(7, Math.min(16, (this.stepPx || 0) * .16)) / scale
     let best = null, bestDist = limit
     for (const seam of this.seams) {
@@ -777,6 +773,15 @@ export const RankCanvasLayer = L.Layer.extend({
   containerToZoom0({ x, y }) {
     if (!this._map || !this.lastScale || !this.lastOrigin) return null
     return { x: (x + this.lastOrigin.x) / this.lastScale, y: (y + this.lastOrigin.y) / this.lastScale }
+  },
+  // Shared clip check: container point must sit on land and inside the
+  // study circle when clipping applies. Pre-first-draw points stay allowed.
+  pointAllowedAt(containerPoint) {
+    const p = this.containerToZoom0(containerPoint)
+    if (!p) return true
+    if (this.landMaskProjected?.length && !this.landMaskProjected.some(rings => pointInRings(rings, p.x, p.y))) return false
+    if (this.clipTerritories && this.blendBoundary?.length && !pointInRings([this.blendBoundary], p.x, p.y)) return false
+    return true
   },
   // Exact interpolated rank band at cursor: smallest rank contour containing the point.
   // Coastline and study-circle clips run first: no rank over clipped water.

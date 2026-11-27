@@ -6,6 +6,7 @@ import {
   attenuateScoreAtTau, innerShapeburstStrokes, cubicBezierEase, masterTierForRank,
   dominanceTierAtAllowed, rankAtPointAllowed,
 } from '../src/cartographic.js'
+import { pointInRings } from '../src/map-geometry.js'
 
 test('locked cartographic constants', () => {
   assert.equal(CARTOGRAPHIC.innerWidth, 48)
@@ -168,13 +169,85 @@ test('tectonic hover prefers clip-guarded territory over nearCellAt with no phan
   const src = readFileSync(new URL('../src/rank-canvas.js', import.meta.url), 'utf8')
   assert.match(src, /const hasTectonic = Boolean\(this\.territories\?\.some\(t => t\.tectonic\)\)/)
   assert.match(src, /const terrLeader = \(!seam && !cursorRank && !this\.focus\?\.elevation\?\.levels\?\.length\)/)
-  assert.match(src, /\(hit && pointIsAllowed \? hit\.leaderId : null\) \|\| terrLeader \|\| null/)
+  assert.match(src, /hit\?\.leaderId \|\| terrLeader \|\| null/)
   assert.match(src, /if \(!hit && terrLeader && this\.leaderRelief\)/)
-  assert.match(src, /style\.cursor = allowedHit \|\| nextLeader \? 'pointer' : ''/)
+  assert.match(src, /style\.cursor = hit \|\| nextLeader \? 'pointer' : ''/)
+  assert.ok(!src.includes('allowedHit'))
+  assert.ok(!src.includes('pointIsAllowed'))
   assert.ok(!src.includes('const nextLeader = seam ? null : near?.leaderId || terrLeader || null'))
   const nearStart = src.indexOf('nearCellAt({ x, y })')
   const nearSlice = src.slice(nearStart, nearStart + 700)
   assert.ok(nearStart >= 0)
   assert.match(nearSlice, /landMaskProjected\?\.length/)
   assert.match(nearSlice, /this\.clipTerritories && this\.blendBoundary\?\.length/)
+})
+
+test('pointAllowedAt gates every hitAt call and seamAt carries land and circle guards', () => {
+  const src = readFileSync(new URL('../src/rank-canvas.js', import.meta.url), 'utf8')
+  assert.match(src, /pointAllowedAt\(containerPoint\) \{/)
+  const gated = src.match(/this\.pointAllowedAt\(event\.containerPoint\) \? this\.hitAt\(event\.containerPoint\) : null/g) || []
+  assert.equal(gated.length, 3)
+  assert.ok(!src.includes('const hit = this.hitAt(event.containerPoint)'))
+  const seamStart = src.indexOf('seamAt({ x, y })')
+  const seamSlice = src.slice(seamStart, seamStart + 700)
+  assert.ok(seamStart >= 0)
+  assert.match(seamSlice, /this\.landMaskProjected\?\.length && !this\.landMaskProjected\.some\(rings => pointInRings\(rings, px, py\)\)\) return null/)
+  assert.match(seamSlice, /this\.clipTerritories && this\.blendBoundary\?\.length && !pointInRings\(\[this\.blendBoundary\], px, py\)\) return null/)
+  assert.ok(seamSlice.indexOf('pointInRings(rings, px, py)') < seamSlice.indexOf('const limit'))
+})
+
+// Extract a shipped method body by brace balance so the runtime checks below
+// execute the exact source text (Leaflet keeps the module unimportable in Node).
+function extractMethod(src, marker) {
+  const start = src.indexOf(marker)
+  assert.ok(start >= 0, marker)
+  const open = src.indexOf('{', src.indexOf(')', start))
+  let depth = 0
+  for (let i = open; i < src.length; i++) {
+    if (src[i] === '{') depth++
+    else if (src[i] === '}' && --depth === 0) return src.slice(start, i + 1)
+  }
+  assert.fail(`unterminated ${marker}`)
+}
+
+test('runtime pointAllowedAt and seamAt suppress clipped water and outside-circle points', () => {
+  const src = readFileSync(new URL('../src/rank-canvas.js', import.meta.url), 'utf8')
+  const allowedObj = new Function('pointInRings', `return { ${extractMethod(src, 'pointAllowedAt(containerPoint)')} }`)(pointInRings)
+  const seamObj = new Function('pointInRings', `return { ${extractMethod(src, 'seamAt({ x, y })')} }`)(pointInRings)
+  const square = (lo, hi) => [{ x: lo, y: lo }, { x: hi, y: lo }, { x: hi, y: hi }, { x: lo, y: hi }]
+  const layer = {
+    containerToZoom0: p => p,
+    landMaskProjected: [[square(0, 100)]],
+    clipTerritories: true,
+    blendBoundary: square(10, 50),
+  }
+  const allowed = p => allowedObj.pointAllowedAt.call(layer, p)
+  assert.equal(allowed({ x: 30, y: 30 }), true)
+  assert.equal(allowed({ x: 150, y: 30 }), false)
+  assert.equal(allowed({ x: 80, y: 30 }), false)
+  layer.clipTerritories = false
+  assert.equal(allowed({ x: 80, y: 30 }), true)
+  assert.equal(allowed({ x: 150, y: 30 }), false)
+  layer.landMaskProjected = null
+  layer.clipTerritories = true
+  assert.equal(allowed({ x: 80, y: 30 }), false)
+  assert.equal(allowedObj.pointAllowedAt.call({ ...layer, containerToZoom0: () => null }, { x: 1, y: 1 }), true)
+
+  const seam = { p1: { x: 0, y: 20 }, p2: { x: 200, y: 20 } }
+  const seamLayer = {
+    _map: {},
+    seams: [seam],
+    stepPx: 100,
+    screenFrame: () => ({ scale: 1, origin: { x: 0, y: 0 } }),
+    landMaskProjected: [[square(0, 100)]],
+    clipTerritories: true,
+    blendBoundary: square(10, 50),
+  }
+  const seamAtPt = p => seamObj.seamAt.call(seamLayer, p)
+  assert.equal(seamAtPt({ x: 30, y: 20 }), seam)
+  assert.equal(seamAtPt({ x: 150, y: 20 }), null)
+  assert.equal(seamAtPt({ x: 80, y: 20 }), null)
+  seamLayer.clipTerritories = false
+  assert.equal(seamAtPt({ x: 80, y: 20 }), seam)
+  assert.equal(seamAtPt({ x: 150, y: 20 }), null)
 })

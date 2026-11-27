@@ -2,7 +2,7 @@
 
 <p align="center"><img src="assets/banner.webp" width="100%" alt="legends-geogrid: an open source local rank tracker and Google Maps rank checker that maps every search point around a business"></p>
 
-# legends-geogrid: open-source Google Maps rank tracker built on a radial hexagonal lattice
+# legends-geogrid: open-source Google Maps rank tracker with radial hexagonal topography at wholesale rates
 
 [![release](https://img.shields.io/github/v/release/avalonreset/legends-geogrid?label=release&sort=date&style=flat-square&labelColor=000000&color=ff0000)](https://github.com/avalonreset/legends-geogrid/releases/latest)
 [![checks](https://img.shields.io/github/actions/workflow/status/avalonreset/legends-geogrid/ci.yml?branch=main&label=checks&style=flat-square&labelColor=000000)](https://github.com/avalonreset/legends-geogrid/actions/workflows/ci.yml)

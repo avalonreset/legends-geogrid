@@ -47,11 +47,13 @@ export function createBasemapSwitcher(map, { announce, onChange, onStatus = () =
   let cancelPending = null
   let pendingLayer = null
   let destroyed = false
+  // Leaflet fires 'unload' only when _loaded (after setView), but map.remove() always deletes _mapPane.
+  const isDestroyed = () => destroyed || !map?._mapPane
   map.once('unload', () => { destroyed = true; version++; cancelPending?.(); cancelPending = null })
   const silentGoogle = typeof onGoogleUnavailable === 'function'
   const credit = attribution ? escapeText(attribution) : openCredit
   const googleFailed = () => {
-    if (destroyed || googleDown) return
+    if (isDestroyed() || googleDown) return
     googleDown = true
     onGoogleUnavailable()
     if (fallbackId && (!current || currentSource?.google)) void api.set(fallbackId)
@@ -61,7 +63,7 @@ export function createBasemapSwitcher(map, { announce, onChange, onStatus = () =
       const source = basemaps.find(s => s.id === id)
       if (!source) throw new Error('Unknown basemap')
       if (source.google && googleDown) return
-      if (destroyed) return
+      if (isDestroyed()) return
       const revision = ++version
       cancelPending?.(); cancelPending = null
       if (pendingLayer) { removeLayerSafely(map, pendingLayer); pendingLayer = null }
@@ -92,14 +94,14 @@ export function createBasemapSwitcher(map, { announce, onChange, onStatus = () =
         if (source.google) {
           const { createGoogleTiles } = await import('./google-tiles.js')
           layer = await createGoogleTiles(map, source.google, announce, { sessionPath: googleSessionPath, onFailure: silentGoogle ? googleFailed : null })
-          if (destroyed || revision !== version) { removeLayerSafely(map, layer); return }
+          if (isDestroyed() || revision !== version) { removeLayerSafely(map, layer); return }
         } else if (source.style) {
           if (!hasWebGL()) throw new Error('WebGL is unavailable in this browser.')
           const [{ MaplibreGL }, , maplibre, workerUrl] = await Promise.all([
             import('@maplibre/maplibre-gl-leaflet'), import('maplibre-gl/dist/maplibre-gl.css'),
             import('maplibre-gl'), maplibreWorkerUrl(),
           ])
-          if (destroyed || revision !== version) return
+          if (isDestroyed() || revision !== version) return
           maplibre.setWorkerUrl(workerUrl)
           layer = new MaplibreGL({ style: `${tileStyleBase}/${source.style}`,
             interactive: false, attributionControl: false, pane: 'tilePane' })
@@ -109,6 +111,7 @@ export function createBasemapSwitcher(map, { announce, onChange, onStatus = () =
         }
         const previous = current
         pendingLayer = layer
+        let loadDetached = false
         const readyPromise = new Promise((resolve, reject) => {
           let settled = false
           let stopTimer = () => {}
@@ -128,7 +131,7 @@ export function createBasemapSwitcher(map, { announce, onChange, onStatus = () =
             removeLayerSafely(map, layer)
             resolve()
           }
-          const onRemove = () => settleResolve()
+          const onRemove = () => { loadDetached = true; settleResolve() }
           cancelPending = cancel
           try {
             if (source.style) {
@@ -166,7 +169,7 @@ export function createBasemapSwitcher(map, { announce, onChange, onStatus = () =
         try { container = layer.getContainer() } catch { container = null }
         if (container) container.style.opacity = '0'
         await readyPromise
-        if (destroyed || revision !== version) { removeLayerSafely(map, layer); return }
+        if (isDestroyed() || revision !== version || loadDetached || !map.hasLayer(layer)) { removeLayerSafely(map, layer); return }
         current = layer
         currentSource = source
         const duration = matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 300
@@ -174,13 +177,13 @@ export function createBasemapSwitcher(map, { announce, onChange, onStatus = () =
           container.style.transition = `opacity ${duration}ms ease`
           container.style.opacity = '1'
         }
-        if (previous && previous !== layer) setTimeout(() => { if (!destroyed) removeLayerSafely(map, previous) }, duration)
+        if (previous && previous !== layer) setTimeout(() => { if (!isDestroyed()) removeLayerSafely(map, previous) }, duration)
         onChange(id)
         onStatus({ phase: 'ready', id })
       } catch (error) {
         removeLayerSafely(map, layer)
         if (pendingLayer === layer) pendingLayer = null
-        if (destroyed || revision !== version) return
+        if (isDestroyed() || revision !== version) return
         if (source.google && silentGoogle) { googleFailed(); return }
         if (revision === version) {
           const detail = error?.message || (source.google ? 'Google Maps could not load.' : 'Street map resources could not load.')

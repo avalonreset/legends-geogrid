@@ -271,3 +271,33 @@ test('mounts a companion study with panels hidden when their capability is off, 
     dom.window.close()
   }
 })
+
+test('destroying during an in-flight #basemap change leaves no unhandled rejection', async () => {
+  const problems = []
+  const onRejection = reason => problems.push(reason)
+  process.on('unhandledRejection', onRejection)
+  const { dom, w } = createWindow()
+  try {
+    const host = w.document.querySelector('#host')
+    const viewer = w.GeoGridViewer.mount(host, companionStudy, { capabilities: OFF, workerUrl: 'https://app.example.test/geogrid-viewer-worker.js' })
+    const select = host.querySelector('#basemap')
+    assert.ok(select, 'companion renders the #basemap select')
+    assert.ok([...select.options].some(o => o.value === 'ofm-liberty'), 'liberty is a selectable basemap')
+    select.value = 'ofm-liberty'
+    // Fire the change, then destroy synchronously before the async handler reaches its finally block.
+    select.dispatchEvent(new w.Event('change', { bubbles: true }))
+    viewer.destroy()
+    assert.equal(host.children.length, 0)
+    await new Promise(resolve => setTimeout(resolve, 100))
+    assert.deepEqual(problems.map(String), [], 'post-destroy finally block stays silent')
+    // A change dispatched on the detached select after destroy is also silent.
+    select.dispatchEvent(new w.Event('change', { bubbles: true }))
+    await new Promise(resolve => setTimeout(resolve, 50))
+    assert.deepEqual(problems.map(String), [], 'post-destroy change dispatch stays silent')
+  } catch (error) {
+    throw new Error(`${error?.message ?? JSON.stringify(error)}\n${error?.stack ?? ''}`)
+  } finally {
+    process.off('unhandledRejection', onRejection)
+    dom.window.close()
+  }
+})

@@ -1616,13 +1616,14 @@ const basemaps = createBasemapSwitcher(map, { announce, basemaps: basemapList, f
     failedBasemap = null
   }
 }, onChange(id) {
+  if (destroyed || !$('#basemap')) return
   state.basemap = id
   $('#basemap').value = id
   if (!embedded) try { localStorage.setItem('geogrid-basemap', id) } catch { /* URL still preserves it. */ }
   syncURL()
 } })
 function ensureBasemap() {
-  if (!mapSourcesReady || basemapStarted || !$('#map').clientWidth || !$('#map').clientHeight) return
+  if (destroyed || !mapSourcesReady || basemapStarted || !$('#map')?.clientWidth || !$('#map')?.clientHeight) return
   basemapStarted = true
   void basemaps.set(state.basemap)
 }
@@ -1641,13 +1642,16 @@ $('#dismiss-basemap').addEventListener('click', () => {
   $('#basemap').value = state.basemap
 })
 $('#basemap').addEventListener('change', async e => {
+  if (destroyed || !$('#basemap') || !$('#basemap-status')) return
   const choice = e.target.value
   $('#basemap-status').hidden = true
   $('#basemap').disabled = true
   try { await basemaps.set(choice) }
   finally {
-    $('#basemap').disabled = false
-    $('#basemap').value = $('#basemap-status').hidden ? state.basemap : (failedBasemap || state.basemap)
+    const select = $('#basemap'), statusEl = $('#basemap-status')
+    if (destroyed || !select || !statusEl) return
+    select.disabled = false
+    select.value = statusEl.hidden ? state.basemap : (failedBasemap || state.basemap)
   }
 })
 pointsLayer = new RankCanvasLayer({ onSelect: selectPoint, onHoverLeader: setHoveredLeader,

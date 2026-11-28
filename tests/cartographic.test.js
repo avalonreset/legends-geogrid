@@ -128,16 +128,16 @@ test('rank canvas wires clip guards before contour and relief lookups', () => {
   assert.match(tipSlice, /!this\.focus\?\.elevation\?\.levels\?\.length/)
 })
 
-test('release 0.3.1 version strings stay in parity', () => {
+test('release 0.3.2 version strings stay in parity', () => {
   const citation = readFileSync(new URL('../CITATION.cff', import.meta.url), 'utf8')
-  assert.match(citation, /^version: "0\.3\.1"\r?$/m)
+  assert.match(citation, /^version: "0\.3\.2"\r?$/m)
   assert.match(citation, /^date-released: "2026-11-27"\r?$/m)
   const review = readFileSync(new URL('../tools/business_name_review.py', import.meta.url), 'utf8')
-  assert.ok(!review.includes('legends-geogrid/0.3.0'))
-  assert.ok(review.includes('legends-geogrid/0.3.1'))
+  assert.ok(!review.includes('legends-geogrid/0.3.1'))
+  assert.ok(review.includes('legends-geogrid/0.3.2'))
   const topo = readFileSync(new URL('../tools/report_hex_topo.py', import.meta.url), 'utf8')
-  assert.ok(!topo.includes('v0.3.0'))
-  assert.ok(topo.includes('v0.3.1'))
+  assert.ok(!topo.includes('v0.3.1'))
+  assert.ok(topo.includes('v0.3.2'))
 })
 
 test('dominance tier guard returns no tier outside the clipped study circle', () => {

@@ -16,18 +16,28 @@ Fresh competitive collection and export are described in [COMPETITIVE_SAMPLING.m
 
 ## Map backgrounds
 
-The **Map source** selector above the map offers original and inverted
-OpenStreetMap, plus OpenFreeMap Fiord, Dark, Liberty, and Positron.
-The default **OpenStreetMap · Legends dark** treatment dims the inverted map
-to 68% brightness with 85% saturation, retaining colored roads, parks and water.
-It affects only the background tiles, leaving ranking colors and labels intact.
-The original inverted map remains available as a separate choice. OpenFreeMap
-uses MapLibre WebGL, loaded only when selected. Its original style colors are
-preserved. Changing a background preserves the business, query, coordinates,
-zoom and ranking evidence. The choice persists locally and in `basemap=`.
+The **Map source** selector above the map offers OpenFreeMap Fiord, Dark,
+Liberty, and Positron, plus original and inverted OpenStreetMap when the
+Companion is served over HTTP. The default is **OpenFreeMap · Dark** everywhere.
+OpenFreeMap uses MapLibre WebGL with its original style colors, and its servers
+allow any origin, so it works from a local file with no key and no server.
+The **OpenStreetMap · Legends dark** treatment dims the inverted map to 68%
+brightness with 85% saturation, retaining colored roads, parks and water. It
+affects only the background tiles, leaving ranking colors and labels intact.
+Changing a background preserves the business, query, coordinates, zoom and
+ranking evidence. The choice persists locally and in `basemap=`.
+
+The static Companion opened from disk (`file://`, built by
+`python tools/study.py --open`) bundles MapLibre and starts its worker from
+the page itself. It lists only the OpenFreeMap styles: a file page sends no
+Referer, so `tile.openstreetmap.org` would serve "Access blocked" images, and
+Google Map Tiles need the local server. It never requests OpenStreetMap tiles.
+
 Failed sources leave the previous background in place, with a persistent retry
-and OpenStreetMap choice. A failed initial load explicitly says the background
-is unavailable; it never presents an empty background as successful.
+and, over HTTP, an OpenStreetMap choice. A failed initial load explicitly says
+the background is unavailable; it never presents an empty background as
+successful. Without WebGL the map keeps its neutral dark background with every
+ranking overlay intact.
 
 **Google Maps · Streets**, **Dark**, and **Satellite + labels** are interactive
 Map Tiles API backgrounds in the same map, with the same overlays and navigation.

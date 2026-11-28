@@ -415,7 +415,7 @@ def firecrawl_scrape_html(url, api_key, timeout=35):
         headers={
             "Authorization": f"Bearer {api_key}",
             "Content-Type": "application/json",
-            "User-Agent": "legends-geogrid/0.3.1",
+            "User-Agent": "legends-geogrid/0.3.2",
         },
         method="POST",
     )
@@ -541,7 +541,7 @@ def official_streetview_metadata(lat, lng, api_key, timeout=15):
         return None
     url = (f"{OFFICIAL_STREETVIEW_META_URL}?location={float(lat):.6f},{float(lng):.6f}"
            f"&source=outdoor&key={quote(api_key)}")
-    req = urllib.request.Request(url, headers={"User-Agent": "legends-geogrid/0.3.1"})
+    req = urllib.request.Request(url, headers={"User-Agent": "legends-geogrid/0.3.2"})
     opener = urllib.request.urlopen if getattr(urllib.request.urlopen, "__module__", "") == "unittest.mock" else urllib.request.build_opener(_NoRedirect()).open
     try:
         with opener(req, timeout=timeout) as resp:
@@ -572,7 +572,7 @@ def official_streetview_fetch_image(lat, lng, api_key, timeout=20):
         return None, None
     img_url = (f"{OFFICIAL_STREETVIEW_IMG_URL}?size=800x600&pano={quote(meta['pano_id'])}"
                f"&heading={meta['heading']:.2f}&pitch=4&fov=75&return_error_code=true&key={quote(api_key)}")
-    req = urllib.request.Request(img_url, headers={"User-Agent": "legends-geogrid/0.3.1"})
+    req = urllib.request.Request(img_url, headers={"User-Agent": "legends-geogrid/0.3.2"})
     opener = urllib.request.urlopen if getattr(urllib.request.urlopen, "__module__", "") == "unittest.mock" else urllib.request.build_opener(_NoRedirect()).open
     try:
         with opener(req, timeout=timeout) as resp:
@@ -766,7 +766,7 @@ def fetch_photos(root, use_jev=False, only_cids=None, api_key_file=None, officia
             dest = photos_dir / f"{cid}-{key}.jpg"
             if not dest.exists():
                 try:
-                    raw, _, _ = safe_public_fetch(url, max_bytes=5_000_000, timeout=20, user_agent="legends-geogrid/0.3.1")
+                    raw, _, _ = safe_public_fetch(url, max_bytes=5_000_000, timeout=20, user_agent="legends-geogrid/0.3.2")
                     if raw:
                         dest.write_bytes(raw)
                         entry[f"{key}_path"] = str(dest.relative_to(root))

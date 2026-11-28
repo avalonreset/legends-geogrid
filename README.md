@@ -252,7 +252,7 @@ Rates in the code: $0.0006 per Standard Queue Maps search at depth 30, $0.0012 f
 
 | Say this | What your agent does |
 | --- | --- |
-| "Open the bundled South Philly study so I can explore it without spending credits." | Runs `python tools/study.py --open`, builds a static Companion file, and opens it. No keys, no network calls. |
+| "Open the bundled South Philly study so I can explore it without spending credits." | Runs `python tools/study.py --open`, builds a static Companion file, and opens it. No keys, no spend; the dark street map loads from keyless OpenFreeMap. |
 | "Study `<business name>` on Google Maps." | Researches the website, public profile, and search demand, proposes 3 to 5 search themes, shows the circular honeycomb and cost ceiling, and waits for your approval. |
 | "Check why a competitor disappears along a straight line on the east edge of our map." | Reruns paired points on both sides of the edge with the search restriction on and off, saves that as a separate diagnostic run, and reports who comes back. |
 | "Check the first-place holders in this study for keyword stuffing and read their signs." | Refreshes exact profiles through the Standard Queue, captures website branding, downloads provider GBP storefront photos/logos (with optional official Street View Static API + 1-click Google Maps Street View links), and runs the optional `legends-jev` sign check. |

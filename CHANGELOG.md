@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.3.2 - 2026-11-27
+
+- Static Companion basemap hotfix (`vite.runtime.config.js`, `src/maplibre-worker-inline.js`, `src/companion-app.js`, `src/basemap-switcher.js`): a Companion opened from disk (`file://`, `python tools/study.py --open`) now shows a real OpenFreeMap Dark street map on first load with no key and no server. The static runtime bundles MapLibre and starts its worker as a classic worker from a Blob URL, so OpenFreeMap styles, tiles, glyphs and sprites load from the page's `null` origin. A file page sends no Referer, so it no longer requests `tile.openstreetmap.org` (which served "Access blocked" images) and lists only working backgrounds instead of disabled "(HTTP server only)" entries.
+- OpenFreeMap Dark is now the default background over HTTP as well; OpenStreetMap stays selectable there. Without WebGL the map fails fast to its neutral dark background with every ranking overlay intact.
+- Map load deadlines (`src/visible-timeout.js`) now count only time while the page is visible. Chrome pauses rendering in background tabs, so a Companion opened behind another tab no longer reports a healthy basemap as "Map loading timed out" when the user switches to it.
+- Add a hermetic Playwright regression test (`tests/test_companion_file_origin.py`) that opens the built Companion via `file://` with the network mocked.
+
 ## 0.3.1 - 2026-11-27
 
 - Cartographic hotfix (`src/cartographic.js`, `src/rank-canvas.js`, `src/map-geometry.js`, `src/companion-app.js`): inward-only contour edge gradient (innerWidth 48px, innerOpacity 0.16, borderScale 0.45), 200ms cubic-bezier hover for leaders and rank master tiers with exact interpolated rank tooltip, Fortress Core dominance tier tooltip, tau-coupled relief contraction in contested mode, and 0.04 background dim under draped topography.

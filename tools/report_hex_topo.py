@@ -462,7 +462,7 @@ def _page_chrome(title: str, subtitle: str, page_num: int, total_pages: int) -> 
         f"BT 0.945 0.945 0.945 rg /F2 17 Tf 40 755 Td ({_pdf_escape(title)}) Tj ET",
         f"BT 0.620 0.620 0.620 rg /F1 8.5 Tf 40 726 Td ({_pdf_escape(subtitle)}) Tj ET",
         "0.200 0.200 0.220 RG 0.6 w 40 42 m 572 42 l S",
-        "BT 0.520 0.520 0.540 rg /F1 7.5 Tf 40 28 Td (legends-geogrid v0.3.1 | vector 30-layer topography & real coastline clipping | observational evidence) Tj ET",
+        "BT 0.520 0.520 0.540 rg /F1 7.5 Tf 40 28 Td (legends-geogrid v0.3.2 | vector 30-layer topography & real coastline clipping | observational evidence) Tj ET",
         f"BT 0.680 0.680 0.700 rg /F2 8 Tf 525 28 Td (Page {page_num} / {total_pages}) Tj ET",
     ]
     return ops

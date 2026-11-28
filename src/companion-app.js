@@ -102,13 +102,18 @@ let map, pointsLayer, basesLayer, rangeLayer, coverageLayer
 let strategyRoom
 let nameReview
 let inspectorTimer = 0
+const isFileOrigin = !embedded && location.protocol === 'file:'
+// A page opened from disk sends no Referer, so tile.openstreetmap.org serves "Access blocked" images, and Google
+// needs the local server's session endpoint. file:// therefore lists only OpenFreeMap styles, which allow any origin.
 const basemapList = (Array.isArray(config.basemaps) ? BASEMAPS.filter(s => config.basemaps.includes(s.id)) : [...BASEMAPS])
   .filter(s => !(embedded && s.google && !config.googleSessionPath))
-const fallbackBasemap = basemapList.some(s => s.id === 'osm-legends') ? 'osm-legends' : (basemapList.find(s => !s.google)?.id || basemapList[0]?.id)
+  .filter(s => !isFileOrigin || s.style)
+const fallbackBasemap = ['ofm-dark', 'osm-legends'].find(id => basemapList.some(s => s.id === id)) || basemapList.find(s => !s.google)?.id || basemapList[0]?.id
+// Recovery choice offered when a background fails: the raster map where it works (http), else the default.
+const rescueBasemap = basemapList.some(s => s.id === 'osm-legends') ? 'osm-legends' : fallbackBasemap
 let preferredBasemap = config.defaultBasemap || fallbackBasemap
 if (!embedded) try { preferredBasemap = localStorage.getItem('geogrid-basemap') || preferredBasemap } catch { /* Use default. */ }
-const isFileOrigin = !embedded && location.protocol === 'file:'
-const selectableBasemap = id => basemapList.some(s => s.id === id && (!isFileOrigin || s.kind === 'osm'))
+const selectableBasemap = id => basemapList.some(s => s.id === id)
 state.basemap = selectableBasemap(initialParams.get('basemap')) ? initialParams.get('basemap') :
   selectableBasemap(preferredBasemap) ? preferredBasemap : fallbackBasemap
 let spacing = 0, pointSpacings = [], gridCorners = [], cancelWheelZoom = () => {}
@@ -147,10 +152,10 @@ root.innerHTML = `
       <div class="map-column">
         <div class="map-heading"><div class="view-tabs" role="group" aria-label="Map lens">
           <button data-view="visibility">Rankings</button><button data-view="factions">Local leaders</button><button data-view="campaigns">Campaigns</button><button data-view="keyword-stuffing" aria-controls="nr-inspector">Keyword stuffing</button><button data-view="matchup" hidden>Head-to-head</button>
-        </div><div class="map-description" id="view-description"></div><div class="map-heading-actions"><select id="basemap" aria-label="Map source">${basemapList.map(s => `<option value="${s.id}"${isFileOrigin && s.kind !== 'osm' ? ' disabled' : ''}>${s.name}${isFileOrigin && s.kind !== 'osm' ? ' (HTTP server only)' : ''}</option>`).join('')}</select><button id="fit" class="quiet-button" title="Show every sampled location">Fit study</button></div></div>
+        </div><div class="map-description" id="view-description"></div><div class="map-heading-actions"><select id="basemap" aria-label="Map source">${basemapList.map(s => `<option value="${s.id}">${s.name}</option>`).join('')}</select><button id="fit" class="quiet-button" title="Show every sampled location">Fit study</button></div></div>
         <div id="map"><div class="map-badge"><span id="map-business"></span><small id="map-subtitle">Organic Maps rankings</small></div>
           <div id="focus-pill" class="focus-pill" role="status" hidden></div>
-          <div id="basemap-status" class="basemap-status" role="status" hidden><p></p><div><button id="retry-basemap">Retry map</button><button id="use-default-basemap">Use ${embedded ? escape(basemapList.find(s => s.id === fallbackBasemap)?.name || 'default map') : 'OpenStreetMap'}</button><button id="dismiss-basemap">Dismiss</button></div></div>
+          <div id="basemap-status" class="basemap-status" role="status" hidden><p></p><div><button id="retry-basemap">Retry map</button><button id="use-default-basemap">Use ${escape(basemapList.find(s => s.id === rescueBasemap)?.name || 'default map')}</button><button id="dismiss-basemap">Dismiss</button></div></div>
           <div class="map-options" role="group" aria-label="Map appearance"><button id="elevation-contours" type="button" aria-pressed="true">topography</button><button id="triangle-estimates" type="button" aria-pressed="false">triangles</button><button id="contested-ground" type="button" aria-pressed="false">contested</button><span class="map-options-divider" aria-hidden="true"></span><button id="grid-dots" type="button" aria-pressed="false">pins</button><button id="distance-rings" type="button" aria-pressed="true">rings</button></div>
         </div>
         <div class="map-legend" id="legend"></div>
@@ -1600,10 +1605,13 @@ const basemaps = createBasemapSwitcher(map, { announce, basemaps: basemapList, f
   },
   onStatus(status) {
   if (!$('#basemap-status')) return // destroyed while a background was still loading
+  $('#map').dataset.basemapState = status.phase
   $('#basemap-status').hidden = status.phase !== 'error'
   if (status.phase === 'error') {
     failedBasemap = status.id
     $('#basemap-status p').textContent = status.message
+    // Retry already covers the recovery choice when that is the background that failed.
+    $('#use-default-basemap').hidden = status.id === rescueBasemap
   } else if (status.phase === 'ready') {
     failedBasemap = null
   }
@@ -1625,7 +1633,7 @@ $('#retry-basemap').addEventListener('click', () => { if (failedBasemap) void ba
 $('#use-default-basemap').addEventListener('click', () => {
   $('#basemap-status').hidden = true
   failedBasemap = null
-  void basemaps.set(fallbackBasemap)
+  void basemaps.set(rescueBasemap)
 })
 $('#dismiss-basemap').addEventListener('click', () => {
   $('#basemap-status').hidden = true

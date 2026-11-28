@@ -1,5 +1,6 @@
 import { createOsmLayer } from './osm-tiles.js'
 import { maplibreWorkerUrl } from './maplibre-worker.js'
+import { visibleTimeout } from './visible-timeout.js'
 
 export const BASEMAPS = [
   { id: 'osm-dark', name: 'OpenStreetMap · inverted', kind: 'osm', dark: true },
@@ -24,6 +25,20 @@ const openCredit = '<a href="https://openfreemap.org/">OpenFreeMap</a> · © <a 
 // A layer that failed half-way (for example no WebGL) can throw while detaching; teardown must never mask the real error.
 function removeLayerSafely(map, layer) {
   try { if (layer && map.hasLayer(layer)) map.removeLayer(layer) } catch { /* already detached */ }
+}
+
+// Vector styles need WebGL. Probing first fails fast, leaving the neutral map background and the evidence
+// overlays in place instead of waiting for MapLibre to time out.
+let webglSupported = null
+function hasWebGL() {
+  if (webglSupported !== null) return webglSupported
+  try {
+    const canvas = document.createElement('canvas')
+    const gl = canvas.getContext('webgl2') || canvas.getContext('webgl')
+    webglSupported = !!gl
+    gl?.getExtension?.('WEBGL_lose_context')?.loseContext()
+  } catch { webglSupported = false }
+  return webglSupported
 }
 
 export function createBasemapSwitcher(map, { announce, onChange, onStatus = () => {}, basemaps = BASEMAPS, fallbackId = null,
@@ -72,6 +87,7 @@ export function createBasemapSwitcher(map, { announce, onChange, onStatus = () =
           layer = await createGoogleTiles(map, source.google, announce, { sessionPath: googleSessionPath, onFailure: silentGoogle ? googleFailed : null })
           if (revision !== version) return
         } else if (source.style) {
+          if (!hasWebGL()) throw new Error('WebGL is unavailable in this browser.')
           const [{ MaplibreGL }, , maplibre, workerUrl] = await Promise.all([
             import('@maplibre/maplibre-gl-leaflet'), import('maplibre-gl/dist/maplibre-gl.css'),
             import('maplibre-gl'), maplibreWorkerUrl(),
@@ -89,15 +105,15 @@ export function createBasemapSwitcher(map, { announce, onChange, onStatus = () =
           ? new Promise((resolve, reject) => {
             layer.addTo(map)
             const gl = layer.getMaplibreMap()
-            const timer = setTimeout(() => reject(new Error('Map loading timed out')), 25000)
-            gl.once('load', () => { clearTimeout(timer); resolve() })
-            gl.once('error', () => { clearTimeout(timer); reject(new Error('Map resources could not load')) })
+            const stopTimer = visibleTimeout(25000, () => reject(new Error('Map loading timed out.')))
+            gl.once('load', () => { stopTimer(); resolve() })
+            gl.once('error', () => { stopTimer(); reject(new Error('Map resources could not load.')) })
           })
           : source.google
           ? new Promise((resolve, reject) => {
-            const timer = setTimeout(() => reject(new Error('Map loading timed out')), 20000)
-            layer.once('load', () => { clearTimeout(timer); resolve() })
-            layer.once('tileerror', () => { clearTimeout(timer); reject(new Error('Street tiles could not load')) })
+            const stopTimer = visibleTimeout(20000, () => reject(new Error('Map loading timed out.')))
+            layer.once('load', () => { stopTimer(); resolve() })
+            layer.once('tileerror', () => { stopTimer(); reject(new Error('Street tiles could not load')) })
             layer.addTo(map)
           })
           : new Promise(resolve => {

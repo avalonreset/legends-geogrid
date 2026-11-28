@@ -10,10 +10,9 @@ export default defineConfig({
     alias: [
       { find: './starter-data.js', replacement: resolve(root, 'src/starter-data-runtime.js') },
       { find: './google-tiles.js', replacement: stub },
-      { find: '@maplibre/maplibre-gl-leaflet', replacement: stub },
-      { find: 'maplibre-gl/dist/maplibre-gl.css', replacement: stub },
+      // OpenFreeMap vector styles work from file://: MapLibre is bundled and its worker starts from a Blob URL.
+      { find: './maplibre-worker.js', replacement: resolve(root, 'src/maplibre-worker-inline.js') },
       { find: 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url', replacement: stub },
-      { find: 'maplibre-gl', replacement: stub },
     ],
   },
   build: {
@@ -26,6 +25,7 @@ export default defineConfig({
       output: {
         format: 'iife',
         name: 'GeoGridRuntime',
+        codeSplitting: false,
         entryFileNames: 'companion-runtime.js',
         assetFileNames: 'companion-runtime[extname]',
       },

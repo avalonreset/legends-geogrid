@@ -53,6 +53,60 @@ test('hiding the tab pauses the remaining time and stop cancels cleanly', async 
   assert.equal(doc.listenerCount, 0)
 })
 
+test('zero, negative and NaN deadlines fire promptly without leaking listeners', async () => {
+  for (const ms of [0, -50, NaN]) {
+    const doc = fakeDocument(false)
+    let fired = 0
+    visibleTimeout(ms, () => { fired += 1 }, doc)
+    await sleep(30)
+    assert.equal(fired, 1, `ms=${String(ms)}`)
+    assert.equal(doc.listenerCount, 0)
+  }
+})
+
+test('Infinity and over-range deadlines are clamped, not passed raw to setTimeout', async () => {
+  for (const ms of [Infinity, 0x7fffffff + 5000]) {
+    const doc = fakeDocument(false)
+    let fired = 0
+    const stop = visibleTimeout(ms, () => { fired += 1 }, doc)
+    await sleep(40)
+    assert.equal(fired, 0, `ms=${String(ms)} must not fire immediately`)
+    stop()
+    assert.equal(doc.listenerCount, 0)
+    await sleep(20)
+    assert.equal(fired, 0)
+  }
+})
+
+test('repeated hidden and visible events do not burn or double-count the deadline', async () => {
+  const doc = fakeDocument(false)
+  let fired = 0
+  visibleTimeout(50, () => { fired += 1 }, doc)
+  for (let i = 0; i < 5; i += 1) {
+    doc.setHidden(true)
+    doc.setHidden(true)
+    await sleep(15)
+    doc.setHidden(false)
+    doc.setHidden(false)
+    await sleep(5)
+  }
+  assert.equal(fired, 0, 'only about 25ms of visible time has elapsed')
+  await sleep(80)
+  assert.equal(fired, 1)
+  assert.equal(doc.listenerCount, 0)
+})
+
+test('stop while hidden on start prevents firing when the page becomes visible', async () => {
+  const doc = fakeDocument(true)
+  let fired = 0
+  const stop = visibleTimeout(20, () => { fired += 1 }, doc)
+  stop()
+  assert.equal(doc.listenerCount, 0)
+  doc.setHidden(false)
+  await sleep(60)
+  assert.equal(fired, 0)
+})
+
 test('basemap switcher load deadlines use the visibility-aware timer', () => {
   const source = readFileSync(new URL('../src/basemap-switcher.js', import.meta.url), 'utf8')
   assert.match(source, /visibleTimeout\(25000/)

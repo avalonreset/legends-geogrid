@@ -119,11 +119,13 @@ export function mountLeanViewer(el, input, options = {}) {
   L.control.zoom({ position: 'bottomleft' }).addTo(map)
 
   const status = $('.ggl-status')
+  let destroyed = false
   let announceTimer = 0
   const announce = message => {
+    if (destroyed) return
     status.textContent = message
     clearTimeout(announceTimer)
-    announceTimer = setTimeout(() => { status.textContent = '' }, 4000)
+    announceTimer = setTimeout(() => { if (destroyed) return; status.textContent = '' }, 4000)
   }
 
   const ranges = L.layerGroup().addTo(map)
@@ -168,10 +170,11 @@ export function mountLeanViewer(el, input, options = {}) {
   const select = $('.ggl-basemap')
   const switcher = createBasemapSwitcher(map, {
     announce, basemaps: basemapList, fallbackId, googleSessionPath: options.googleSessionPath, attribution: options.attribution,
-    onChange: id => { select.value = id },
+    onChange: id => { if (destroyed) return; select.value = id },
     // Hosts and tests can read the background state from data-basemap-state (loading, ready or error).
-    onStatus: ({ phase }) => { $('.ggl-map').dataset.basemapState = phase },
+    onStatus: ({ phase }) => { if (destroyed) return; const node = $('.ggl-map'); if (node) node.dataset.basemapState = phase },
     onGoogleUnavailable: () => {
+      if (destroyed) return
       // A failed Google request hides every Google option for this session; the switcher returns to the default background.
       for (let i = basemapList.length - 1; i >= 0; i--) if (basemapList[i].google) basemapList.splice(i, 1)
       select.querySelectorAll('option').forEach(o => { if (!basemapList.some(b => b.id === o.value)) o.remove() })
@@ -195,7 +198,6 @@ export function mountLeanViewer(el, input, options = {}) {
   const resizeObserver = new ResizeObserver(() => map.invalidateSize({ pan: false }))
   resizeObserver.observe($('.ggl-map'))
 
-  let destroyed = false
   return {
     destroy() {
       if (destroyed) return

@@ -44,10 +44,14 @@ function hasWebGL() {
 export function createBasemapSwitcher(map, { announce, onChange, onStatus = () => {}, basemaps = BASEMAPS, fallbackId = null,
   googleSessionPath, tileStyleBase = OFM_STYLES_URL, attribution = null, onGoogleUnavailable = null }) {
   let current, currentSource = null, version = 0, googleDown = false
+  let cancelPending = null
+  let pendingLayer = null
+  let destroyed = false
+  map.once('unload', () => { destroyed = true; version++; cancelPending?.(); cancelPending = null })
   const silentGoogle = typeof onGoogleUnavailable === 'function'
   const credit = attribution ? escapeText(attribution) : openCredit
   const googleFailed = () => {
-    if (googleDown) return
+    if (destroyed || googleDown) return
     googleDown = true
     onGoogleUnavailable()
     if (fallbackId && (!current || currentSource?.google)) void api.set(fallbackId)
@@ -57,7 +61,10 @@ export function createBasemapSwitcher(map, { announce, onChange, onStatus = () =
       const source = basemaps.find(s => s.id === id)
       if (!source) throw new Error('Unknown basemap')
       if (source.google && googleDown) return
+      if (destroyed) return
       const revision = ++version
+      cancelPending?.(); cancelPending = null
+      if (pendingLayer) { removeLayerSafely(map, pendingLayer); pendingLayer = null }
       // If the requested basemap is already active (or another OSM style shares the active OSM tile layer),
       // switch/confirm immediately so returning from a failed Google attempt never hangs or stays stuck.
       if (current && map.hasLayer(current)) {
@@ -85,14 +92,14 @@ export function createBasemapSwitcher(map, { announce, onChange, onStatus = () =
         if (source.google) {
           const { createGoogleTiles } = await import('./google-tiles.js')
           layer = await createGoogleTiles(map, source.google, announce, { sessionPath: googleSessionPath, onFailure: silentGoogle ? googleFailed : null })
-          if (revision !== version) return
+          if (destroyed || revision !== version) { removeLayerSafely(map, layer); return }
         } else if (source.style) {
           if (!hasWebGL()) throw new Error('WebGL is unavailable in this browser.')
           const [{ MaplibreGL }, , maplibre, workerUrl] = await Promise.all([
             import('@maplibre/maplibre-gl-leaflet'), import('maplibre-gl/dist/maplibre-gl.css'),
             import('maplibre-gl'), maplibreWorkerUrl(),
           ])
-          if (revision !== version) return
+          if (destroyed || revision !== version) return
           maplibre.setWorkerUrl(workerUrl)
           layer = new MaplibreGL({ style: `${tileStyleBase}/${source.style}`,
             interactive: false, attributionControl: false, pane: 'tilePane' })
@@ -101,33 +108,65 @@ export function createBasemapSwitcher(map, { announce, onChange, onStatus = () =
           layer = createOsmLayer(source)
         }
         const previous = current
-        const readyPromise = source.style
-          ? new Promise((resolve, reject) => {
-            layer.addTo(map)
-            const gl = layer.getMaplibreMap()
-            const stopTimer = visibleTimeout(25000, () => reject(new Error('Map loading timed out.')))
-            gl.once('load', () => { stopTimer(); resolve() })
-            gl.once('error', () => { stopTimer(); reject(new Error('Map resources could not load.')) })
-          })
-          : source.google
-          ? new Promise((resolve, reject) => {
-            const stopTimer = visibleTimeout(20000, () => reject(new Error('Map loading timed out.')))
-            layer.once('load', () => { stopTimer(); resolve() })
-            layer.once('tileerror', () => { stopTimer(); reject(new Error('Street tiles could not load')) })
-            layer.addTo(map)
-          })
-          : new Promise(resolve => {
-            const done = () => { clearTimeout(timer); resolve() }
-            const timer = setTimeout(done, 1200)
-            layer.once('load', done)
-            layer.once('tileload', done)
-            layer.addTo(map)
-            if (!layer.isLoading?.()) done()
-          })
-        const container = layer.getContainer()
+        pendingLayer = layer
+        const readyPromise = new Promise((resolve, reject) => {
+          let settled = false
+          let stopTimer = () => {}
+          let offAll = () => {}
+          const cleanup = () => {
+            try { stopTimer() } catch { /* timer already stopped */ }
+            try { offAll() } catch { /* listeners already detached */ }
+            if (cancelPending === cancel) cancelPending = null
+            if (pendingLayer === layer) pendingLayer = null
+          }
+          const settleResolve = () => { if (settled) return; settled = true; cleanup(); resolve() }
+          const settleReject = error => { if (settled) return; settled = true; cleanup(); reject(error) }
+          const cancel = () => {
+            if (settled) return
+            settled = true
+            cleanup()
+            removeLayerSafely(map, layer)
+            resolve()
+          }
+          const onRemove = () => settleResolve()
+          cancelPending = cancel
+          try {
+            if (source.style) {
+              layer.addTo(map)
+              const gl = layer.getMaplibreMap()
+              const onLoad = () => settleResolve()
+              const onError = () => settleReject(new Error('Map resources could not load.'))
+              stopTimer = visibleTimeout(25000, () => settleReject(new Error('Map loading timed out.')))
+              gl.once('load', onLoad)
+              gl.once('error', onError)
+              layer.once('remove', onRemove)
+              offAll = () => { gl.off?.('load', onLoad); gl.off?.('error', onError); layer.off?.('remove', onRemove) }
+            } else if (source.google) {
+              const onLoad = () => settleResolve()
+              const onTileError = () => settleReject(new Error('Street tiles could not load'))
+              stopTimer = visibleTimeout(20000, () => settleReject(new Error('Map loading timed out.')))
+              layer.once('load', onLoad)
+              layer.once('tileerror', onTileError)
+              layer.once('remove', onRemove)
+              offAll = () => { layer.off?.('load', onLoad); layer.off?.('tileerror', onTileError); layer.off?.('remove', onRemove) }
+              layer.addTo(map)
+            } else {
+              const timer = setTimeout(settleResolve, 1200)
+              stopTimer = () => clearTimeout(timer)
+              layer.once('load', settleResolve)
+              layer.once('tileload', settleResolve)
+              layer.once('remove', onRemove)
+              offAll = () => { layer.off?.('load', settleResolve); layer.off?.('tileload', settleResolve); layer.off?.('remove', onRemove) }
+              layer.addTo(map)
+              if (!layer.isLoading?.()) settleResolve()
+            }
+          } catch (error) { settleReject(error) }
+        })
+        let container = null
+        try { container = layer.getContainer() } catch { container = null }
         if (container) container.style.opacity = '0'
         await readyPromise
-        if (revision !== version) { removeLayerSafely(map, layer); return }
+        if (destroyed || revision !== version) { removeLayerSafely(map, layer); return }
         current = layer
         currentSource = source
         const duration = matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 300
@@ -135,11 +174,13 @@ export function createBasemapSwitcher(map, { announce, onChange, onStatus = () =
           container.style.transition = `opacity ${duration}ms ease`
           container.style.opacity = '1'
         }
-        if (previous && previous !== layer) setTimeout(() => removeLayerSafely(map, previous), duration)
+        if (previous && previous !== layer) setTimeout(() => { if (!destroyed) removeLayerSafely(map, previous) }, duration)
         onChange(id)
         onStatus({ phase: 'ready', id })
       } catch (error) {
         removeLayerSafely(map, layer)
+        if (pendingLayer === layer) pendingLayer = null
+        if (destroyed || revision !== version) return
         if (source.google && silentGoogle) { googleFailed(); return }
         if (revision === version) {
           const detail = error?.message || (source.google ? 'Google Maps could not load.' : 'Street map resources could not load.')

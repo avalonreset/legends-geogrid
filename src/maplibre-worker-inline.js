@@ -6,16 +6,23 @@
 // ends in ".cjs" tells MapLibre to start a classic worker instead (it re-reads the blob into a fresh one),
 // which works on file:// and http(s) alike. The worker's only module syntax is its trailing default export.
 import workerSource from 'maplibre-gl/dist/maplibre-gl-worker.mjs?raw'
+import { classicWorkerSource } from './classic-worker-source.js'
 
-export const classicWorkerSource = source => source
-  .replace(/\bexport\s*\{\s*[\w$]+\s+as\s+default\s*\}\s*;?/, '')
-  .replace(/\/\/# sourceMappingURL=\S+\s*$/, '')
+export { classicWorkerSource }
 
 let blobUrl = null
 
 export async function maplibreWorkerUrl() {
   if (!blobUrl) {
-    const url = URL.createObjectURL(new Blob([classicWorkerSource(workerSource)], { type: 'text/javascript' }))
+    let url = null
+    try {
+      url = URL.createObjectURL(new Blob([classicWorkerSource(workerSource)], { type: 'text/javascript' }))
+      const probe = new Worker(url)
+      probe.terminate()
+    } catch {
+      if (url) { try { URL.revokeObjectURL?.(url) } catch { /* already revoked */ } }
+      throw new Error('Web Workers are unavailable in this browser.')
+    }
     blobUrl = `${url}#maplibre-gl-worker.cjs`
   }
   return blobUrl

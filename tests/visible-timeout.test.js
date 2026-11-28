@@ -78,21 +78,34 @@ test('Infinity and over-range deadlines are clamped, not passed raw to setTimeou
   }
 })
 
-test('repeated hidden and visible events do not burn or double-count the deadline', async () => {
+test('repeated hidden and visible events do not burn or double-count the deadline', t => {
+  // Mocked clock: real 5 ms sleeps round up to about 15.6 ms on Windows runners,
+  // which made the visible-time budget depend on OS timer granularity.
+  t.mock.timers.enable({ apis: ['setTimeout', 'Date'] })
+  const realPerformance = Object.getOwnPropertyDescriptor(globalThis, 'performance')
+  Object.defineProperty(globalThis, 'performance', { configurable: true, writable: true, value: { now: () => Date.now() } })
+  t.after(() => {
+    if (realPerformance) Object.defineProperty(globalThis, 'performance', realPerformance)
+    else delete globalThis.performance
+  })
   const doc = fakeDocument(false)
   let fired = 0
   visibleTimeout(50, () => { fired += 1 }, doc)
   for (let i = 0; i < 5; i += 1) {
     doc.setHidden(true)
     doc.setHidden(true)
-    await sleep(15)
+    t.mock.timers.tick(15)
     doc.setHidden(false)
     doc.setHidden(false)
-    await sleep(5)
+    t.mock.timers.tick(5)
   }
-  assert.equal(fired, 0, 'only about 25ms of visible time has elapsed')
-  await sleep(80)
+  assert.equal(fired, 0, 'only 25ms of visible time has elapsed')
+  t.mock.timers.tick(24)
+  assert.equal(fired, 0, '49ms of visible time is still inside the 50ms deadline')
+  t.mock.timers.tick(1)
   assert.equal(fired, 1)
+  t.mock.timers.tick(200)
+  assert.equal(fired, 1, 'fires exactly once')
   assert.equal(doc.listenerCount, 0)
 })
 
